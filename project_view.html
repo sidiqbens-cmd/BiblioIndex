@@ -2,47 +2,27 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد - المحرر المطور</title>
+    <title>الفهرس الليبي الموحد - الإصدار المعتمد</title>
     <link rel="stylesheet" href="assets/style.css">
     <style>
-        body { font-size: 12px; background: #f4f4f4; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        .container-fluid { padding: 10px; }
-        .compact-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 4px; 
-            background: #fff; 
-            padding: 10px; 
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .subject-header { 
-            grid-column: 1 / -1; 
-            background: #666; 
-            color: #fff; 
-            padding: 4px; 
-            font-weight: bold; 
-            text-align: right; 
-            margin-top: 5px;
-            font-size: 13px;
-        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; font-size: 13px; }
+        .compact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .subject-header { grid-column: 1 / -1; background: #5a6268; color: #fff; padding: 8px; font-weight: bold; margin-top: 10px; border-radius: 4px; }
         .field-group { display: flex; flex-direction: column; }
-        label { font-size: 11px; color: #555; margin-bottom: 1px; font-weight: bold; }
-        input { border: 1px solid #ccc; padding: 4px; font-size: 13px; background: #fff; }
-        input:focus { border-color: #2ea44f; outline: none; background: #fffff0; }
-        .project-bar { background: #2ea44f; color: white; padding: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        button { cursor: pointer; border: none; padding: 5px 15px; border-radius: 3px; font-weight: bold; }
-        .btn-save { background: #0366d6; color: white; margin-top: 10px; padding: 10px 25px; }
+        label { font-size: 11px; color: #495057; margin-bottom: 2px; font-weight: bold; }
+        input { border: 1px solid #ced4da; padding: 6px; border-radius: 4px; }
+        input:focus { border-color: #2ea44f; outline: none; background: #f9fff9; }
+        .btn-main { background: #007bff; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .preview-table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; }
+        .preview-table th, .preview-table td { border: 1px solid #dee2e6; padding: 10px; text-align: right; }
+        .preview-table th { background: #e9ecef; }
     </style>
 </head>
 <body>
 
-<div class="project-bar">
-    <div><strong>الفهرس الليبي الموحد</strong> | المشروع: <span id="currentProject">عام</span></div>
-    <button onclick="changeProject()" style="background: #fff; color: #2ea44f;">تبديل المشروع</button>
-</div>
-
-<div class="container-fluid">
+<div style="padding: 20px;">
+    <h2 style="color: #333; border-right: 5px solid #2ea44f; padding-right: 10px;">نظام الفهرس الليبي الموحد</h2>
+    
     <form id="biblioForm" class="compact-grid">
         <div class="subject-header">أولاً: البيانات الاستنادية والإحالات</div>
         <div class="field-group"><label>رأس الموضوع</label><input type="text" class="input-field"></div>
@@ -50,118 +30,102 @@
         <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>ملاحظة نطاق</label><input type="text" class="input-field"></div>
 
-        <div class="subject-header">ثانياً: المسؤولية والبيان الببليوغرافي (ترتيب مخصص)</div>
+        <div class="subject-header">ثانياً: المسؤولية والبيان الببليوغرافي</div>
         <div class="field-group"><label>المؤلف</label><input type="text" class="input-field"></div>
         <div class="field-group" style="grid-column: span 2;"><label>العنوان</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>المؤلفون المشاركون (افصل بـ ؛)</label><input type="text" class="input-field"></div>
-        
+        <div class="field-group"><label>المؤلفون المشاركون (؛)</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>الطبعة</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>مكان النشر</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>الناشر</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>السنة</label><input type="text" class="input-field"></div>
-
         <div class="field-group"><label>الصفحات</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>السلسلة</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>العنوان الأصلي (للترجمة)</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>العنوان الأصلي</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>المؤلف الأصلي</label><input type="text" class="input-field"></div>
 
-        <div class="subject-header" style="background:#888;">ثالثاً: بيانات الإحصاء والتبعية</div>
+        <div class="subject-header" style="background: #868e96;">ثالثاً: الإحصاء والتبعية</div>
         <div class="field-group"><label>جهة الإصدار</label><input type="text" class="input-field"></div>
         <div class="field-group"><label>عدد المؤلفين</label><input type="number" class="input-field"></div>
         <div class="field-group" style="grid-column: span 2;"><label>التبعية المؤسسية</label><input type="text" class="input-field"></div>
     </form>
 
-    <div style="text-align: left;">
-        <button class="btn-save" onclick="saveRecord()">حفظ السجل (Enter)</button>
+    <button class="btn-main" onclick="saveRecord()">حفظ السجل (Enter)</button>
+
+    <div id="displayArea">
+        <h3 style="margin-top:40px;">معاينة الفهرس الموحد (مرتب هجائياً)</h3>
+        <table class="preview-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">ت</th>
+                    <th style="width: 200px;">رأس الموضوع</th>
+                    <th>البيان الببليوغرافي</th>
+                </tr>
+            </thead>
+            <tbody id="recordsBody">
+                </tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // تغيير المشروع
-    function changeProject() {
-        let name = prompt("أدخل اسم المشروع الجديد:");
-        if(name) {
-            localStorage.setItem('lb_project', name);
-            document.getElementById('currentProject').innerText = name;
-        }
-    }
-    document.getElementById('currentProject').innerText = localStorage.getItem('lb_project') || 'عام';
+    let records = JSON.parse(localStorage.getItem('libyan_records')) || [];
 
-    // الانتقال بمفتاح Enter
-    const inputs = document.querySelectorAll('.input-field');
-    inputs.forEach((input, index) => {
+    function saveRecord() {
+        const fields = document.querySelectorAll('.input-field');
+        const data = {
+            subject: fields[0].value,
+            author: fields[4].value,
+            title: fields[5].value,
+            year: fields[10].value
+        };
+
+        if(!data.subject || !data.title) {
+            alert("يرجى إدخال رأس الموضوع والعنوان");
+            return;
+        }
+
+        records.push(data);
+        
+        // الترتيب بتجاهل "الـ" التعريف
+        records.sort((a, b) => {
+            const clean = (t) => t.replace(/^ال/, "").trim();
+            return clean(a.subject).localeCompare(clean(b.subject), 'ar');
+        });
+
+        localStorage.setItem('libyan_records', JSON.stringify(records));
+        renderTable();
+        document.getElementById('biblioForm').reset();
+        fields[0].focus();
+    }
+
+    function renderTable() {
+        const body = document.getElementById('recordsBody');
+        body.innerHTML = '';
+        let serial = 1858;
+
+        records.forEach((rec, index) => {
+            const row = `<tr>
+                <td>${serial + index}</td>
+                <td style="color: blue; font-weight: bold;">${rec.subject}</td>
+                <td>${rec.author}. ${rec.title}. - ${rec.year}</td>
+            </tr>`;
+            body.innerHTML += row;
+        });
+    }
+
+    // التنقل بـ Enter
+    document.querySelectorAll('.input-field').forEach((input, index, list) => {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                } else {
-                    saveRecord();
-                }
+                if (index < list.length - 1) list[index+1].focus();
+                else saveRecord();
             }
         });
     });
 
-    function saveRecord() {
-        alert("تم الحفظ في مشروع " + document.getElementById('currentProject').innerText);
-        // هنا يتم إضافة منطق الحفظ الفعلي لاحقاً
-    }
+    window.onload = renderTable;
 </script>
-        // مصفوفة لتخزين السجلات مؤقتاً في المتصفح
-    let records = JSON.parse(localStorage.getItem('lb_records')) || [];
 
-    function saveRecord() {
-        // جلب البيانات من كافة الحقول
-        const allInputs = document.querySelectorAll('.input-field');
-        let recordData = {
-            subject: allInputs[0].value,
-            author: allInputs[4].value, // حقل المؤلف حسب الترتيب الجديد
-            title: allInputs[5].value,
-            full_text: "" // سيتم بناؤه للمعاينة
-        };
-
-        if(!recordData.subject || !recordData.title) {
-            alert("يرجى ملء رأس الموضوع والعنوان على الأقل.");
-            return;
-        }
-
-        // إضافة السجل للمصفوفة
-        records.push(recordData);
-    
-        // منطق الترتيب الذكي (تجاهل ال التعريف)
-        records.sort((a, b) => {
-            let cleanA = a.subject.replace(/^ال/, "");
-            let cleanB = b.subject.replace(/^ال/, "");
-            return cleanA.localeCompare(cleanB, 'ar');
-        });
-
-        // حفظ وتحديث العرض
-        localStorage.setItem('lb_records', JSON.stringify(records));
-        renderPreview();
-    
-        // مسح الحقول وبدء سجل جديد
-        document.getElementById('biblioForm').reset();
-        allInputs[0].focus();
-    }
-
-    function renderPreview() {
-        let html = '<table style="width:100%; border-collapse: collapse; margin-top:20px; background:#fff;">';
-        html += '<tr style="background:#eee;"><th>ت</th><th>رأس الموضوع</th><th>البيان الببليوغرافي</th></tr>';
-    
-        let startNo = 1858; // الرقم المسلسل المتفق عليه
-        records.forEach((rec, index) => {
-        html += `<tr style="border-bottom:1px solid #ccc;">
-            <td style="padding:5px; font-weight:bold;">${startNo + index}</td>
-            <td style="padding:5px; color:blue;">${rec.subject}</td>
-            <td style="padding:5px;">${rec.author}. ${rec.title}</td>
-            </tr>`;
-        });
-    
-        html += '</table>';
-        document.getElementById('displayRecords').innerHTML = html;
-    }
-
-    // تشغيل المعاينة عند تحميل الصفحة
-    window.onload = renderPreview;
 </body>
 </html>
