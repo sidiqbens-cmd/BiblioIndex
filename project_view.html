@@ -107,6 +107,61 @@
         // هنا يتم إضافة منطق الحفظ الفعلي لاحقاً
     }
 </script>
+        // مصفوفة لتخزين السجلات مؤقتاً في المتصفح
+    let records = JSON.parse(localStorage.getItem('lb_records')) || [];
 
+    function saveRecord() {
+        // جلب البيانات من كافة الحقول
+        const allInputs = document.querySelectorAll('.input-field');
+        let recordData = {
+            subject: allInputs[0].value,
+            author: allInputs[4].value, // حقل المؤلف حسب الترتيب الجديد
+            title: allInputs[5].value,
+            full_text: "" // سيتم بناؤه للمعاينة
+        };
+
+        if(!recordData.subject || !recordData.title) {
+            alert("يرجى ملء رأس الموضوع والعنوان على الأقل.");
+            return;
+        }
+
+        // إضافة السجل للمصفوفة
+        records.push(recordData);
+    
+        // منطق الترتيب الذكي (تجاهل ال التعريف)
+        records.sort((a, b) => {
+            let cleanA = a.subject.replace(/^ال/, "");
+            let cleanB = b.subject.replace(/^ال/, "");
+            return cleanA.localeCompare(cleanB, 'ar');
+        });
+
+        // حفظ وتحديث العرض
+        localStorage.setItem('lb_records', JSON.stringify(records));
+        renderPreview();
+    
+        // مسح الحقول وبدء سجل جديد
+        document.getElementById('biblioForm').reset();
+        allInputs[0].focus();
+    }
+
+    function renderPreview() {
+        let html = '<table style="width:100%; border-collapse: collapse; margin-top:20px; background:#fff;">';
+        html += '<tr style="background:#eee;"><th>ت</th><th>رأس الموضوع</th><th>البيان الببليوغرافي</th></tr>';
+    
+        let startNo = 1858; // الرقم المسلسل المتفق عليه
+        records.forEach((rec, index) => {
+        html += `<tr style="border-bottom:1px solid #ccc;">
+            <td style="padding:5px; font-weight:bold;">${startNo + index}</td>
+            <td style="padding:5px; color:blue;">${rec.subject}</td>
+            <td style="padding:5px;">${rec.author}. ${rec.title}</td>
+            </tr>`;
+        });
+    
+        html += '</table>';
+        document.getElementById('displayRecords').innerHTML = html;
+    }
+
+    // تشغيل المعاينة عند تحميل الصفحة
+    window.onload = renderPreview;
 </body>
 </html>
