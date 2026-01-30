@@ -13,15 +13,19 @@
         .dropdown-content button { color: black; padding: 8px 12px; display: block; width: 100%; border: none; text-align: right; background: none; cursor: pointer; font-size: 11px; border-bottom: 1px solid #eee; }
         .dropdown-content button:hover { background-color: #f1f1f1; }
         .dropdown:hover .dropdown-content { display: block; }
-        .compact-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; background: #fff; padding: 5px; border: 1px solid #ccc; }
+
+        .compact-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 2px; background: #fff; padding: 5px; border: 1px solid #ccc; }
         label { font-size: 9px; color: #555; font-weight: bold; margin-bottom: 1px; }
-        input { border: 1px solid #bbb; padding: 2px; font-size: 12px; height: 18px; }
-        .w-small { grid-column: span 1; } .w-med { grid-column: span 2; }
+        input, select { border: 1px solid #bbb; padding: 2px; font-size: 12px; height: 18px; }
+        .w-small { grid-column: span 1; } .w-med { grid-column: span 2; } .w-large { grid-column: span 3; }
+        
         .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-weight: bold; font-size: 10px; }
-        .btn-save { background: #28a745; } .btn-word { background: #007bff; }
+        .btn-save { background: #28a745; } .btn-excel { background: #17a2b8; } .btn-word { background: #007bff; }
+        
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; }
-        .preview-table th, .preview-table td { border: 1px solid #ddd; padding: 1px 3px; text-align: right; font-size: 10px; height: 16px; }
+        .preview-table th, .preview-table td { border: 1px solid #ddd; padding: 1px 3px; text-align: right; font-size: 10px; }
+        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #24292e; padding:15px; z-index:2000; box-shadow:0 0 20px rgba(0,0,0,0.5); width:400px; }
     </style>
 </head>
 <body>
@@ -29,12 +33,19 @@
 <div class="project-bar">
     <div><strong>الفهرس الليبي الموحد</strong> | المشروع: <span id="activeProjectLabel" style="color:#ffc107"></span></div>
     <div style="display:flex; gap:10px;">
+        <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#6f42c1">⚡ إدخال ذكي</button>
         <button onclick="createNewProject()" class="btn btn-save">+ مشروع جديد</button>
         <div class="dropdown">
             <button class="dropbtn">المشاريع المحفوظة ▼</button>
             <div id="projectDropdown" class="dropdown-content"></div>
         </div>
     </div>
+</div>
+
+<div id="smartModal">
+    <textarea id="smartInput" style="width:100%; height:80px;"></textarea><br>
+    <button class="btn btn-save" onclick="processSmartPaste()">توزيع</button>
+    <button class="btn" style="background:#dc3545" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
 </div>
 
 <form id="biblioForm" class="compact-grid">
@@ -52,13 +63,34 @@
     <div class="field-group w-med"><label>السلسلة</label><input type="text" id="series" class="in"></div>
     <div class="field-group w-med"><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
     <div class="field-group w-med"><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
+    <div class="field-group w-med"><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
+    <div class="field-group w-small"><label>عدد المؤلفين</label><input type="number" id="count" class="in"></div>
+    <div class="field-group w-small"><label>التبعية المؤسسية</label><input type="text" id="affil" class="in"></div>
+    <div class="field-group w-small"><label>الدولة</label><input type="text" id="country" class="in"></div>
+    <div class="field-group w-med">
+        <label>النوع</label>
+        <select id="type" class="in">
+            <option value="كتاب">كتاب</option>
+            <option value="مقالة">مقالة</option>
+            <option value="فصل">فصل</option>
+            <option value="مؤتمر">مؤتمر</option>
+            <option value="كتيب">كتيب</option>
+            <option value="ماجستير">ماجستير</option>
+            <option value="دكتوراه">دكتوراه</option>
+        </select>
+    </div>
 </form>
 
 <div class="actions">
     <button class="btn btn-save" onclick="saveData()">حفظ (Enter)</button>
+    <button class="btn btn-excel" onclick="exportToExcel()">تصدير Excel</button>
+    <button class="btn btn-excel" style="background:#6f42c1" onclick="document.getElementById('importFile').click()">استيراد Excel</button>
+    <input type="file" id="importFile" style="display:none" onchange="importFromExcel(event)">
     <button class="btn btn-word" onclick="previewFullList()">معاينة القائمة (Word)</button>
     <button class="btn btn-word" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
-    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('title')">كشاف العناوين</button>
+    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('collab')">كشاف المترجمين</button>
+    <button class="btn btn-word" style="background:#555" onclick="previewIndex('title')">كشاف العناوين</button>
+    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('orig_title')">كشاف العنوان الأصلي</button>
 </div>
 
 <table class="preview-table"><tbody id="tableBody"></tbody></table>
@@ -71,17 +103,27 @@ let editIdx = -1;
 
 function cleanForSort(str) {
     if (!str) return "";
-    return str.trim().replace(/^ال(?=[^ل])/, ""); // إزالة الـ التعريف فقط إذا لم تكن أصلية (مثل الله)
+    return str.trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا");
 }
 
-function createNewProject() {
-    let name = prompt("اسم المشروع الجديد:");
-    if(name && !projects.includes(name)) { projects.push(name); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(name); }
+function saveData() {
+    let data = {}; document.querySelectorAll('.in').forEach(f => data[f.id] = f.value.trim());
+    if(!data.subject) return alert("الرأس مطلوب");
+    if(editIdx > -1) records[editIdx] = data; else records.push(data);
+    editIdx = -1; sortData(); updateUI(); document.getElementById('biblioForm').reset();
 }
-function switchProject(name) { localStorage.setItem('lib_active_proj', name); location.reload(); }
-function renderProjectDropdown() {
-    document.getElementById('activeProjectLabel').innerText = currentProj;
-    document.getElementById('projectDropdown').innerHTML = projects.map(p => `<button onclick="switchProject('${p}')">${p === currentProj ? '✓ ' : ''}${p}</button>`).join('');
+
+function sortData() { 
+    records.sort((a,b) => cleanForSort(a.subject).localeCompare(cleanForSort(b.subject),'ar')); 
+}
+
+function updateUI() {
+    localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
+    let h = ''; let s = 1;
+    records.forEach((r,i) => { 
+        h += `<tr><td>${r.see||r.see_also?'--':s++}</td><td style="font-weight:bold">${r.subject}</td><td>${formatEntry(r)}</td><td><button onclick="editRec(${i})">تعديل</button></td></tr>`; 
+    });
+    document.getElementById('tableBody').innerHTML = h;
 }
 
 function formatEntry(r) {
@@ -99,38 +141,40 @@ function formatEntry(r) {
         p.push(pub);
     }
     if(r.pages) p.push(`. - ص ص ${r.pages}`);
-    if(r.series) p.push(`. - (${r.series})`);
     return p.join('').replace(/^\. /, "");
+}
+
+function exportToExcel() {
+    const ws = XLSX.utils.json_to_sheet(records);
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records");
+    XLSX.writeFile(wb, `${currentProj}.xlsx`);
+}
+
+function importFromExcel(e) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const wb = XLSX.read(evt.target.result, {type:'binary'});
+        records = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        sortData(); updateUI();
+    };
+    reader.readAsBinaryString(e.target.files[0]);
 }
 
 function previewFullList() {
     let win = window.open('', '', 'width=900,height=700');
     let serial = 1; let lastSubject = "";
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; font-size:12pt;">`;
-    
     records.forEach(r => {
-        // طباعة رأس الموضوع إذا تغير
         if(r.subject !== lastSubject) {
-            content += `<div style="text-align:center; background:#ccc; font-weight:bold; padding:5px; margin-top:20pt; border:1px solid #999;">${r.subject}</div>`;
-            // وضع "انظر أيضاً" تحت الرأس مباشرة إذا وجدت
-            if(r.see_also) {
-                content += `<div style="text-align:center; background:#eee; padding:3px; border:1px solid #ddd; margin-bottom:10pt;">أنظر أيضاً: ${r.see_also}</div>`;
-            }
+            content += `<div style="text-align:center; background:#999; color:white; font-weight:bold; padding:5px; margin-top:20pt;">${r.subject}</div>`;
+            if(r.see_also) content += `<div style="text-align:center; background:#eee; padding:3px; margin-bottom:10pt;">أنظر أيضاً: ${r.see_also}</div>`;
             lastSubject = r.subject;
         }
-
-        // إحالة "انظر" العادية تأتي حسب ترتيبها الهجائي
-        if(r.see) {
-            content += `<div style="text-align:center; background:#eee; padding:3px; margin:5px 0; border:1px solid #ddd;">انظر: ${r.see}</div>`;
-        } else if (!r.see && !r.see_also) {
-            // التسجيل الببليوغرافي العادي
+        if(!r.see && !r.see_also) {
             let entry = formatEntry(r);
-            let authorLine = r.author ? `<div style="font-weight:bold;">${r.author} <span style="float:left">(${serial})</span></div>` : "";
-            let remaining = r.author ? entry.replace(`<span style="font-weight:bold">${r.author}</span>`, "").replace(/^\. /, "") : entry + ` <span style="float:left">(${serial})</span>`;
-            
             content += `<div style="margin-bottom:15pt;">
-                ${authorLine}
-                <div style="text-align:justify;">${remaining}</div>
+                ${r.author ? `<div style="font-weight:bold;">${r.author} <span style="float:left">(${serial})</span></div>` : ""}
+                <div style="text-align:justify;">${r.author ? entry.replace(`<span style="font-weight:bold">${r.author}</span>`, "").replace(/^\. /, "") : entry + ` <span style="float:left">(${serial})</span>`}</div>
                 <div style="clear:both"></div>
             </div>`;
             serial++;
@@ -150,27 +194,20 @@ function previewIndex(type) {
     content += `</div>`; win.document.write(content);
 }
 
-function saveData() {
-    let data = {}; document.querySelectorAll('.in').forEach(f => data[f.id] = f.value.trim());
-    if(!data.subject) return alert("الرأس مطلوب");
-    if(editIdx > -1) records[editIdx] = data; else records.push(data);
-    editIdx = -1; sortData(); updateUI(); document.getElementById('biblioForm').reset();
-}
-
-function sortData() {
-    records.sort((a,b) => cleanForSort(a.subject).localeCompare(cleanForSort(b.subject),'ar'));
-}
-
-function updateUI() {
-    localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
-    let h = ''; let s = 1;
-    records.forEach((r,i) => { 
-        h += `<tr><td>${r.see||r.see_also?'--':s++}</td><td style="font-weight:bold">${r.subject}</td><td>${formatEntry(r)}</td><td><button onclick="editRec(${i})">تعديل</button></td></tr>`; 
-    });
-    document.getElementById('tableBody').innerHTML = h;
-}
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
-window.onload = () => { renderProjectDropdown(); updateUI(); };
+function createNewProject() { let name = prompt("اسم المشروع:"); if(name) { projects.push(name); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(name); } }
+function switchProject(name) { localStorage.setItem('lib_active_proj', name); location.reload(); }
+function processSmartPaste() { 
+    let t = document.getElementById('smartInput').value; let parts = t.split('.'); 
+    document.getElementById('author').value = parts[0].trim(); document.getElementById('title').value = (parts[1]||"").trim(); 
+    document.getElementById('smartModal').style.display='none';
+}
+
+window.onload = () => { 
+    document.getElementById('activeProjectLabel').innerText = currentProj;
+    document.getElementById('projectDropdown').innerHTML = projects.map(p => `<button onclick="switchProject('${p}')">${p === currentProj ? '✓ ' : ''}${p}</button>`).join('');
+    updateUI(); 
+};
 </script>
 </body>
 </html>
