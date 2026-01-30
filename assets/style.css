@@ -1,0 +1,26 @@
+/* تنسيق عام للمشاريع الببليوغرافية */
+body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f4f4; direction: rtl; }
+
+.compact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); /* حقول صغيرة جداً */
+    gap: 4px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.field-group { display: flex; flex-direction: column; }
+.field-group label { font-size: 11px; color: #666; margin-bottom: 2px; }
+.field-group input { border: 1px solid #ccc; padding: 4px; font-size: 13px; }
+
+/* تمييز رؤوس الموضوعات باللون الرمادي كما في طلبك */
+.subject-header {
+    grid-column: 1 / -1;
+    background: #d1d1d1;
+    padding: 5px;
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #999;
+}
