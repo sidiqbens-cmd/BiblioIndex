@@ -3,150 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <title>الفهرس الليبي الموحد - المحرر المتكامل</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; font-size: 13px; margin: 0; padding: 20px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .subject-header { grid-column: 1 / -1; background: #5a6268; color: #fff; padding: 8px; font-weight: bold; margin-top: 10px; border-radius: 4px; border-right: 5px solid #2ea44f; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 5px; font-size: 11px; }
+        .project-bar { background: #24292e; color: #fff; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .compact-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; background: #fff; padding: 5px; border: 1px solid #ccc; }
         .field-group { display: flex; flex-direction: column; }
-        label { font-size: 11px; color: #495057; margin-bottom: 2px; font-weight: bold; }
-        input { border: 1px solid #ced4da; padding: 6px; border-radius: 4px; font-size: 13px; }
-        input:focus { border-color: #2ea44f; outline: none; background: #f9fff9; }
-        .actions { margin-top: 20px; display: flex; gap: 10px; }
-        .btn { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-save { background: #007bff; }
-        .btn-export { background: #28a745; }
-        .preview-table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .preview-table th, .preview-table td { border: 1px solid #dee2e6; padding: 10px; text-align: right; }
-        .preview-table th { background: #e9ecef; color: #333; }
-        .serial-col { width: 50px; text-align: center; font-weight: bold; }
-        .subject-col { width: 200px; color: blue; font-weight: bold; }
+        label { font-size: 9px; color: #555; font-weight: bold; margin-bottom: 1px; }
+        input { border: 1px solid #bbb; padding: 2px; font-size: 12px; height: 20px; }
+        input:focus { border-color: #007bff; background: #fffde7; outline: none; }
+        .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-weight: bold; font-size: 10px; }
+        .btn-save { background: #28a745; }
+        .btn-excel { background: #17a2b8; }
+        .btn-word { background: #007bff; }
+        .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; }
+        .preview-table th, .preview-table td { border: 1px solid #ddd; padding: 3px; text-align: right; }
+        .is-reference { background: #fdfdfd; color: #777; font-style: italic; }
+        .btn-edit { background: #ffc107; color: #000; padding: 1px 4px; font-size: 9px; }
+        .btn-del { background: #dc3545; color: #fff; padding: 1px 4px; font-size: 9px; }
+        .missing-ref { color: red; font-size: 8px; font-weight: normal; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: #333; border-right: 5px solid #2ea44f; padding-right: 10px; margin-bottom: 20px;">نظام الفهرس الليبي الموحد</h2>
-    
-    <form id="biblioForm" class="compact-grid">
-        <div class="subject-header">أولاً: البيانات الاستنادية والإحالات</div>
-        <div class="field-group"><label>رأس الموضوع</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>إحالة انظر</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>ملاحظة نطاق</label><input type="text" class="input-field"></div>
+<div class="project-bar">
+    <div><strong>الفهرس الليبي الموحد</strong> | المشروع: <span id="activeProject">افتراضي</span></div>
+    <button onclick="switchProject()" style="font-size: 9px; padding: 2px 8px;">تبديل المشروع</button>
+</div>
 
-        <div class="subject-header">ثانياً: المسؤولية والبيان الببليوغرافي</div>
-        <div class="field-group"><label>المؤلف</label><input type="text" class="input-field"></div>
-        <div class="field-group" style="grid-column: span 2;"><label>العنوان</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>المؤلفون المشاركون (؛)</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>الطبعة</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>مكان النشر</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>الناشر</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>السنة</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>الصفحات</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>السلسلة</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>العنوان الأصلي</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>المؤلف الأصلي</label><input type="text" class="input-field"></div>
+<form id="biblioForm" class="compact-grid">
+    <div class="field-group"><label>رأس الموضوع</label><input type="text" id="subject" class="in"></div>
+    <div class="field-group"><label>إحالة انظر</label><input type="text" id="see" class="in"></div>
+    <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></div>
+    <div class="field-group" style="grid-column: span 2;"><label>ملاحظة نطاق</label><input type="text" id="note" class="in"></div>
+    <div class="field-group"><label>المؤلف</label><input type="text" id="author" class="in"></div>
+    <div class="field-group" style="grid-column: span 2;"><label>العنوان</label><input type="text" id="title" class="in"></div>
+    <div class="field-group"><label>المشاركون (؛)</label><input type="text" id="collab" class="in"></div>
+    <div class="field-group"><label>الطبعة</label><input type="text" id="edition" class="in"></div>
+    <div class="field-group"><label>مكان النشر</label><input type="text" id="place" class="in"></div>
+    <div class="field-group"><label>الناشر</label><input type="text" id="publisher" class="in"></div>
+    <div class="field-group"><label>السنة</label><input type="text" id="year" class="in"></div>
+    <div class="field-group"><label>الصفحات</label><input type="text" id="pages" class="in"></div>
+    <div class="field-group"><label>السلسلة</label><input type="text" id="series" class="in"></div>
+    <div class="field-group"><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
+    <div class="field-group"><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
+    <div class="field-group"><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
+    <div class="field-group"><label>عدد المؤلفين</label><input type="number" id="count" class="in"></div>
+    <div class="field-group" style="grid-column: span 4;"><label>التبعية المؤسسية</label><input type="text" id="affil" class="in"></div>
+    <div class="field-group"><label>الدولة</label><input type="text" id="country" class="in"></div>
+</form>
 
-        <div class="subject-header" style="background: #868e96;">ثالثاً: الإحصاء والتبعية</div>
-        <div class="field-group"><label>جهة الإصدار</label><input type="text" class="input-field"></div>
-        <div class="field-group"><label>عدد المؤلفين</label><input type="number" class="input-field"></div>
-        <div class="field-group" style="grid-column: span 2;"><label>التبعية المؤسسية</label><input type="text" class="input-field"></div>
-    </form>
+<div class="actions">
+    <button class="btn btn-save" onclick="saveData()">حفظ (Enter)</button>
+    <button class="btn btn-excel" onclick="exportToExcel()">تصدير Excel</button>
+    <button class="btn btn-excel" style="background:#6f42c1" onclick="document.getElementById('importFile').click()">استيراد Excel</button>
+    <input type="file" id="importFile" style="display:none" onchange="importFromExcel(event)">
+    <button class="btn btn-word" onclick="previewFullList()">القائمة الببليوغرافية</button>
+    <button class="btn btn-word" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
+    <button class="btn btn-word" style="background:#555" onclick="previewIndex('title')">كشاف العناوين</button>
+</div>
 
-    <div class="actions">
-        <button type="button" class="btn btn-save" onclick="saveRecord()">حفظ السجل (Enter)</button>
-        <button type="button" class="btn btn-export" onclick="exportToCSV()">تصدير إلى Excel (CSV)</button>
-    </div>
-
-    <div id="displayArea">
-        <h3 style="margin-top:40px; color: #5a6268;">المعاينة المباشرة (مرتبة هجائياً)</h3>
-        <table class="preview-table">
-            <thead>
-                <tr>
-                    <th class="serial-col">ت</th>
-                    <th class="subject-col">رأس الموضوع</th>
-                    <th>البيان الببليوغرافي</th>
-                </tr>
-            </thead>
-            <tbody id="recordsBody"></tbody>
-        </table>
-    </div>
+<table class="preview-table">
+    <thead>
+        <tr><th>ت</th><th>رأس الموضوع</th><th>البيان</th><th>إجراءات</th></tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
 
 <script>
-    let records = JSON.parse(localStorage.getItem('libyan_records')) || [];
+let currentProj = localStorage.getItem('biblio_active_proj') || 'default';
+let records = JSON.parse(localStorage.getItem('records_' + currentProj)) || [];
+let editIdx = -1;
 
-    function saveRecord() {
-        const fields = document.querySelectorAll('.input-field');
-        const data = {
-            subject: fields[0].value,
-            author: fields[4].value,
-            title: fields[5].value,
-            year: fields[10].value,
-            publisher: fields[9].value,
-            place: fields[8].value
-        };
+document.getElementById('activeProject').innerText = currentProj;
 
-        if(!data.subject || !data.title) {
-            alert("يرجى إدخال رأس الموضوع والعنوان على الأقل");
-            return;
-        }
+function switchProject() {
+    let p = prompt("اسم المشروع:", currentProj);
+    if(p) { localStorage.setItem('biblio_active_proj', p); location.reload(); }
+}
 
-        records.push(data);
-        
-        // الترتيب بتجاهل "الـ" التعريف
-        records.sort((a, b) => {
-            const clean = (t) => t.replace(/^ال/, "").trim();
-            return clean(a.subject).localeCompare(clean(b.subject), 'ar');
-        });
+function saveData() {
+    let fields = document.querySelectorAll('.in');
+    let data = {};
+    fields.forEach(f => data[f.id] = f.value);
+    if(!data.subject) return alert("الرأس مطلوب");
+    if(editIdx > -1) { records[editIdx] = data; editIdx = -1; }
+    else { records.push(data); }
+    sortData(); updateUI();
+    document.getElementById('biblioForm').reset();
+    fields[0].focus();
+}
 
-        localStorage.setItem('libyan_records', JSON.stringify(records));
-        renderTable();
-        document.getElementById('biblioForm').reset();
-        fields[0].focus();
-    }
+function sortData() {
+    records.sort((a, b) => {
+        const clean = (s) => (s || "").replace(/^ال/, "").trim();
+        return clean(a.subject).localeCompare(clean(b.subject), 'ar');
+    });
+}
 
-    function renderTable() {
-        const body = document.getElementById('recordsBody');
-        body.innerHTML = '';
-        let serial = 1; // الترقيم يبدأ من 1
+function updateUI() {
+    localStorage.setItem('records_' + currentProj, JSON.stringify(records));
+    let html = ''; let serial = 1;
+    let allSubjects = records.map(r => r.subject);
+    records.forEach((r, i) => {
+        let isRef = (r.see || r.see_also);
+        let refWarn = (r.see && !allSubjects.includes(r.see)) ? " <span class='missing-ref'>(غير موجود)</span>" : "";
+        html += `<tr class="${isRef ? 'is-reference' : ''}">
+            <td>${isRef ? '--' : serial++}</td>
+            <td style="font-weight:bold; color:blue">${r.subject}${refWarn}</td>
+            <td>${formatEntry(r)}</td>
+            <td>
+                <button class="btn-edit" onclick="editRecord(${i})">تعديل</button>
+                <button class="btn-del" onclick="deleteRecord(${i})">حذف</button>
+            </td>
+        </tr>`;
+    });
+    document.getElementById('tableBody').innerHTML = html;
+}
 
-        records.forEach((rec, index) => {
-            const row = `<tr>
-                <td class="serial-col">${serial + index}</td>
-                <td class="subject-col">${rec.subject}</td>
-                <td>${rec.author}. ${rec.title}. - ${rec.place}: ${rec.publisher}, ${rec.year}</td>
-            </tr>`;
-            body.innerHTML += row;
-        });
-    }
+function formatEntry(r) {
+    if(r.see) return `انظر: ${r.see}`;
+    if(r.see_also) return `انظر أيضاً: ${r.see_also}`;
+    return `${r.author}. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. - ص ص ${r.pages}. - (${r.country})`;
+}
 
-    function exportToCSV() {
-        if(records.length === 0) { alert("لا توجد سجلات لتصديرها"); return; }
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-        csvContent += "ت,رأس الموضوع,المؤلف,العنوان,المكان,الناشر,السنة\n";
-        records.forEach((rec, index) => {
-            csvContent += `${index + 1},"${rec.subject}","${rec.author}","${rec.title}","${rec.place}","${rec.publisher}","${rec.year}"\n`;
-        });
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "الفهرس_الليبي_الموحد.csv");
-        document.body.appendChild(link);
-        link.click();
-    }
+function editRecord(i) {
+    editIdx = i; let r = records[i];
+    document.querySelectorAll('.in').forEach(f => f.value = r[f.id] || '');
+    window.scrollTo(0,0);
+}
 
-    // التنقل بـ Enter
-    document.querySelectorAll('.input-field').forEach((input, index, list) => {
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (index < list.length - 1) list[index+1].focus();
-                else saveRecord();
+function deleteRecord(i) {
+    if(confirm("حذف؟")) { records.splice(i, 1); updateUI(); }
+}
+
+function exportToExcel() {
+    const ws = XLSX.utils.json_to_sheet(records);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Index");
+    XLSX.writeFile(wb, `${currentProj}.xlsx`);
+}
+
+function importFromExcel(e) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const wb = XLSX.read(evt.target.result, {type:'binary'});
+        records = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        sortData(); updateUI();
+    };
+    reader.readAsBinaryString(e.target.files[0]);
+}
+
+// القائمة الببليوغرافية (البيان ثم الرقم في الآخر للقائمة الكاملة)
+function previewFullList() {
+    let win = window.open('', '', 'width=850,height=700');
+    let serial = 1;
+    let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:40px; line-height:1.6;">`;
+    records.forEach(r => {
+        let isRef = (r.see || r.see_also);
+        let num = isRef ? '' : `<span style="float:left;">(${serial++})</span>`;
+        content += `<div style="margin-bottom:12px; border-bottom:1px dotted #eee; padding-bottom:5px;">
+            <strong>${r.subject}</strong><br>${formatEntry(r)} ${num}<div style="clear:both"></div>
+        </div>`;
+    });
+    content += `</div>`; win.document.write(content);
+}
+
+// الكشافات التحليلية (المؤلف، العنوان) - الرقم في نهاية السطر كما في الصورة الثانية
+function previewIndex(type) {
+    let win = window.open('', '', 'width=850,height=700');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:40px; line-height:1.6; column-count: 2; column-gap: 40px;">`;
+    
+    // تجميع الأرقام لكل مدخل
+    let indexMap = {};
+    let serial = 1;
+    records.forEach(r => {
+        let isRef = (r.see || r.see_also);
+        if(!isRef) {
+            let key = (type === 'author') ? r.author : r.title;
+            if(key) {
+                if(!indexMap[key]) indexMap[key] = [];
+                indexMap[key].push(serial);
             }
-        });
+            serial++;
+        }
     });
 
-    window.onload = renderTable;
-</script>
+    // ترتيب الكشاف هجائياً
+    let sortedKeys = Object.keys(indexMap).sort((a,b) => a.localeCompare(b, 'ar'));
+    
+    sortedKeys.forEach(key => {
+        content += `<div style="margin-bottom:8px; border-bottom:1px solid #f0f0f0; text-align:justify;">
+            ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(', ')})</span>
+            <div style="clear:both"></div>
+        </div>`;
+    });
+    
+    content += `</div>`; win.document.write(content);
+}
 
+document.querySelectorAll('.in').forEach((input, index, list) => {
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (index < list.length - 1) list[index+1].focus();
+            else saveData();
+        }
+    });
+});
+window.onload = updateUI;
+</script>
 </body>
 </html>
