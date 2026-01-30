@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>BiblioIndex - المحرر الذكي</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <h2 style="padding: 10px;">نظام BiblioIndex - إدخال البيانات</h2>
+        
+        <div class="compact-grid" id="inputForm">
+            <div class="subject-header">البيانات الببليوغرافية (الترتيب والترقيم آلي)</div>
+            
+            <div class="field-group"><label>رأس الموضوع</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>المؤلف</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>العنوان</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>المجلة</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>المجلد/العدد</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>السنة</label><input type="text" class="input-field"></div>
+            
+            <div class="subject-header" style="background:#eee">القسم الثاني: الإحصاء</div>
+            <div class="field-group"><label>جهة الإصدار</label><input type="text" class="input-field"></div>
+            <div class="field-group"><label>عدد المؤلفين</label><input type="number" class="input-field"></div>
+        </div>
+
+        <div style="margin-top:20px; padding: 10px;">
+            <button class="btn-main" style="background: #2ea44f; color: white; border: none; padding: 8px 20px; cursor: pointer;">حفظ السجل</button>
+            <p style="font-size: 12px; color: #666;">* اضغط <strong>Enter</strong> للانتقال السريع بين الخانات.</p>
+        </div>
+    </div>
+
+    <script>
+        // محرك الانتقال بمفتاح Enter
+        const inputs = document.querySelectorAll('.input-field');
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (index < inputs.length - 1) {
+                        inputs[index + 1].focus();
+                    } else {
+                        alert("وصلت لنهاية السجل، سيتم الحفظ والترتيب آلياً.");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
