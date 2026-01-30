@@ -2,90 +2,109 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد - المحرر الكامل</title>
+    <title>الفهرس الليبي الموحد - المحرر المطور</title>
     <link rel="stylesheet" href="assets/style.css">
     <style>
-        body { font-size: 12px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; padding: 10px; }
-        .subject-header { grid-column: 1 / -1; background: #666; color: #fff; padding: 5px; font-weight: bold; text-align: center; margin-top: 10px; }
+        body { font-size: 12px; background: #f4f4f4; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .container-fluid { padding: 10px; }
+        .compact-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 4px; 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .subject-header { 
+            grid-column: 1 / -1; 
+            background: #666; 
+            color: #fff; 
+            padding: 4px; 
+            font-weight: bold; 
+            text-align: right; 
+            margin-top: 5px;
+            font-size: 13px;
+        }
         .field-group { display: flex; flex-direction: column; }
-        label { font-weight: bold; margin-bottom: 2px; font-size: 11px; color: #444; }
-        input { border: 1px solid #999; padding: 4px; font-size: 13px; }
-        .project-section { border-bottom: 2px solid #2ea44f; margin-bottom: 15px; padding: 10px; background: #f0fdf4; }
+        label { font-size: 11px; color: #555; margin-bottom: 1px; font-weight: bold; }
+        input { border: 1px solid #ccc; padding: 4px; font-size: 13px; background: #fff; }
+        input:focus { border-color: #2ea44f; outline: none; background: #fffff0; }
+        .project-bar { background: #2ea44f; color: white; padding: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        button { cursor: pointer; border: none; padding: 5px 15px; border-radius: 3px; font-weight: bold; }
+        .btn-save { background: #0366d6; color: white; margin-top: 10px; padding: 10px 25px; }
     </style>
 </head>
 <body>
 
-<div class="project-section">
-    <strong>المشروع الحالي:</strong> <span id="currentProject">عام</span> | 
-    <button onclick="changeProject()">تبديل/إنشاء مشروع</button>
+<div class="project-bar">
+    <div><strong>الفهرس الليبي الموحد</strong> | المشروع: <span id="currentProject">عام</span></div>
+    <button onclick="changeProject()" style="background: #fff; color: #2ea44f;">تبديل المشروع</button>
 </div>
 
-<form id="biblioForm" class="compact-grid">
-    <div class="subject-header">أولاً: البيانات الاستنادية والإحالات</div>
-    <div class="field-group"><label>رأس الموضوع</label><input type="text" class="input-field" id="subject"></div>
-    <div class="field-group"><label>إحالة انظر</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>ملاحظة نطاق</label><input type="text" class="input-field" style="grid-column: span 3;"></div>
+<div class="container-fluid">
+    <form id="biblioForm" class="compact-grid">
+        <div class="subject-header">أولاً: البيانات الاستنادية والإحالات</div>
+        <div class="field-group"><label>رأس الموضوع</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>إحالة انظر</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>ملاحظة نطاق</label><input type="text" class="input-field"></div>
 
-    <div class="subject-header">ثانياً: المسؤولية والبيان الببليوغرافي</div>
-    <div class="field-group"><label>المؤلف الرئيسي</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>المؤلف المشارك</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>المترجم</label><input type="text" class="input-field"></div>
-    <div class="field-group" style="grid-column: span 2;"><label>العنوان الرئيسي</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>العنوان الفرعي</label><input type="text" class="input-field"></div>
+        <div class="subject-header">ثانياً: المسؤولية والبيان الببليوغرافي (ترتيب مخصص)</div>
+        <div class="field-group"><label>المؤلف</label><input type="text" class="input-field"></div>
+        <div class="field-group" style="grid-column: span 2;"><label>العنوان</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>المؤلفون المشاركون (افصل بـ ؛)</label><input type="text" class="input-field"></div>
+        
+        <div class="field-group"><label>الطبعة</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>مكان النشر</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>الناشر</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>السنة</label><input type="text" class="input-field"></div>
 
-    <div class="subject-header">ثالثاً: بيانات النشر (الدورية/المجلة)</div>
-    <div class="field-group" style="grid-column: span 2;"><label>اسم المجلة/المؤتمر</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>المجلد</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>العدد</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>السنة</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>الصفحات</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>الصفحات</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>السلسلة</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>العنوان الأصلي (للترجمة)</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>المؤلف الأصلي</label><input type="text" class="input-field"></div>
 
-    <div class="subject-header" style="background:#d1d1d1; color:#000;">رابعاً: بيانات الإحصاء والتبعية المؤسسية</div>
-    <div class="field-group"><label>جهة إصدار المجلة</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>نوع الإصدار</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>عدد المؤلفين</label><input type="number" class="input-field"></div>
-    <div class="field-group" style="grid-column: span 2;"><label>التبعية المؤسسية للمؤلف</label><input type="text" class="input-field"></div>
-    <div class="field-group"><label>بلد النشر</label><input type="text" class="input-field"></div>
-</form>
+        <div class="subject-header" style="background:#888;">ثالثاً: بيانات الإحصاء والتبعية</div>
+        <div class="field-group"><label>جهة الإصدار</label><input type="text" class="input-field"></div>
+        <div class="field-group"><label>عدد المؤلفين</label><input type="number" class="input-field"></div>
+        <div class="field-group" style="grid-column: span 2;"><label>التبعية المؤسسية</label><input type="text" class="input-field"></div>
+    </form>
 
-<div style="margin: 20px; text-align: left;">
-    <button class="btn-main" onclick="saveData()" style="background:#2ea44f; color:#white; padding:10px 30px; border:none; border-radius:4px; cursor:pointer;">حفظ السجل (Enter)</button>
-</div>
-
-<hr>
-<div id="previewArea" style="padding: 10px; background: #fff; border: 1px solid #ccc; margin: 10px;">
-    <strong>معاينة السجلات المحفوظة في هذا المشروع:</strong>
-    <div id="displayRecords"></div>
+    <div style="text-align: left;">
+        <button class="btn-save" onclick="saveRecord()">حفظ السجل (Enter)</button>
+    </div>
 </div>
 
 <script>
-    // نظام إدارة المشاريع الصغير
+    // تغيير المشروع
     function changeProject() {
-        let name = prompt("أدخل اسم المشروع (مثال: مجلة البحوث 2026):");
+        let name = prompt("أدخل اسم المشروع الجديد:");
         if(name) {
-            localStorage.setItem('currentProject', name);
-            location.reload();
+            localStorage.setItem('lb_project', name);
+            document.getElementById('currentProject').innerText = name;
         }
     }
-    document.getElementById('currentProject').innerText = localStorage.getItem('currentProject') || 'عام';
+    document.getElementById('currentProject').innerText = localStorage.getItem('lb_project') || 'عام';
 
-    // الانتقال السريع بـ Enter
+    // الانتقال بمفتاح Enter
     const inputs = document.querySelectorAll('.input-field');
     inputs.forEach((input, index) => {
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                if (index < inputs.length - 1) inputs[index + 1].focus();
-                else saveData();
+                if (index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                } else {
+                    saveRecord();
+                }
             }
         });
     });
 
-    function saveData() {
-        alert("تم حفظ السجل في مشروع: " + document.getElementById('currentProject').innerText);
-        // هنا سنضيف لاحقاً دالة الترتيب الهجائي الفوري
+    function saveRecord() {
+        alert("تم الحفظ في مشروع " + document.getElementById('currentProject').innerText);
+        // هنا يتم إضافة منطق الحفظ الفعلي لاحقاً
     }
 </script>
 
