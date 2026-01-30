@@ -19,10 +19,9 @@
         .w-small { grid-column: span 1; } .w-med { grid-column: span 2; }
         .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-weight: bold; font-size: 10px; }
-        .btn-save { background: #28a745; } .btn-excel { background: #17a2b8; } .btn-word { background: #007bff; }
+        .btn-save { background: #28a745; } .btn-word { background: #007bff; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; }
         .preview-table th, .preview-table td { border: 1px solid #ddd; padding: 1px 3px; text-align: right; font-size: 10px; height: 16px; }
-        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #24292e; padding:15px; z-index:2000; box-shadow:0 0 20px rgba(0,0,0,0.5); width:400px; }
     </style>
 </head>
 <body>
@@ -30,19 +29,12 @@
 <div class="project-bar">
     <div><strong>الفهرس الليبي الموحد</strong> | المشروع: <span id="activeProjectLabel" style="color:#ffc107"></span></div>
     <div style="display:flex; gap:10px;">
-        <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#6f42c1">⚡ إدخال ذكي</button>
         <button onclick="createNewProject()" class="btn btn-save">+ مشروع جديد</button>
         <div class="dropdown">
             <button class="dropbtn">المشاريع المحفوظة ▼</button>
             <div id="projectDropdown" class="dropdown-content"></div>
         </div>
     </div>
-</div>
-
-<div id="smartModal">
-    <textarea id="smartInput" style="width:100%; height:80px;" placeholder="الصق النص هنا..."></textarea><br>
-    <button class="btn btn-save" onclick="processSmartPaste()">توزيع</button>
-    <button class="btn" style="background:#dc3545" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
 </div>
 
 <form id="biblioForm" class="compact-grid">
@@ -60,22 +52,13 @@
     <div class="field-group w-med"><label>السلسلة</label><input type="text" id="series" class="in"></div>
     <div class="field-group w-med"><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
     <div class="field-group w-med"><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
-    <div class="field-group w-med"><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
-    <div class="field-group w-small"><label>عدد المؤلفين</label><input type="number" id="count" class="in"></div>
-    <div class="field-group w-small"><label>التبعية</label><input type="text" id="affil" class="in"></div>
-    <div class="field-group w-small"><label>الدولة</label><input type="text" id="country" class="in"></div>
 </form>
 
 <div class="actions">
     <button class="btn btn-save" onclick="saveData()">حفظ (Enter)</button>
-    <button class="btn btn-excel" onclick="exportTemplate()">تصدير قالب Excel</button>
-    <button class="btn btn-excel" style="background:#6f42c1" onclick="document.getElementById('importFile').click()">استيراد Excel</button>
-    <input type="file" id="importFile" style="display:none" onchange="importFromExcel(event)">
     <button class="btn btn-word" onclick="previewFullList()">معاينة القائمة (Word)</button>
     <button class="btn btn-word" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
-    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('collab')">كشاف المترجمين</button>
-    <button class="btn btn-word" style="background:#555" onclick="previewIndex('title')">كشاف العناوين</button>
-    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('orig_title')">كشاف العنوان الأصلي</button>
+    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('title')">كشاف العناوين</button>
 </div>
 
 <table class="preview-table"><tbody id="tableBody"></tbody></table>
@@ -85,6 +68,11 @@ let projects = JSON.parse(localStorage.getItem('lib_proj_list')) || ['المشر
 let currentProj = localStorage.getItem('lib_active_proj') || 'المشروع_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
+
+function cleanForSort(str) {
+    if (!str) return "";
+    return str.trim().replace(/^ال(?=[^ل])/, ""); // إزالة الـ التعريف فقط إذا لم تكن أصلية (مثل الله)
+}
 
 function createNewProject() {
     let name = prompt("اسم المشروع الجديد:");
@@ -112,7 +100,6 @@ function formatEntry(r) {
     }
     if(r.pages) p.push(`. - ص ص ${r.pages}`);
     if(r.series) p.push(`. - (${r.series})`);
-    if(r.country) p.push(`. - (${r.country})`);
     return p.join('').replace(/^\. /, "");
 }
 
@@ -120,19 +107,32 @@ function previewFullList() {
     let win = window.open('', '', 'width=900,height=700');
     let serial = 1; let lastSubject = "";
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; font-size:12pt;">`;
+    
     records.forEach(r => {
+        // طباعة رأس الموضوع إذا تغير
         if(r.subject !== lastSubject) {
-            content += `<div style="text-align:center; background:#ddd; font-weight:bold; padding:5px; margin-top:20pt;">${r.subject}</div>`;
+            content += `<div style="text-align:center; background:#ccc; font-weight:bold; padding:5px; margin-top:20pt; border:1px solid #999;">${r.subject}</div>`;
+            // وضع "انظر أيضاً" تحت الرأس مباشرة إذا وجدت
+            if(r.see_also) {
+                content += `<div style="text-align:center; background:#eee; padding:3px; border:1px solid #ddd; margin-bottom:10pt;">أنظر أيضاً: ${r.see_also}</div>`;
+            }
             lastSubject = r.subject;
         }
-        if(r.see || r.see_also) {
-            let label = r.see ? "أنظر" : "أنظر أيضاً";
-            content += `<div style="text-align:center; background:#f0f0f0; padding:3px; margin:5px 0;">${label}: ${r.see || r.see_also}</div>`;
-        } else {
+
+        // إحالة "انظر" العادية تأتي حسب ترتيبها الهجائي
+        if(r.see) {
+            content += `<div style="text-align:center; background:#eee; padding:3px; margin:5px 0; border:1px solid #ddd;">انظر: ${r.see}</div>`;
+        } else if (!r.see && !r.see_also) {
+            // التسجيل الببليوغرافي العادي
             let entry = formatEntry(r);
             let authorLine = r.author ? `<div style="font-weight:bold;">${r.author} <span style="float:left">(${serial})</span></div>` : "";
             let remaining = r.author ? entry.replace(`<span style="font-weight:bold">${r.author}</span>`, "").replace(/^\. /, "") : entry + ` <span style="float:left">(${serial})</span>`;
-            content += `<div style="margin-bottom:15pt;">${authorLine}<div>${remaining}</div><div style="clear:both"></div></div>`;
+            
+            content += `<div style="margin-bottom:15pt;">
+                ${authorLine}
+                <div style="text-align:justify;">${remaining}</div>
+                <div style="clear:both"></div>
+            </div>`;
             serial++;
         }
     });
@@ -144,7 +144,7 @@ function previewIndex(type) {
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; column-count:2; font-size:11pt;">`;
     let map = {}; let serial = 1;
     records.forEach(r => { if(!r.see && !r.see_also) { (r[type]||"").split('؛').forEach(v => { v=v.trim(); if(v){ if(!map[v]) map[v]=[]; map[v].push(serial); }}); serial++; }});
-    Object.keys(map).sort((a,b)=>a.localeCompare(b,'ar')).forEach(k => {
+    Object.keys(map).sort((a,b)=>cleanForSort(a).localeCompare(cleanForSort(b),'ar')).forEach(k => {
         content += `<div style="border-bottom:0.5pt solid #eee; margin-bottom:4pt;">${k} <span style="float:left; font-weight:bold;">(${map[k].join(')( ')})</span><div style="clear:both"></div></div>`;
     });
     content += `</div>`; win.document.write(content);
@@ -156,20 +156,20 @@ function saveData() {
     if(editIdx > -1) records[editIdx] = data; else records.push(data);
     editIdx = -1; sortData(); updateUI(); document.getElementById('biblioForm').reset();
 }
-function sortData() { records.sort((a,b) => a.subject.replace(/^ال/,'').localeCompare(b.subject.replace(/^ال/,''),'ar')); }
+
+function sortData() {
+    records.sort((a,b) => cleanForSort(a.subject).localeCompare(cleanForSort(b.subject),'ar'));
+}
+
 function updateUI() {
     localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
     let h = ''; let s = 1;
-    records.forEach((r,i) => { h += `<tr><td>${r.see||r.see_also?'--':s++}</td><td style="font-weight:bold">${r.subject}</td><td>${formatEntry(r)}</td><td><button onclick="editRec(${i})">تعديل</button></td></tr>`; });
+    records.forEach((r,i) => { 
+        h += `<tr><td>${r.see||r.see_also?'--':s++}</td><td style="font-weight:bold">${r.subject}</td><td>${formatEntry(r)}</td><td><button onclick="editRec(${i})">تعديل</button></td></tr>`; 
+    });
     document.getElementById('tableBody').innerHTML = h;
 }
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
-function processSmartPaste() {
-    let t = document.getElementById('smartInput').value;
-    let parts = t.split('.'); document.getElementById('author').value = parts[0].trim();
-    document.getElementById('title').value = (parts[1]||"").trim();
-    document.getElementById('smartModal').style.display='none';
-}
 window.onload = () => { renderProjectDropdown(); updateUI(); };
 </script>
 </body>
