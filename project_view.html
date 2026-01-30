@@ -7,11 +7,14 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; margin: 0; padding: 5px; font-size: 11px; }
         .project-bar { background: #24292e; color: #fff; padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; background: #fff; padding: 5px; border: 1px solid #ccc; }
+        .compact-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; background: #fff; padding: 5px; border: 1px solid #ccc; }
         .field-group { display: flex; flex-direction: column; }
         label { font-size: 9px; color: #555; font-weight: bold; margin-bottom: 1px; }
         input { border: 1px solid #bbb; padding: 2px; font-size: 12px; height: 20px; }
         input:focus { border-color: #007bff; background: #fffde7; outline: none; }
+        /* تصغير خانات محددة */
+        .w-small { grid-column: span 1; }
+        .w-med { grid-column: span 2; }
         .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-weight: bold; font-size: 10px; }
         .btn-save { background: #28a745; }
@@ -20,9 +23,6 @@
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; }
         .preview-table th, .preview-table td { border: 1px solid #ddd; padding: 3px; text-align: right; }
         .is-reference { background: #fdfdfd; color: #777; font-style: italic; }
-        .btn-edit { background: #ffc107; color: #000; padding: 1px 4px; font-size: 9px; }
-        .btn-del { background: #dc3545; color: #fff; padding: 1px 4px; font-size: 9px; }
-        .missing-ref { color: red; font-size: 8px; font-weight: normal; }
     </style>
 </head>
 <body>
@@ -33,40 +33,42 @@
 </div>
 
 <form id="biblioForm" class="compact-grid">
-    <div class="field-group"><label>رأس الموضوع</label><input type="text" id="subject" class="in"></div>
-    <div class="field-group"><label>إحالة انظر</label><input type="text" id="see" class="in"></div>
-    <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></div>
-    <div class="field-group" style="grid-column: span 2;"><label>ملاحظة نطاق</label><input type="text" id="note" class="in"></div>
-    <div class="field-group"><label>المؤلف</label><input type="text" id="author" class="in"></div>
-    <div class="field-group" style="grid-column: span 2;"><label>العنوان</label><input type="text" id="title" class="in"></div>
-    <div class="field-group"><label>المشاركون (؛)</label><input type="text" id="collab" class="in"></div>
-    <div class="field-group"><label>الطبعة</label><input type="text" id="edition" class="in"></div>
-    <div class="field-group"><label>مكان النشر</label><input type="text" id="place" class="in"></div>
-    <div class="field-group"><label>الناشر</label><input type="text" id="publisher" class="in"></div>
-    <div class="field-group"><label>السنة</label><input type="text" id="year" class="in"></div>
-    <div class="field-group"><label>الصفحات</label><input type="text" id="pages" class="in"></div>
-    <div class="field-group"><label>السلسلة</label><input type="text" id="series" class="in"></div>
-    <div class="field-group"><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
-    <div class="field-group"><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
-    <div class="field-group"><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
-    <div class="field-group"><label>عدد المؤلفين</label><input type="number" id="count" class="in"></div>
-    <div class="field-group" style="grid-column: span 4;"><label>التبعية المؤسسية</label><input type="text" id="affil" class="in"></div>
-    <div class="field-group"><label>الدولة</label><input type="text" id="country" class="in"></div>
+    <div class="field-group w-med"><label>رأس الموضوع</label><input type="text" id="subject" class="in"></div>
+    <div class="field-group w-med"><label>إحالة انظر</label><input type="text" id="see" class="in"></div>
+    <div class="field-group w-med"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></div>
+    <div class="field-group w-med"><label>المؤلف</label><input type="text" id="author" class="in"></div>
+    <div class="field-group w-med"><label>العنوان</label><input type="text" id="title" class="in"></div>
+    
+    <div class="field-group w-med"><label>المشاركون (؛)</label><input type="text" id="collab" class="in"></div>
+    <div class="field-group w-small"><label>الطبعة</label><input type="text" id="edition" class="in"></div>
+    <div class="field-group w-med"><label>مكان النشر</label><input type="text" id="place" class="in"></div>
+    <div class="field-group w-med"><label>الناشر</label><input type="text" id="publisher" class="in"></div>
+    <div class="field-group w-small"><label>السنة</label><input type="text" id="year" class="in"></div>
+    <div class="field-group w-small"><label>صفحات</label><input type="text" id="pages" class="in"></div>
+    <div class="field-group w-med"><label>السلسلة</label><input type="text" id="series" class="in"></div>
+    <div class="field-group w-med"><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
+    <div class="field-group w-med"><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
+    <div class="field-group w-med"><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
+    <div class="field-group w-small"><label>عدد المؤلفين</label><input type="number" id="count" class="in"></div>
+    <div class="field-group w-small"><label>التبعية</label><input type="text" id="affil" class="in"></div>
+    <div class="field-group w-small"><label>الدولة</label><input type="text" id="country" class="in"></div>
 </form>
 
 <div class="actions">
     <button class="btn btn-save" onclick="saveData()">حفظ (Enter)</button>
-    <button class="btn btn-excel" onclick="exportToExcel()">تصدير Excel</button>
+    <button class="btn btn-excel" onclick="exportTemplate()">تصدير قالب Excel</button>
     <button class="btn btn-excel" style="background:#6f42c1" onclick="document.getElementById('importFile').click()">استيراد Excel</button>
     <input type="file" id="importFile" style="display:none" onchange="importFromExcel(event)">
     <button class="btn btn-word" onclick="previewFullList()">القائمة الببليوغرافية</button>
     <button class="btn btn-word" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
     <button class="btn btn-word" style="background:#555" onclick="previewIndex('title')">كشاف العناوين</button>
+    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('orig_author')">كشاف المؤلف الأصلي</button>
+    <button class="btn btn-word" style="background:#d94a38" onclick="previewIndex('orig_title')">كشاف العنوان الأصلي</button>
 </div>
 
 <table class="preview-table">
     <thead>
-        <tr><th>ت</th><th>رأس الموضوع</th><th>البيان</th><th>إجراءات</th></tr>
+        <tr><th>ت</th><th>رأس الموضوع</th><th>البيان الببليوغرافي</th><th>إجراءات</th></tr>
     </thead>
     <tbody id="tableBody"></tbody>
 </table>
@@ -105,17 +107,15 @@ function sortData() {
 function updateUI() {
     localStorage.setItem('records_' + currentProj, JSON.stringify(records));
     let html = ''; let serial = 1;
-    let allSubjects = records.map(r => r.subject);
     records.forEach((r, i) => {
         let isRef = (r.see || r.see_also);
-        let refWarn = (r.see && !allSubjects.includes(r.see)) ? " <span class='missing-ref'>(غير موجود)</span>" : "";
         html += `<tr class="${isRef ? 'is-reference' : ''}">
             <td>${isRef ? '--' : serial++}</td>
-            <td style="font-weight:bold; color:blue">${r.subject}${refWarn}</td>
+            <td style="font-weight:bold; color:blue">${r.subject}</td>
             <td>${formatEntry(r)}</td>
             <td>
-                <button class="btn-edit" onclick="editRecord(${i})">تعديل</button>
-                <button class="btn-del" onclick="deleteRecord(${i})">حذف</button>
+                <button onclick="editRecord(${i})">تعديل</button>
+                <button onclick="deleteRecord(${i})">حذف</button>
             </td>
         </tr>`;
     });
@@ -125,7 +125,9 @@ function updateUI() {
 function formatEntry(r) {
     if(r.see) return `انظر: ${r.see}`;
     if(r.see_also) return `انظر أيضاً: ${r.see_also}`;
-    return `${r.author}. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. - ص ص ${r.pages}. - (${r.country})`;
+    let base = `${r.author}. ${r.title}؛ ${r.collab}. - ط ${r.edition}. - ${r.place}: ${r.publisher}، ${r.year}. - ص ص ${r.pages}.`;
+    if(r.orig_title) base += ` - العنوان الأصلي: ${r.orig_title}.`;
+    return base + ` - (${r.country})`;
 }
 
 function editRecord(i) {
@@ -138,11 +140,13 @@ function deleteRecord(i) {
     if(confirm("حذف؟")) { records.splice(i, 1); updateUI(); }
 }
 
-function exportToExcel() {
-    const ws = XLSX.utils.json_to_sheet(records);
+// تصدير قالب فارغ للاكسل
+function exportTemplate() {
+    const template = [["subject","see","see_also","author","title","collab","edition","place","publisher","year","pages","series","orig_title","orig_author","org","count","affil","country"]];
+    const ws = XLSX.utils.aoa_to_sheet(template);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Index");
-    XLSX.writeFile(wb, `${currentProj}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Template");
+    XLSX.writeFile(wb, "قالب_الفهرس.xlsx");
 }
 
 function importFromExcel(e) {
@@ -155,33 +159,29 @@ function importFromExcel(e) {
     reader.readAsBinaryString(e.target.files[0]);
 }
 
-// القائمة الببليوغرافية (البيان ثم الرقم في الآخر للقائمة الكاملة)
+// القائمة الببليوغرافية (الرقم في اليسار كما في الصورة)
 function previewFullList() {
     let win = window.open('', '', 'width=850,height=700');
     let serial = 1;
-    let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:40px; line-height:1.6;">`;
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'، serif; padding:40px; line-height:1.6;">`;
     records.forEach(r => {
         let isRef = (r.see || r.see_also);
         let num = isRef ? '' : `<span style="float:left;">(${serial++})</span>`;
-        content += `<div style="margin-bottom:12px; border-bottom:1px dotted #eee; padding-bottom:5px;">
+        content += `<div style="margin-bottom:12px; border-bottom:1px dotted #ccc; padding-bottom:5px;">
             <strong>${r.subject}</strong><br>${formatEntry(r)} ${num}<div style="clear:both"></div>
         </div>`;
     });
     content += `</div>`; win.document.write(content);
 }
 
-// الكشافات التحليلية (المؤلف، العنوان) - الرقم في نهاية السطر كما في الصورة الثانية
+// الكشافات التحليلية (دمج الأرقام وتنسيق العمودين)
 function previewIndex(type) {
     let win = window.open('', '', 'width=850,height=700');
-    let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:40px; line-height:1.6; column-count: 2; column-gap: 40px;">`;
-    
-    // تجميع الأرقام لكل مدخل
-    let indexMap = {};
-    let serial = 1;
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'، serif; padding:40px; line-height:1.4; column-count: 2; column-gap: 30px;">`;
+    let indexMap = {}; let serial = 1;
     records.forEach(r => {
-        let isRef = (r.see || r.see_also);
-        if(!isRef) {
-            let key = (type === 'author') ? r.author : r.title;
+        if(!(r.see || r.see_also)) {
+            let key = r[type === 'orig_author' ? 'orig_author' : type === 'orig_title' ? 'orig_title' : type];
             if(key) {
                 if(!indexMap[key]) indexMap[key] = [];
                 indexMap[key].push(serial);
@@ -189,17 +189,12 @@ function previewIndex(type) {
             serial++;
         }
     });
-
-    // ترتيب الكشاف هجائياً
-    let sortedKeys = Object.keys(indexMap).sort((a,b) => a.localeCompare(b, 'ar'));
-    
-    sortedKeys.forEach(key => {
-        content += `<div style="margin-bottom:8px; border-bottom:1px solid #f0f0f0; text-align:justify;">
-            ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(', ')})</span>
+    Object.keys(indexMap).sort((a,b)=>a.localeCompare(b,'ar')).forEach(key => {
+        content += `<div style="margin-bottom:6px; border-bottom:1px solid #f0f0f0;">
+            ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(')( ')})</span>
             <div style="clear:both"></div>
         </div>`;
     });
-    
     content += `</div>`; win.document.write(content);
 }
 
