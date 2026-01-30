@@ -2,26 +2,29 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد - الإصدار المعتمد</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <title>الفهرس الليبي الموحد - المحرر المتكامل</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; font-size: 13px; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; font-size: 13px; margin: 0; padding: 20px; }
         .compact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .subject-header { grid-column: 1 / -1; background: #5a6268; color: #fff; padding: 8px; font-weight: bold; margin-top: 10px; border-radius: 4px; }
+        .subject-header { grid-column: 1 / -1; background: #5a6268; color: #fff; padding: 8px; font-weight: bold; margin-top: 10px; border-radius: 4px; border-right: 5px solid #2ea44f; }
         .field-group { display: flex; flex-direction: column; }
         label { font-size: 11px; color: #495057; margin-bottom: 2px; font-weight: bold; }
-        input { border: 1px solid #ced4da; padding: 6px; border-radius: 4px; }
+        input { border: 1px solid #ced4da; padding: 6px; border-radius: 4px; font-size: 13px; }
         input:focus { border-color: #2ea44f; outline: none; background: #f9fff9; }
-        .btn-main { background: #007bff; color: white; padding: 10px 30px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 15px; }
-        .preview-table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; }
+        .actions { margin-top: 20px; display: flex; gap: 10px; }
+        .btn { padding: 10px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-save { background: #007bff; }
+        .btn-export { background: #28a745; }
+        .preview-table { width: 100%; border-collapse: collapse; margin-top: 30px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .preview-table th, .preview-table td { border: 1px solid #dee2e6; padding: 10px; text-align: right; }
-        .preview-table th { background: #e9ecef; }
+        .preview-table th { background: #e9ecef; color: #333; }
+        .serial-col { width: 50px; text-align: center; font-weight: bold; }
+        .subject-col { width: 200px; color: blue; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div style="padding: 20px;">
-    <h2 style="color: #333; border-right: 5px solid #2ea44f; padding-right: 10px;">نظام الفهرس الليبي الموحد</h2>
+    <h2 style="color: #333; border-right: 5px solid #2ea44f; padding-right: 10px; margin-bottom: 20px;">نظام الفهرس الليبي الموحد</h2>
     
     <form id="biblioForm" class="compact-grid">
         <div class="subject-header">أولاً: البيانات الاستنادية والإحالات</div>
@@ -49,23 +52,24 @@
         <div class="field-group" style="grid-column: span 2;"><label>التبعية المؤسسية</label><input type="text" class="input-field"></div>
     </form>
 
-    <button class="btn-main" onclick="saveRecord()">حفظ السجل (Enter)</button>
+    <div class="actions">
+        <button type="button" class="btn btn-save" onclick="saveRecord()">حفظ السجل (Enter)</button>
+        <button type="button" class="btn btn-export" onclick="exportToCSV()">تصدير إلى Excel (CSV)</button>
+    </div>
 
     <div id="displayArea">
-        <h3 style="margin-top:40px;">معاينة الفهرس الموحد (مرتب هجائياً)</h3>
+        <h3 style="margin-top:40px; color: #5a6268;">المعاينة المباشرة (مرتبة هجائياً)</h3>
         <table class="preview-table">
             <thead>
                 <tr>
-                    <th style="width: 50px;">ت</th>
-                    <th style="width: 200px;">رأس الموضوع</th>
+                    <th class="serial-col">ت</th>
+                    <th class="subject-col">رأس الموضوع</th>
                     <th>البيان الببليوغرافي</th>
                 </tr>
             </thead>
-            <tbody id="recordsBody">
-                </tbody>
+            <tbody id="recordsBody"></tbody>
         </table>
     </div>
-</div>
 
 <script>
     let records = JSON.parse(localStorage.getItem('libyan_records')) || [];
@@ -76,11 +80,13 @@
             subject: fields[0].value,
             author: fields[4].value,
             title: fields[5].value,
-            year: fields[10].value
+            year: fields[10].value,
+            publisher: fields[9].value,
+            place: fields[8].value
         };
 
         if(!data.subject || !data.title) {
-            alert("يرجى إدخال رأس الموضوع والعنوان");
+            alert("يرجى إدخال رأس الموضوع والعنوان على الأقل");
             return;
         }
 
@@ -101,16 +107,31 @@
     function renderTable() {
         const body = document.getElementById('recordsBody');
         body.innerHTML = '';
-        let serial = 1;
+        let serial = 1; // الترقيم يبدأ من 1
 
         records.forEach((rec, index) => {
             const row = `<tr>
-                <td>${serial + index}</td>
-                <td style="color: blue; font-weight: bold;">${rec.subject}</td>
-                <td>${rec.author}. ${rec.title}. - ${rec.year}</td>
+                <td class="serial-col">${serial + index}</td>
+                <td class="subject-col">${rec.subject}</td>
+                <td>${rec.author}. ${rec.title}. - ${rec.place}: ${rec.publisher}, ${rec.year}</td>
             </tr>`;
             body.innerHTML += row;
         });
+    }
+
+    function exportToCSV() {
+        if(records.length === 0) { alert("لا توجد سجلات لتصديرها"); return; }
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "ت,رأس الموضوع,المؤلف,العنوان,المكان,الناشر,السنة\n";
+        records.forEach((rec, index) => {
+            csvContent += `${index + 1},"${rec.subject}","${rec.author}","${rec.title}","${rec.place}","${rec.publisher}","${rec.year}"\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "الفهرس_الليبي_الموحد.csv");
+        document.body.appendChild(link);
+        link.click();
     }
 
     // التنقل بـ Enter
