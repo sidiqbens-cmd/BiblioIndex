@@ -128,11 +128,11 @@ function updateUI() {
     let h = ''; let s = 1; let subs = new Set();
     records.forEach((r, i) => {
         subs.add(r.subject);
-        let hasData = !!r.title;
+        let isBook = !!r.title && !r.see;
         h += `<tr>
-            <td style="text-align:center">${(hasData && !r.see) ? s++ : '--'}</td>
+            <td style="text-align:center">${isBook ? s++ : '--'}</td>
             <td><strong>${r.subject}</strong>${r.see?'<br>انظر: '+r.see:''}${r.see_also?'<br><small>انظر أيضا: '+r.see_also+'</small>':''}</td>
-            <td>${hasData ? `<b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
+            <td>${r.title ? `<b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
             <td style="text-align:center">
                 <button class="btn-t" onclick="editRec(${i})">تعديل</button>
                 <button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button>
@@ -145,17 +145,17 @@ function updateUI() {
     document.getElementById('activeProjectLabel').innerText = currentProj;
 }
 
-// الكود البرمجي الذي أرسلتَه حرفياً مع دمج معالجة النصوص المتعددة
+// الكود البرمجي للكشاف - تم إصلاح منطق العد ليتوافق مع المؤلف والعنوان
 function previewIndex(type) {
     let win = window.open('', '', 'width=900,height=700');
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; column-count: 2; column-gap: 30px; font-size:11pt;">`;
-    let indexMap = {}; let serial = 1;
-    
+    let indexMap = {}; 
+    let serial = 1; // عداد التسلسل الحقيقي للكتب فقط
+
     records.forEach(r => {
-        if(!r.see && !r.see_also && r.title) {
+        if(!r.see && r.title) {
             let val = r[type];
             if(val) {
-                // تقسيم القيم في حال وجود أكثر من مؤلف مفصول بـ "؛"
                 val.split('؛').forEach(v => {
                     v = v.trim();
                     if(v) {
@@ -164,11 +164,11 @@ function previewIndex(type) {
                     }
                 });
             }
-            serial++;
+            serial++; // نزيد العداد فقط عند وجود كتاب (بيان ببليوغرافي)
         }
     });
 
-    Object.keys(indexMap).sort((a,b)=>a.localeCompare(b,'ar')).forEach(key => {
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => {
         content += `<div style="margin-bottom:5pt; border-bottom:0.5pt solid #eee;">
             ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(')( ')})</span>
             <div style="clear:both"></div>
