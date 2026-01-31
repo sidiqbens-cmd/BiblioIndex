@@ -150,13 +150,13 @@ function previewIndex(type) {
     let win = window.open('', '', 'width=900,height=700');
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; column-count: 2; column-gap: 30px; font-size:11pt;">`;
     let indexMap = {}; 
-    let serial = 1; // عداد التسلسل الحقيقي للكتب فقط
+    let serial = 1;
 
     records.forEach(r => {
-        if(!r.see && r.title) {
+        if(!r.see && !r.see_also && r.title) {
             let val = r[type];
             if(val) {
-                val.split('؛').forEach(v => {
+                String(val).split('؛').forEach(v => {
                     v = v.trim();
                     if(v) {
                         if(!indexMap[v]) indexMap[v] = [];
@@ -164,7 +164,7 @@ function previewIndex(type) {
                     }
                 });
             }
-            serial++; // نزيد العداد فقط عند وجود كتاب (بيان ببليوغرافي)
+            serial++; // العد يتزامن تماماً مع ترتيب القائمة الرئيسية
         }
     });
 
