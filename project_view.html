@@ -5,24 +5,29 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 2px; font-size: 11px; }
-        .project-bar { background: #2c3e50; color: #fff; padding: 5px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 2px; }
+        /* تصغير الخط في واجهة العرض لتقليل التمرير */
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 2px; font-size: 10px; }
+        .project-bar { background: #2c3e50; color: #fff; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 2px; }
         .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #fff; padding: 5px; border: 1px solid #ccc; border-radius: 4px; margin-top: 2px; }
         .grid-7 { grid-template-columns: repeat(8, 1fr); }
-        label { font-size: 10px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
-        input, select { width: 100%; border: 1px solid #bbb; padding: 2px 4px; font-size: 11px; height: 22px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
+        label { font-size: 9px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
+        input, select { width: 100%; border: 1px solid #bbb; padding: 2px 4px; font-size: 10px; height: 20px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
         .actions { margin: 3px 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
         .btn { padding: 4px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 10px; }
         .btn-save { background: #27ae60; } .btn-smart { background: #f39c12; }
+        
+        /* ألوان قائمة العرض والتباين المطلوب */
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; border: 1px solid #ccc; }
         .preview-table th { background: #f2f2f2; padding: 4px; border: 1px solid #ccc; font-size: 10px; }
-        .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; }
-        
-        /* أحجام الخطوط المطلوبة في المعاينة */
-        .subject-title { font-size: 14pt; font-weight: bold; display: block; background: #f9f9f9; padding: 5px; border: 1px solid #ddd; margin-top: 15px; text-align: center; }
-        .see-ref { font-size: 13pt; display: block; text-align: center; margin: 2px 0; }
-        .see-also-ref { font-size: 13pt; display: block; text-align: center; margin: 2px 0; font-style: italic; }
-        .biblio-text { font-size: 12pt; line-height: 1.4; }
+        .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; font-size: 10px; }
+        .subject-display { color: #555; font-weight: bold; } /* رمادي أدكن للرأس */
+        .ref-display { color: #999; } /* رمادي خافت للإحالات */
+
+        /* ستايلات المعاينة (الطباعة) - الأحجام كما طلبتها */
+        .subject-title-print { font-size: 14pt; font-weight: bold; text-align: center; border: 1px solid #888; color: #555; padding: 5px; margin: 15px 0 5px 0; background: #f9f9f9; }
+        .see-ref-print { font-size: 13pt; text-align: center; color: #999; margin: 5px 0; display: block; }
+        .see-also-print { font-size: 13pt; text-align: center; color: #999; margin: 2px 0; display: block; font-style: italic; }
+        .biblio-text-print { font-size: 12pt; display: block; line-height: 1.5; color: #000; }
         .short-in { width: 55px !important; display: block; margin: 0 auto; }
     </style>
 </head>
@@ -109,22 +114,17 @@ const cln = (s) => {
 function buildBiblio(r) {
     if(!r.title) return "";
     let b = `<b>${r.author}</b>. ${r.title}`;
-    
-    // تكرار المؤلف في حال وجود مشاركين
-    if(r.collab) {
-        b += ` ؛ ${r.author} ، ${r.collab}`;
-    }
-    
+    // تكرار المؤلف عند وجود مشاركين
+    if(r.collab) { b += ` ؛ ${r.author} ، ${r.collab}`; }
     if(r.translator) b += ` ؛ ترجمة ${r.translator}`;
     if(r.editor) b += ` ؛ ${r.editor}`;
     
-    // مكان النشر (يتعامل مع الفاصلة المنقوطة تلقائيا إذا أدخلها المستخدم)
-    b += `. - ${r.place}: ${r.publisher}, ${r.year}.`;
+    // علامة الترقيم المطلوبة بعد السنة: . ـــ
+    b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
     
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series} ؛ ${r.series_num || ''})`;
-    
-    return `<span class="biblio-text">${b}</span>`;
+    return b;
 }
 
 function saveData() {
@@ -147,10 +147,10 @@ function updateUI() {
         h += `<tr>
             <td style="text-align:center">${isBook ? s++ : '--'}</td>
             <td>
-                <div style="margin-bottom:5px;">
-                    <strong style="font-size:12px">${r.subject}</strong>
-                    ${r.see ? ` <span style="color:#555">أنظر</span> ${r.see}` : ''}
-                    ${r.see_also ? `<br><small style="color:#666">أنظر أيضاً: ${r.see_also}</small>` : ''}
+                <div style="margin-bottom:2px;">
+                    <span class="subject-display">${r.subject}</span>
+                    ${r.see ? ` <span class="ref-display">أنظر ${r.see}</span>` : ''}
+                    ${r.see_also ? `<br><small class="ref-display">أنظر أيضاً: ${r.see_also}</small>` : ''}
                 </div>
                 ${isBook ? buildBiblio(r) : ''}
             </td>
@@ -167,23 +167,25 @@ function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman';">`;
     records.forEach(r => {
-        if(r.subject !== lastSub) {
-            c += `<div class="subject-title">${r.subject}</div>`;
-            if(r.see) c += `<div class="see-ref">${r.subject} أنظر ${r.see}</div>`;
-            if(r.see_also) c += `<div class="see-also-ref">أنظر أيضاً: ${r.see_also}</div>`;
-            lastSub = r.subject;
-        }
         if(r.title && !r.see) {
+             if(r.subject !== lastSub) {
+                c += `<div class="subject-title-print">${r.subject}</div>`;
+                if(r.see_also) c += `<div class="see-also-print">أنظر أيضاً: ${r.see_also}</div>`;
+                lastSub = r.subject;
+            }
             c += `<div style="position:relative; margin:10px 0; padding-left:50px;">
                     <span style="position:absolute; left:0; font-weight:bold; font-size:12pt;">(${s++})</span>
-                    ${buildBiblio(r)}
+                    <span class="biblio-text-print">${buildBiblio(r)}</span>
                   </div>`;
+        } 
+        else if(r.see) {
+            c += `<div class="see-ref-print">${r.subject} أنظر ${r.see}</div>`;
         }
     });
     win.document.write(`<html><head><style>
-        .subject-title { font-size: 14pt; font-weight: bold; text-align: center; border: 1px solid #000; padding: 5px; margin: 20px 0 5px 0; }
-        .see-ref, .see-also-ref { font-size: 13pt; text-align: center; margin-bottom: 5px; }
-        .biblio-text { font-size: 12pt; display: block; line-height: 1.5; }
+        .subject-title-print { font-size: 14pt; font-weight: bold; text-align: center; border: 1px solid #888; color: #555; padding: 5px; margin: 15px 0 5px 0; background: #f9f9f9; }
+        .see-ref-print, .see-also-print { font-size: 13pt; text-align: center; color: #999; margin-bottom: 5px; }
+        .biblio-text-print { font-size: 12pt; display: block; line-height: 1.5; color: #000; }
     </style></head><body>${c}</div></body></html>`);
 }
 
