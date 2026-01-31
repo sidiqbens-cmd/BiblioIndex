@@ -14,12 +14,11 @@
         .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 10px; }
         .btn-save { background: #27ae60; } .btn-excel { background: #2980b9; } .btn-word { background: #8e44ad; } .btn-danger { background: #c0392b; }
-        
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; border: 1px solid #ccc; }
         .preview-table th { background: #f2f2f2; padding: 4px; border: 1px solid #ccc; font-size: 10px; }
         .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; font-size: 10px; }
         .action-cell { display: flex; gap: 3px; justify-content: center; width: 90px; }
-        .btn-t { padding: 2px 5px; font-size: 9px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; }
+        .btn-t { padding: 2px 5px; font-size: 9px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; }
     </style>
 </head>
 <body>
@@ -74,7 +73,7 @@
 </div>
 
 <table class="preview-table">
-    <thead><tr><th style="width:30px">ت</th><th>رأس الموضوع</th><th>البيان الببليوغرافي</th><th style="width:100px">الإجراء</th></tr></thead>
+    <thead><tr><th style="width:30px">ت</th><th>رأس الموضوع</th><th>البيان الببليوغرافي</th><th style="width:90px">الإجراء</th></tr></thead>
     <tbody id="tableBody"></tbody>
 </table>
 
@@ -83,6 +82,8 @@ let projects = JSON.parse(localStorage.getItem('lib_proj_list')) || ['المشر
 let currentProj = localStorage.getItem('lib_active_proj') || 'المشروع_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
+
+const cln = (s) => s ? s.trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
 
 function autoFlipName(input) {
     let val = input.value.trim();
@@ -98,10 +99,7 @@ function saveData() {
     editIdx = -1; sortRecs(); updateUI(); document.getElementById('biblioForm').reset();
 }
 
-function sortRecs() {
-    const cln = (s) => s ? s.trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
-    records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
-}
+function sortRecs() { records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar')); }
 
 function updateUI() {
     localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
@@ -109,7 +107,7 @@ function updateUI() {
     records.forEach((r, i) => {
         subs.add(r.subject);
         let isSee = !!r.see;
-        h += `<tr class="${isSee?'':'dat-row'}">
+        h += `<tr class="${isSee?'ref-row':''}">
             <td>${isSee ? '--' : (r.title ? s++ : '--')}</td>
             <td><strong>${r.subject}</strong>${r.see?'<br>انظر: '+r.see:''}${r.see_also?'<br><small>انظر أيضا: '+r.see_also+'</small>':''}</td>
             <td>${r.title ? `<b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
@@ -120,53 +118,52 @@ function updateUI() {
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
-    document.getElementById('subjectsList').innerHTML = Array.from(subs).map(x => `<option value="${x}">`).join('');
-    let sel = document.getElementById('projSelect');
-    sel.innerHTML = projects.map(p => `<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
+    document.getElementById('subjectsList').innerHTML = Array.from(subs).sort().map(x => `<option value="${x}">`).join('');
+    document.getElementById('projSelect').innerHTML = projects.map(p => `<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
     document.getElementById('activeProjectLabel').innerText = currentProj;
 }
-
-function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
-function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
-function switchProject(v) { localStorage.setItem('lib_active_proj', v); location.reload(); }
-function createNewProject() { let n = prompt("الاسم:"); if(n){ projects.push(n); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(n); }}
 
 function previewIndex(type) {
     let win = window.open();
     let map = {}; let s = 1;
     records.forEach(r => {
-        if(r.title && r[type]) {
-            r[type].split('؛').forEach(v => {
+        if(r.title) {
+            let val = r[type] || "";
+            val.split('؛').forEach(v => {
                 v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(s); }
             });
             s++;
         }
     });
-    let c = `<div dir="rtl" style="column-count:2; padding:1in; font-family:Arial;">`;
-    Object.keys(map).sort((a,b)=>a.localeCompare(b,'ar')).forEach(k => c += `<p>${k} (${map[k].join(', ')})</p>`);
+    let c = `<div dir="rtl" style="column-count:2; padding:1in; font-family:Arial; font-size:12px;">`;
+    Object.keys(map).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => {
+        c += `<div style="border-bottom:1px solid #eee; margin-bottom:5px;">${k} <span style="float:left"><b>(${map[k].join(') ( ')})</b></span><div style="clear:both"></div></div>`;
+    });
     win.document.write(c + `</div>`);
 }
 
 function previewFullList() {
     let win = window.open(); let s = 1; let last = "";
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman';">`;
+    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:14px;">`;
     records.forEach(r => {
         if(r.subject !== last) {
-            c += `<h3 style="text-align:center; background:#eee;">${r.subject}</h3>`;
+            c += `<h3 style="text-align:center; background:#eee; padding:5px; margin-top:20px;">${r.subject}</h3>`;
             if(r.see) c += `<p style="text-align:center;">انظر: ${r.see}</p>`;
             if(r.see_also) c += `<p style="text-align:center;">انظر أيضا: ${r.see_also}</p>`;
             last = r.subject;
         }
-        if(r.title) c += `<p><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. <span style="float:left">(${s++})</span></p>`;
+        if(r.title) {
+            c += `<p style="margin-bottom:10px;"><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. <span style="float:left">(${s++})</span></p><div style="clear:both"></div>`;
+        }
     });
     win.document.write(c + `</div>`);
 }
 
-function exportToExcel() {
-    const ws = XLSX.utils.json_to_sheet(records);
-    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records");
-    XLSX.writeFile(wb, `${currentProj}.xlsx`);
-}
+function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); window.scrollTo(0,0); }
+function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
+function switchProject(v) { localStorage.setItem('lib_active_proj', v); location.reload(); }
+function createNewProject() { let n = prompt("الاسم:"); if(n){ projects.push(n); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(n); }}
+function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
 
 window.onload = updateUI;
 </script>
