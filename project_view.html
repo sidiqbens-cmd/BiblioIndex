@@ -120,7 +120,10 @@ function updateUI() {
                 ${r.see_also ? `<br><small>أنظر أيضاً: ${r.see_also}</small>` : ''}
             </td>
             <td>${formatBiblio(r)}</td>
-            <td><button class="btn-danger" onclick="deleteRec(${i})">حذف</button></td>
+            <td>
+                <button onclick="editRec(${i})" style="cursor:pointer; background:#eee; border:1px solid #ccc; padding:2px 5px;">تعديل</button>
+                <button class="btn-danger" onclick="deleteRec(${i})" style="padding:2px 5px; margin-right:2px;">حذف</button>
+            </td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = html;
@@ -133,7 +136,15 @@ function formatBiblio(r) {
 }
 
 function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i, 1); updateUI(); } }
-function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
+
+function editRec(i) { 
+    editIdx = i; 
+    Object.keys(records[i]).forEach(k => { 
+        if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; 
+    }); 
+    window.scrollTo(0,0); // الصعود للأعلى لرؤية البيانات في الخانات
+}
+
 function updateProjectList() {
     let sel = document.getElementById('projSelect');
     sel.innerHTML = projects.map(p => `<option value="${p}" ${p===currentProj?'selected':''}>${p}</option>`).join('');
