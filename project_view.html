@@ -180,23 +180,17 @@ function importExcel(e) {
     reader.readAsBinaryString(file);
 }
 
-function previewFullList() {
-    let win = window.open(); let s = 1; let lastSub = "";
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:14px;">`;
-    records.forEach(r => {
-        if(r.subject !== lastSub) {
-            c += `<h3 style="text-align:center; background:#f0f0f0; padding:5px; border:1px solid #ccc;">${r.subject}</h3>`;
-            if(r.see) c += `<p style="text-align:center;">انظر: ${r.see}</p>`;
-            if(r.see_also) c += `<p style="text-align:center;">انظر أيضاً: ${r.see_also}</p>`;
-            lastSub = r.subject;
-        }
-        if(r.title && !r.see) {
-            c += `<p>(${s++}) <b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.</p>`;
-        }
-    });
-    win.document.write(c + `</div>`);
 }
-
+function previewIndex(type) {
+    let win = window.open();
+    let map = {}; let s = 1;
+    records.forEach(r => { if(r.title) { (r[type]||"").split('؛').forEach(v => { v=v.trim(); if(v){ if(!map[v]) map[v]=[]; map[v].push(s); }}); s++; }});
+    let content = `<div dir="rtl" style="column-count:2; padding:1in;">`;
+    Object.keys(map).sort().forEach(k => content += `<p>${k} (${map[k].join(', ')})</p>`);
+    win.document.write(content + `</div>`);
+}
+window.onload = updateUI;
+    
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
 function deleteRec(i) { if(confirm("هل تريد حذف هذا السجل؟")) { records.splice(i,1); updateUI(); } }
 function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
