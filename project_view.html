@@ -8,7 +8,7 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 5px; font-size: 11px; }
         .project-bar { background: #2c3e50; color: #fff; padding: 5px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 2px; }
         .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 2px; }
-        .grid-7 { grid-template-columns: repeat(7, 1fr); }
+        .grid-7 { grid-template-columns: repeat(8, 1fr); } /* زيادة الأعمدة للخانة الجديدة */
         label { font-size: 10px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
         input, select { width: 100%; border: 1px solid #bbb; padding: 2px 4px; font-size: 11px; height: 22px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
         .actions { margin: 5px 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
@@ -50,24 +50,25 @@
         <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subList"></div>
         <div><label>المؤلف</label><input type="text" id="author" class="in"></div>
         <div><label>العنوان</label><input type="text" id="title" class="in"></div>
-        <div><label>المشاركون</label><input type="text" id="collab" class="in"></div>
+        <div><label>المشاركون</label><input type="text" id="collab" class="in" placeholder="مؤلفون آخرون"></div>
     </div>
     <div class="compact-grid">
         <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
         <div><label>الناشر</label><input type="text" id="publisher" class="in"></div>
         <div><label>السنة</label><input type="text" id="year" class="in"></div>
+        <div><label>المترجم</label><input type="text" id="translator" class="in"></div>
+        <div><label>محقق/مقدم</label><input type="text" id="editor" class="in"></div>
         <div><label>صفحات</label><input type="text" id="pages" class="in"></div>
-        <div><label>الطبعة</label><input type="text" id="edition" class="in"></div>
-        <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
     </div>
     <div class="compact-grid grid-7">
+        <div><label>الطبعة</label><input type="text" id="edition" class="in"></div>
+        <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
         <div><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
         <div><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
         <div><label>جهة الإصدار</label><input type="text" id="org" class="in"></div>
         <div><label>العدد</label><input type="text" id="count" class="in"></div>
         <div><label>التبعية</label><input type="text" id="affil" class="in"></div>
         <div><label>الدولة</label><input type="text" id="country" class="in"></div>
-        <div><label>النوع</label><select id="type" class="in"><option>كتاب</option><option>مقالة</option><option>رسالة</option></select></div>
     </div>
 </form>
 
@@ -77,8 +78,9 @@
     <button class="btn btn-save" onclick="saveData()">حفظ السجل</button>
     <button class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
     <button class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
-    <button class="btn" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
+    <button class="btn" style="background:#555" onclick="previewAuthorIndex()">كشاف المؤلفين</button>
     <button class="btn" style="background:#d43f3a" onclick="previewIndex('title')">كشاف العناوين</button>
+    <button class="btn" style="background:#555" onclick="previewIndex('translator')">كشاف المترجمين</button>
     <button class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
     <button class="btn" style="background:#2c3e50" onclick="previewJournalList()">قائمة المجلات</button>
 </div>
@@ -140,7 +142,7 @@ function updateUI() {
         h += `<tr>
             <td style="text-align:center">${isBook ? s++ : '--'}</td>
             <td><strong>${r.subject}</strong>${r.see?'<br>انظر: '+r.see:''}${r.see_also?'<br><small>انظر أيضا: '+r.see_also+'</small>':''}</td>
-            <td>${r.title ? `<b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
+            <td>${r.title ? `<b>${r.author}</b>. ${r.title}. ${r.editor?'- '+r.editor+'. ':''}- ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
             <td style="text-align:center">
                 <button class="btn-t" onclick="editRec(${i})">تعديل</button>
                 <button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button>
@@ -151,6 +153,33 @@ function updateUI() {
     document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
     document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
     document.getElementById('activeProjectLabel').innerText = currentProj;
+}
+
+// كشاف مؤلفين يشمل المشاركين
+function previewAuthorIndex() {
+    let win = window.open('', '', 'width=900,height=700');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; column-count: 2; column-gap: 30px; font-size:11pt;">`;
+    let indexMap = {}; let serial = 1;
+    records.forEach(r => {
+        if(!r.see && !r.see_also && r.title) {
+            let authors = [r.author, r.collab].filter(v => v);
+            authors.join('؛').split('؛').forEach(v => {
+                v = v.trim();
+                if(v) {
+                    if(!indexMap[v]) indexMap[v] = [];
+                    indexMap[v].push(serial);
+                }
+            });
+            serial++;
+        }
+    });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => {
+        content += `<div style="margin-bottom:5pt; border-bottom:0.5pt solid #eee;">
+            ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(')( ')})</span>
+            <div style="clear:both"></div>
+        </div>`;
+    });
+    win.document.write(content + `</div>`);
 }
 
 function previewIndex(type) {
@@ -178,21 +207,21 @@ function previewIndex(type) {
             <div style="clear:both"></div>
         </div>`;
     });
-    content += `</div>`; win.document.write(content);
+    win.document.write(content + `</div>`);
 }
 
 function previewSubjectList() {
     let win = window.open('', '', 'width=600,height=700');
-    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; font-size:12pt;"><h3>قائمة رؤوس الموضوعات والإحالات</h3><hr>`;
-    let subjects = [];
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; font-size:12pt;"><h3>قائمة رؤوس الموضوعات</h3><hr>`;
+    let serial = 1;
+    let lastSub = "";
     records.forEach(r => {
-        subjects.push({text: r.subject, type: 'رأس موضوع'});
-        if(r.see) subjects.push({text: r.see, type: 'إحالة انظر'});
-        if(r.see_also) subjects.push({text: r.see_also, type: 'إحالة انظر أيضاً'});
-    });
-    let uniqueSubs = Array.from(new Set(subjects.map(s => JSON.stringify(s)))).map(s => JSON.parse(s));
-    uniqueSubs.sort((a,b) => cln(a.text).localeCompare(cln(b.text), 'ar')).forEach(s => {
-        content += `<div style="margin-bottom:5px;"><b>${s.text}</b> <span style="color:#666; font-size:10pt;">(${s.type})</span></div>`;
+        let isBook = !!r.title && !r.see;
+        if(r.subject !== lastSub) {
+            content += `<div style="margin-top:10px;"><b>${r.subject}</b> ${isBook ? '<span style="float:left">('+serial+')</span>' : ''}</div>`;
+            lastSub = r.subject;
+        }
+        if(isBook) serial++;
     });
     win.document.write(content + `</div>`);
 }
@@ -210,11 +239,7 @@ function previewJournalList() {
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:14px;">`;
-    let allSubjects = records.map(r => r.subject);
     records.forEach(r => {
-        if (r.see && !allSubjects.includes(r.see)) alert(`تنبيه: المحال إليه "${r.see}" غير موجود في القاعدة`);
-        if (r.see_also && !allSubjects.includes(r.see_also)) alert(`تنبيه: المحال إليه "${r.see_also}" غير موجود في القاعدة`);
-        
         if(r.subject !== lastSub) {
             c += `<h3 style="text-align:center; background:#f0f0f0; padding:5px; border:1px solid #ccc; margin-top:20px;">${r.subject}</h3>`;
             if(r.see) c += `<p style="text-align:center;">انظر: ${r.see}</p>`;
@@ -224,7 +249,7 @@ function previewFullList() {
         if(r.title && !r.see) {
             c += `<div style="position:relative; margin-bottom:15px;">
                     <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
-                    <p style="margin:0; padding-left:40px;"><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.</p>
+                    <p style="margin:0; padding-left:40px;"><b>${r.author}</b>. ${r.title}. ${r.editor?'- '+r.editor+'. ':''}- ${r.place}: ${r.publisher}, ${r.year}.</p>
                   </div>`;
         }
     });
