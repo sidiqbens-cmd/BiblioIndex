@@ -7,18 +7,27 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #eceef1; color: #333; margin: 0; padding: 5px; font-size: 11px; }
         .project-bar { background: #2c3e50; color: #fff; padding: 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #fff; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px; }
-        label { font-size: 10px; font-weight: bold; color: #555; text-align: center; display: block; }
-        input, select { width: 100%; border: 1px solid #bbb; padding: 4px; font-size: 12px; height: 26px; text-align: right; border-radius: 3px; box-sizing: border-box; }
-        .warning-field { border: 2px solid #e74c3c !important; background: #fff5f5 !important; }
-        .actions { margin: 10px 0; display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; }
-        .btn { padding: 6px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 11px; }
+        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 5px; }
+        label { font-size: 10px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 2px; }
+        input, select { width: 100%; border: 1px solid #bbb; padding: 3px; font-size: 11px; height: 22px; text-align: right; border-radius: 2px; box-sizing: border-box; }
+        .actions { margin: 8px 0; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-weight: bold; font-size: 10px; }
         .btn-save { background: #27ae60; } .btn-excel { background: #2980b9; } .btn-word { background: #8e44ad; } .btn-danger { background: #c0392b; }
-        .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 10px; border: 1px solid #ccc; }
-        .preview-table th { background: #f2f2f2; padding: 8px; border: 1px solid #ccc; }
-        .preview-table td { border: 1px solid #ccc; padding: 6px; text-align: right; }
+        
+        /* تعديل ارتفاع وعرض صفوف الجدول */
+        .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; border: 1px solid #ccc; table-layout: fixed; }
+        .preview-table th { background: #f2f2f2; padding: 4px; border: 1px solid #ccc; font-size: 10px; }
+        .preview-table td { border: 1px solid #ccc; padding: 2px 4px; text-align: right; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .preview-table th:nth-child(1) { width: 30px; }
+        .preview-table th:nth-child(2) { width: 25%; }
+        .preview-table th:nth-child(4) { width: 100px; } /* عرض ثابت لعمود الإجراءات */
+        
+        /* جعل الأزرار أفقية */
+        .btn-group { display: flex; gap: 2px; justify-content: center; }
+        .btn-table { padding: 2px 4px; font-size: 9px; cursor: pointer; border: 1px solid #ccc; border-radius: 2px; }
+
         .ref-row { background: #f9f9f9; color: #666; font-style: italic; }
-        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:2000; width:400px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        datalist { display: none; }
     </style>
 </head>
 <body>
@@ -28,26 +37,21 @@
     <div style="display:flex; gap:10px;">
         <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#f39c12">⚡ إدخال ذكي</button>
         <button onclick="createNewProject()" class="btn btn-save">+ مشروع جديد</button>
-        <select id="projSelect" onchange="switchProject(this.value)" style="width:auto; height:24px;"></select>
+        <select id="projSelect" onchange="switchProject(this.value)" style="width:auto; height:22px; font-size:10px;"></select>
     </div>
-</div>
-
-<div id="smartModal">
-    <h3>إدخال سريع</h3>
-    <textarea id="smartInput" style="width:100%; height:80px;"></textarea>
-    <button class="btn btn-save" onclick="processSmartPaste()">توزيع</button>
-    <button class="btn btn-danger" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
 </div>
 
 <form id="biblioForm">
     <div class="compact-grid">
-        <div class="field-group"><label>رأس الموضوع</label><input type="text" id="subject" class="in"></div>
-        <div class="field-group"><label>إحالة انظر</label><input type="text" id="see" class="in" onblur="validateRef(this)"></div>
-        <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" onblur="validateRef(this)"></div>
+        <div class="field-group"><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subjectsList"></div>
+        <div class="field-group"><label>إحالة انظر</label><input type="text" id="see" class="in" list="subjectsList"></div>
+        <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subjectsList"></div>
         <div class="field-group"><label>المؤلف (اللقب، الاسم)</label><input type="text" id="author" class="in" onblur="autoFlipName(this)"></div>
         <div class="field-group"><label>العنوان</label><input type="text" id="title" class="in"></div>
         <div class="field-group"><label>المشاركون/المترجمون</label><input type="text" id="collab" class="in"></div>
     </div>
+    <datalist id="subjectsList"></datalist>
+
     <div class="compact-grid" style="margin-top:4px;">
         <div class="field-group"><label>مكان النشر</label><input type="text" id="place" class="in"></div>
         <div class="field-group"><label>الناشر</label><input type="text" id="publisher" class="in"></div>
@@ -59,7 +63,7 @@
 </form>
 
 <div class="actions">
-    <button class="btn btn-save" onclick="saveData()">حفظ (Enter)</button>
+    <button class="btn btn-save" onclick="saveData()">حفظ البيانات</button>
     <button class="btn btn-excel" onclick="exportToExcel()">تصدير Excel</button>
     <button class="btn btn-word" onclick="previewFullList()">معاينة القائمة</button>
     <button class="btn btn-word" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
@@ -87,13 +91,6 @@ function autoFlipName(input) {
     }
 }
 
-function validateRef(input) {
-    let val = input.value.trim();
-    if (!val) return;
-    if (!records.some(r => r.subject === val)) { alert(`تنبيه: الرأس "${val}" غير موجود!`); input.classList.add('warning-field'); }
-    else { input.classList.remove('warning-field'); }
-}
-
 function saveData() {
     let data = {};
     document.querySelectorAll('.in').forEach(f => data[f.id] = f.value.trim());
@@ -110,23 +107,31 @@ function sortRecords() {
 function updateUI() {
     localStorage.setItem('recs_' + currentProj, JSON.stringify(records));
     let html = ''; let serial = 1;
+    let subjects = new Set();
+
     records.forEach((r, i) => {
+        subjects.add(r.subject);
         let isSee = !!r.see;
         html += `<tr class="${isSee?'ref-row':''}">
             <td>${isSee ? '--' : (r.title ? serial++ : '--')}</td>
-            <td onclick="editRec(${i})" style="cursor:pointer">
+            <td onclick="editRec(${i})" style="cursor:pointer; overflow:visible; white-space:normal;">
                 <strong>${r.subject}</strong>
                 ${r.see ? `<br>أنظر: ${r.see}` : ''}
                 ${r.see_also ? `<br><small>أنظر أيضاً: ${r.see_also}</small>` : ''}
             </td>
-            <td>${formatBiblio(r)}</td>
+            <td style="white-space:normal;">${formatBiblio(r)}</td>
             <td>
-                <button onclick="editRec(${i})" style="cursor:pointer; background:#eee; border:1px solid #ccc; padding:2px 5px;">تعديل</button>
-                <button class="btn-danger" onclick="deleteRec(${i})" style="padding:2px 5px; margin-right:2px;">حذف</button>
+                <div class="btn-group">
+                    <button onclick="editRec(${i})" class="btn-table" style="background:#fff;">تعديل</button>
+                    <button onclick="deleteRec(${i})" class="btn-table" style="background:#f8d7da; color:#721c24;">حذف</button>
+                </div>
             </td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = html;
+    
+    // تحديث الإكمال التلقائي
+    document.getElementById('subjectsList').innerHTML = Array.from(subjects).map(s => `<option value="${s}">`).join('');
     updateProjectList();
 }
 
@@ -136,13 +141,25 @@ function formatBiblio(r) {
 }
 
 function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i, 1); updateUI(); } }
-
 function editRec(i) { 
     editIdx = i; 
-    Object.keys(records[i]).forEach(k => { 
-        if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; 
-    }); 
-    window.scrollTo(0,0); // الصعود للأعلى لرؤية البيانات في الخانات
+    Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); 
+}
+
+function previewIndex(type) {
+    let win = window.open();
+    let map = {}; let s = 1;
+    records.forEach(r => { 
+        if(r.title && r[type]) { 
+            r[type].split('؛').forEach(v => { 
+                v=v.trim(); if(v){ if(!map[v]) map[v]=[]; map[v].push(s); }
+            });
+            s++; 
+        }
+    });
+    let content = `<div dir="rtl" style="column-count:2; padding:1in; font-family: 'Segoe UI';">`;
+    Object.keys(map).sort((a,b)=>a.localeCompare(b,'ar')).forEach(k => content += `<p>${k} <b>(${map[k].join(', ')})</b></p>`);
+    win.document.write(content + `</div>`);
 }
 
 function updateProjectList() {
@@ -152,6 +169,13 @@ function updateProjectList() {
 }
 function switchProject(val) { localStorage.setItem('lib_active_proj', val); location.reload(); }
 function createNewProject() { let n = prompt("الاسم:"); if(n){ projects.push(n); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(n); }}
+
+function exportToExcel() {
+    const ws = XLSX.utils.json_to_sheet(records);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Records");
+    XLSX.writeFile(wb, `${currentProj}.xlsx`);
+}
 
 function previewFullList() {
     let win = window.open();
@@ -169,14 +193,6 @@ function previewFullList() {
     win.document.write(content + `</div>`);
 }
 
-function previewIndex(type) {
-    let win = window.open();
-    let map = {}; let s = 1;
-    records.forEach(r => { if(r.title) { (r[type]||"").split('؛').forEach(v => { v=v.trim(); if(v){ if(!map[v]) map[v]=[]; map[v].push(s); }}); s++; }});
-    let content = `<div dir="rtl" style="column-count:2; padding:1in;">`;
-    Object.keys(map).sort().forEach(k => content += `<p>${k} (${map[k].join(', ')})</p>`);
-    win.document.write(content + `</div>`);
-}
 window.onload = updateUI;
 </script>
 </body>
