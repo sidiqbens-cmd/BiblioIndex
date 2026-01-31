@@ -6,37 +6,36 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 5px; font-size: 11px; }
-        .project-bar { background: #2c3e50; color: #fff; padding: 8px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 5px; }
+        .project-bar { background: #2c3e50; color: #fff; padding: 5px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 2px; }
         .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-top: 2px; }
         .grid-7 { grid-template-columns: repeat(7, 1fr); }
         label { font-size: 10px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
         input, select { width: 100%; border: 1px solid #bbb; padding: 2px 4px; font-size: 11px; height: 22px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
-        .actions { margin: 5px 0; display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 10px; }
+        .actions { margin: 5px 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 4px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 10px; }
         .btn-save { background: #27ae60; } .btn-smart { background: #f39c12; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 5px; border: 1px solid #ccc; }
         .preview-table th { background: #f2f2f2; padding: 4px; border: 1px solid #ccc; font-size: 10px; }
-        .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; font-size: 10px; }
-        .action-cell { display: flex; gap: 3px; justify-content: center; width: 90px; }
-        .btn-t { padding: 2px 5px; font-size: 9px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; }
-        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:2000; width:450px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); border-radius:8px; }
+        .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; font-size: 11px; }
+        .btn-t { padding: 2px 5px; font-size: 9px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; margin: 0 1px; }
+        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:400px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius:5px; }
     </style>
 </head>
 <body>
 
 <div class="project-bar">
     <div><strong>الفهرس الليبي الموحد</strong> | <span id="activeProjectLabel"></span></div>
-    <div style="display:flex; gap:8px;">
+    <div style="display:flex; gap:5px;">
         <button onclick="document.getElementById('smartModal').style.display='block'" class="btn btn-smart">⚡ إدخال ذكي</button>
-        <button onclick="createNewProject()" class="btn btn-save" style="background:#2980b9">+ جديد</button>
-        <select id="projSelect" onchange="switchProject(this.value)" style="height:20px; font-size:10px;"></select>
+        <button onclick="createNewProject()" class="btn" style="background:#2980b9">+ جديد</button>
+        <select id="projSelect" onchange="switchProject(this.value)" style="height:20px; font-size:10px; width:60px;"></select>
     </div>
 </div>
 
 <div id="smartModal">
-    <h3 style="margin:0 0 10px 0;">توزيع النص آلياً</h3>
-    <textarea id="smartInput" style="width:100%; height:100px; padding:5px; border:1px solid #ccc; font-size:12px;" placeholder="ألصق النص هنا (مؤلف. عنوان. مكان: ناشر، سنة)"></textarea>
-    <div style="margin-top:10px; display:flex; gap:5px;">
+    <h4 style="margin:0 0 10px 0;">توزيع النص آلياً</h4>
+    <textarea id="smartInput" style="width:100%; height:80px; padding:5px; border:1px solid #ccc; font-family:inherit;" placeholder="ألصق هنا: مؤلف. عنوان. مكان: ناشر، سنة"></textarea>
+    <div style="margin-top:10px; text-align:left;">
         <button class="btn btn-save" onclick="processSmart()">توزيع</button>
         <button class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
     </div>
@@ -44,9 +43,9 @@
 
 <form id="biblioForm">
     <div class="compact-grid">
-        <div><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subjectsList"></div>
-        <div><label>إحالة انظر</label><input type="text" id="see" class="in" list="subjectsList"></div>
-        <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subjectsList"></div>
+        <div><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subList"></div>
+        <div><label>إحالة انظر</label><input type="text" id="see" class="in" list="subList"></div>
+        <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subList"></div>
         <div><label>المؤلف</label><input type="text" id="author" class="in"></div>
         <div><label>العنوان</label><input type="text" id="title" class="in"></div>
         <div><label>المشاركون</label><input type="text" id="collab" class="in"></div>
@@ -70,10 +69,10 @@
     </div>
 </form>
 
-<datalist id="subjectsList"></datalist>
+<datalist id="subList"></datalist>
 
 <div class="actions">
-    <button class="btn btn-save" onclick="saveData()">حفظ السجل</button>
+    <button class="btn btn-save" onclick="saveData()">حفظ السجل (Enter)</button>
     <button class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
     <button class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
     <button class="btn" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
@@ -83,13 +82,13 @@
 </div>
 
 <table class="preview-table">
-    <thead><tr><th style="width:30px">ت</th><th style="width:25%">رأس الموضوع</th><th>البيان الببليوغرافي</th><th style="width:95px">الإجراء</th></tr></thead>
+    <thead><tr><th style="width:30px">ت</th><th style="width:20%">رأس الموضوع</th><th>البيان الببليوغرافي</th><th style="width:90px">الإجراء</th></tr></thead>
     <tbody id="tableBody"></tbody>
 </table>
 
 <script>
-let projects = JSON.parse(localStorage.getItem('lib_proj_list')) || ['المشروع_1'];
-let currentProj = localStorage.getItem('lib_active_proj') || 'المشروع_1';
+let projects = JSON.parse(localStorage.getItem('p_list')) || ['تجربة_1'];
+let currentProj = localStorage.getItem('p_active') || 'تجربة_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
 
@@ -104,70 +103,67 @@ function processSmart() {
         let imp = parts[2].split(':');
         document.getElementById('place').value = imp[0].trim();
         if(imp[1].includes('،')) {
-            let p = imp[1].split('،');
-            document.getElementById('publisher').value = p[0].trim();
-            document.getElementById('year').value = p[1].replace(/\D/g,'');
+            let n = imp[1].split('،');
+            document.getElementById('publisher').value = n[0].trim();
+            document.getElementById('year').value = n[1].replace(/\D/g,'');
         }
     }
-    document.getElementById('smartModal').style.display = 'none';
+    document.getElementById('smartModal').style.display='none';
 }
 
 function saveData() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
-    editIdx = -1; sortRecs(); updateUI(); document.getElementById('biblioForm').reset();
+    editIdx = -1;
+    records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
+    updateUI(); document.getElementById('biblioForm').reset();
 }
-
-function sortRecs() { records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar')); }
 
 function updateUI() {
     localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
     let h = ''; let s = 1; let subs = new Set();
     records.forEach((r, i) => {
         subs.add(r.subject);
-        let isSee = !!r.see;
+        let isRef = !!r.see;
         h += `<tr>
-            <td>${isSee ? '--' : (r.title ? s++ : '--')}</td>
+            <td style="text-align:center">${isRef ? '--' : (r.title ? s++ : '--')}</td>
             <td><strong>${r.subject}</strong>${r.see?'<br>انظر: '+r.see:''}${r.see_also?'<br><small>انظر أيضا: '+r.see_also+'</small>':''}</td>
             <td>${r.title ? `<b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.` : ''}</td>
-            <td class="action-cell">
-                <button class="btn-t" onclick="editRec(${i})">تعديل</button>
-                <button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button>
-            </td>
+            <td style="text-align:center"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
-    document.getElementById('subjectsList').innerHTML = Array.from(subs).map(x => `<option value="${x}">`).join('');
-    document.getElementById('projSelect').innerHTML = projects.map(p => `<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
+    document.getElementById('subList').innerHTML = Array.from(subs).map(x=>`<option value="${x}">`).join('');
+    document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
     document.getElementById('activeProjectLabel').innerText = currentProj;
 }
 
 function previewIndex(type) {
     let win = window.open();
-    let map = {}; let serialCounter = 1;
+    let map = {}; let serial = 1;
     records.forEach(r => {
         if(r.title) {
             let val = r[type] || "";
             val.split('؛').forEach(v => {
-                v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(serialCounter); }
+                v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(serial); }
             });
-            serialCounter++;
+            serial++;
         }
     });
-    let c = `<div dir="rtl" style="padding:1in; font-family:Arial; font-size:12px;"><h2>كشاف ${type}</h2>`;
+    let c = `<div dir="rtl" style="padding:1in; font-family:Arial;"><h2>كشاف ${type}</h2>`;
     Object.keys(map).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => {
-        c += `<div style="border-bottom:1px solid #eee; padding:5px;">${k} <span style="float:left"><b>(${map[k].join(', ')})</b></span><div style="clear:both"></div></div>`;
+        c += `<p style="border-bottom:1px solid #eee; padding:3px;">${k} <span style="float:left"><b>(${map[k].join(', ')})</b></span></p>`;
     });
     win.document.write(c + `</div>`);
 }
 
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
 function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
-function switchProject(v) { localStorage.setItem('lib_active_proj', v); location.reload(); }
-function createNewProject() { let n = prompt("الاسم:"); if(n){ projects.push(n); localStorage.setItem('lib_proj_list', JSON.stringify(projects)); switchProject(n); }}
+function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
+function createNewProject() { let n = prompt("الاسم:"); if(n){ projects.push(n); localStorage.setItem('p_list', JSON.stringify(projects)); switchProject(n); }}
 function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
-function previewFullList() { /* دالة المعاينة */ }
+function previewFullList() { /* نافذة المعاينة الكاملة */ }
 
 window.onload = updateUI;
 </script>
