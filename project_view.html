@@ -89,8 +89,8 @@
 </table>
 
 <script>
-let projects = JSON.parse(localStorage.getItem('p_list')) || ['تجربة_1'];
-let currentProj = localStorage.getItem('p_active') || 'تجربة_1';
+let projects = JSON.parse(localStorage.getItem('p_list')) || ['المشروع_1'];
+let currentProj = localStorage.getItem('p_active') || 'المشروع_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
 
@@ -128,7 +128,6 @@ function updateUI() {
     let h = ''; let s = 1; let subs = new Set();
     records.forEach((r, i) => {
         subs.add(r.subject);
-        let isRef = !!r.see || !!r.see_also;
         let hasData = !!r.title;
         h += `<tr>
             <td style="text-align:center">${(hasData && !r.see) ? s++ : '--'}</td>
@@ -148,21 +147,25 @@ function updateUI() {
 
 function previewIndex(type) {
     let win = window.open();
-    let map = {}; let serial = 1;
-    records.forEach(r => {
-        if(r.title && !r.see) {
-            let val = r[type] || "";
-            val.split('؛').forEach(v => {
-                v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(serial); }
-            });
-            serial++;
+    let map = {}; let s = 1;
+    records.forEach(r => { 
+        if(r.title && !r.see) { 
+            (r[type]||"").split('؛').forEach(v => { 
+                v=v.trim(); 
+                if(v){ 
+                    if(!map[v]) map[v]=[]; 
+                    map[v].push(s); 
+                }
+            }); 
+            s++; 
         }
     });
-    let c = `<div dir="rtl" style="padding:1in; font-family:Arial;"><h2>كشاف ${type}</h2>`;
+    let content = `<div dir="rtl" style="column-count:2; padding:1in; font-family:Arial; font-size:12px;">`;
+    content += `<h2>كشاف ${type}</h2>`;
     Object.keys(map).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => {
-        c += `<p style="border-bottom:1px solid #eee; padding:3px;">${k} <span style="float:left"><b>(${map[k].join(', ')})</b></span></p>`;
+        content += `<p style="margin:2px 0;">${k} (${map[k].join(', ')})</p>`;
     });
-    win.document.write(c + `</div>`);
+    win.document.write(content + `</div>`);
 }
 
 function importExcel(e) {
