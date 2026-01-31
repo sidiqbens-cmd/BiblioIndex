@@ -101,37 +101,52 @@ function processSmart() {
     let txt = document.getElementById('smartInput').value.trim();
     if(!txt) return;
 
-    // تنظيف وتفكيك النص بناءً على النقاط كنقاط فصل أساسية
-    let segments = txt.split('.');
-    
-    // 1. المؤلف (قبل أول نقطة)
-    if(segments[0]) document.getElementById('author').value = segments[0].trim();
-    
-    // 2. العنوان (بين النقطة الأولى والثانية)
-    if(segments[1]) document.getElementById('title').value = segments[1].trim();
+    // تنظيف النص من المسافات الزائدة
+    txt = txt.replace(/\s+/g, ' ');
 
-    // 3. معالجة بيانات النشر (المكان: الناشر، السنة) - غالباً بعد النقطة الثانية أو الثالثة
-    let pubPart = segments.find(s => s.includes(':') || s.includes('،') || s.includes(','));
-    if(pubPart) {
-        let colonSplit = pubPart.split(':');
-        if(colonSplit[0]) document.getElementById('place').value = colonSplit[0].trim().replace(/^-/, "").trim();
+    // 1. استخراج المؤلف والعنوان (نبحث عن أول نقطة تفصل بينهما)
+    let firstDot = txt.indexOf('.');
+    if (firstDot > -1) {
+        document.getElementById('author').value = txt.substring(0, firstDot).trim();
         
-        if(colonSplit[1]) {
-            let commaSplit = colonSplit[1].split(/[،,]/);
-            if(commaSplit[0]) document.getElementById('publisher').value = commaSplit[0].trim();
-            if(commaSplit[1]) {
-                // استخراج السنة (أول 4 أرقام تجدها)
-                let yearMatch = commaSplit[1].match(/\d{4}/);
-                if(yearMatch) document.getElementById('year').value = yearMatch[0];
+        // الجزء المتبقي بعد المؤلف
+        let remaining = txt.substring(firstDot + 1).trim();
+        
+        // البحث عن العنوان (غالباً ينتهي بنقطة ثانية أو بداية بيانات النشر)
+        let secondDot = remaining.indexOf('.');
+        if (secondDot > -1) {
+            document.getElementById('title').value = remaining.substring(0, secondDot).trim();
+            remaining = remaining.substring(secondDot + 1).trim();
+        } else {
+            // إذا لم توجد نقطة ثانية، نحاول البحث عن أول ":" لبيانات النشر
+            let colonIdx = remaining.indexOf(':');
+            if (colonIdx > -1) {
+                document.getElementById('title').value = remaining.substring(0, colonIdx - 5).trim(); // تقديراً لمكان النشر
             }
         }
     }
 
-    // 4. الصفحات (نبحث عن أرقام متبوعة بـ ص أو p أو في نهاية النص)
-    let pageMatch = txt.match(/(\d+)\s?(?:ص|p|صفحة)/i) || segments[segments.length-1].match(/\d+/);
-    if(pageMatch && !document.getElementById('year').value.includes(pageMatch[0])) {
-        document.getElementById('pages').value = pageMatch[0];
-    }
+    // 2. استخراج بيانات النشر باستخدام التعبيرات النمطية (Regex)
+    
+    // مكان النشر (يأتي قبل النقطتين الشارحتين)
+    let placeMatch = txt.match(/[-.\s]([^-.\s:]+)\s*:/);
+    if (placeMatch) document.getElementById('place').value = placeMatch[1].trim();
+
+    // الناشر (بين النقطتين والفاصلة)
+    let publisherMatch = txt.match(/:\s*([^،,]+)[،,]/);
+    if (publisherMatch) document.getElementById('publisher').value = publisherMatch[1].trim();
+
+    // السنة (4 أرقام متتالية)
+    let yearMatch = txt.match(/\b(19|20)\d{2}\b/);
+    if (yearMatch) document.getElementById('year').value = yearMatch[0];
+
+    // الصفحات (رقم يتبعه حرف ص أو يسبقه)
+    let pagesMatch = txt.match(/(\d+)\s*ص/) || txt.match(/ص\s*(\d+)/);
+    if (pagesMatch) document.getElementById('pages').value = pagesMatch[1] + " ص";
+
+    // المترجم (إذا وجد نص "ترجمة ...")
+    let transMatch = txt.match(/ترجمة\s+([^؛.]+)/);
+    if (transMatch) document.getElementById('translator').value = transMatch[1].trim();
 
     document.getElementById('smartModal').style.display = 'none';
 }
