@@ -8,17 +8,18 @@
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 2px; font-size: 10px; line-height: 1.1; }
         .project-bar { background: #2c3e50; color: #fff; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 1px; }
         .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #fff; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin-top: 1px; }
-        .grid-7 { grid-template-columns: repeat(8, 1fr); }
         label { font-size: 9px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
         input, select { width: 100%; border: 1px solid #bbb; padding: 1px 4px; font-size: 10px; height: 18px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
         .actions { margin: 2px 0; display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; }
         .btn { padding: 3px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 9px; }
         .btn-save { background: #27ae60; } .btn-smart { background: #f39c12; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 2px; border: 1px solid #ccc; }
-        .preview-table th { background: #f2f2f2; padding: 2px; border: 1px solid #ccc; font-size: 9px; }
         .preview-table td { border: 1px solid #ccc; padding: 2px; text-align: right; font-size: 10px; line-height: 1.2; }
-        .subject-display { color: #444; font-weight: bold; } 
-        .ref-display { background: #f0f0f0; color: #333; padding: 0 4px; border-radius: 2px; } /* خلفية رمادية للإحالات */
+        
+        /* ضبط خلفيات العرض في الواجهة */
+        .subject-bg { background: #dcdcdc; color: #000; font-weight: bold; padding: 0 4px; border-radius: 2px; } /* رمادي أدكن للرأس */
+        .ref-bg { background: #f2f2f2; color: #000; padding: 0 4px; border-radius: 2px; } /* رمادي أخف للإحالة */
+        
         .short-in { width: 50px !important; display: block; margin: 0 auto; }
         .btn-t { padding: 1px 4px; font-size: 8px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; margin: 0 1px; }
     </style>
@@ -36,15 +37,6 @@
     </div>
 </div>
 
-<div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:400px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius:5px;">
-    <h4 style="margin:0 0 10px 0;">توزيع النص آلياً</h4>
-    <textarea id="smartInput" style="width:100%; height:60px; padding:5px; border:1px solid #ccc;"></textarea>
-    <div style="margin-top:10px; text-align:left;">
-        <button class="btn btn-save" onclick="processSmart()">توزيع</button>
-        <button class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
-    </div>
-</div>
-
 <form id="biblioForm">
     <div class="compact-grid">
         <div><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subList"></div>
@@ -56,16 +48,15 @@
     </div>
     <div class="compact-grid">
         <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
-        <div><label>الناشر</label><input type="text" id="publisher" class="in"></div>
+        <div><label>الناشر / المجلة</label><input type="text" id="publisher" class="in"></div>
         <div><label>السنة</label><input type="text" id="year" class="in short-in"></div>
         <div><label>المترجم</label><input type="text" id="translator" class="in"></div>
         <div><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></div>
         <div><label>صفحات</label><input type="text" id="pages" class="in short-in"></div>
     </div>
-    <div class="compact-grid grid-7">
+    <div class="compact-grid" style="grid-template-columns: repeat(7, 1fr);">
         <div><label>الطبعة</label><input type="text" id="edition" class="in short-in"></div>
         <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
-        <div><label>رقم السلسلة</label><input type="text" id="series_num" class="in short-in"></div>
         <div><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
         <div><label>مؤلف أصلي</label><input type="text" id="orig_author" class="in"></div>
         <div><label>العدد</label><input type="text" id="count" class="in short-in"></div>
@@ -88,7 +79,6 @@
 </div>
 
 <table class="preview-table">
-    <thead><tr><th style="width:25px">ت</th><th>رأس الموضوع / البيان الببليوغرافي</th><th style="width:80px">الإجراء</th></tr></thead>
     <tbody id="tableBody"></tbody>
 </table>
 
@@ -108,7 +98,7 @@ function buildBiblio(r) {
     if(r.editor) b += ` ؛ ${r.editor}`;
     b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
     if(r.pages) b += ` ${r.pages}`;
-    if(r.series) b += ` . - (${r.series} ؛ ${r.series_num || ''})`;
+    if(r.series) b += ` . - (${r.series})`;
     return b;
 }
 
@@ -119,16 +109,16 @@ function updateUI() {
         subs.add(r.subject);
         let isBook = !!r.title && !r.see;
         h += `<tr>
-            <td style="text-align:center">${isBook ? s++ : '--'}</td>
+            <td style="text-align:center; width:25px;">${isBook ? s++ : '--'}</td>
             <td>
                 <div style="margin-bottom:1px;">
-                    <span class="subject-display">${r.subject}</span>
-                    ${r.see ? ` <span class="ref-display">أنظر ${r.see}</span>` : ''}
-                    ${r.see_also ? `<br><small class="ref-display">أنظر أيضاً: ${r.see_also}</small>` : ''}
+                    <span class="subject-bg">${r.subject}</span>
+                    ${r.see ? ` <span class="ref-bg">${r.subject} أنظر ${r.see}</span>` : ''}
+                    ${r.see_also ? `<br><span class="ref-bg">${r.subject} أنظر أيضاً ${r.see_also}</span>` : ''}
                 </div>
                 ${isBook ? buildBiblio(r) : ''}
             </td>
-            <td style="text-align:center"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
+            <td style="text-align:center; width:80px;"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
@@ -143,8 +133,8 @@ function previewFullList() {
     records.forEach(r => {
         if(r.title && !r.see) {
              if(r.subject !== lastSub) {
-                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; color:#444;">${r.subject}</div>`;
-                if(r.see_also) c += `<div style="font-size:13pt; text-align:center; background:#f0f0f0; margin-bottom:5px;">أنظر أيضاً: ${r.see_also}</div>`;
+                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc;">${r.subject}</div>`;
+                if(r.see_also) c += `<div style="font-size:13pt; text-align:center; background:#f2f2f2; margin-bottom:5px;">${r.subject} أنظر أيضاً ${r.see_also}</div>`;
                 lastSub = r.subject;
             }
             c += `<div style="position:relative; margin:8px 0; padding-left:45px;">
@@ -152,10 +142,26 @@ function previewFullList() {
                     <span style="font-size:12pt; display:block; line-height:1.4;">${buildBiblio(r)}</span>
                   </div>`;
         } else if(r.see) {
-            c += `<div style="font-size:13pt; text-align:center; background:#f0f0f0; margin:10px 0;">${r.subject} أنظر ${r.see}</div>`;
+            c += `<div style="font-size:13pt; text-align:center; background:#f2f2f2; margin:10px 0;">${r.subject} أنظر ${r.see}</div>`;
         }
     });
     win.document.write(c + `</div>`);
+}
+
+function previewSubjectList() {
+    let win = window.open('', '', 'width=600,height=600');
+    let subjectMap = {}; let s = 1;
+    records.forEach(r => {
+        if(r.title && !r.see) {
+            if(!subjectMap[r.subject]) subjectMap[r.subject] = [];
+            subjectMap[r.subject].push(s++);
+        }
+    });
+    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>قائمة رؤوس الموضوعات</h3><hr>`;
+    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => {
+        content += `<div style="margin-bottom:5px;">${sub} <span style="float:left">${subjectMap[sub].join(', ')}</span></div>`;
+    });
+    win.document.write(content + `</div>`);
 }
 
 function previewIndex(type) {
@@ -200,26 +206,12 @@ function previewJournalList() {
     win.document.write(content + `</div>`);
 }
 
-function previewSubjectList() {
-    let win = window.open('', '', 'width=600,height=600');
-    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>قائمة رؤوس الموضوعات</h3><hr>`;
-    let subs = Array.from(new Set(records.map(r => r.subject)));
-    subs.sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(s => { content += `<div>${s}</div>`; });
-    win.document.write(content + `</div>`);
-}
-
 function saveData() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value ? i.value.trim() : "");
     if(!d.subject) return alert("رأس الموضوع مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
     editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
     updateUI(); document.getElementById('biblioForm').reset();
-}
-function processSmart() {
-    let raw = document.getElementById('smartInput').value; let p = raw.split('.');
-    if(p[0]) document.getElementById('author').value = p[0].trim();
-    if(p[1]) document.getElementById('title').value = p[1].trim();
-    document.getElementById('smartModal').style.display='none';
 }
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
 function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
