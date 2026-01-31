@@ -50,14 +50,14 @@
         <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subList"></div>
         <div><label>المؤلف</label><input type="text" id="author" class="in"></div>
         <div><label>العنوان</label><input type="text" id="title" class="in"></div>
-        <div><label>المشاركون</label><input type="text" id="collab" class="in"></div>
+        <div><label>المؤلفون المشاركون</label><input type="text" id="collab" class="in"></div>
     </div>
     <div class="compact-grid">
         <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
         <div><label>الناشر</label><input type="text" id="publisher" class="in"></div>
-        <div><label>السنة</label><input type="text" id="year" class="in"></div>
+        <div><label>السنة</label><input type="text" id="year" class="in" style="width: 50px; display: block; margin: 0 auto;"></div>
         <div><label>المترجم</label><input type="text" id="translator" class="in"></div>
-        <div><label>محقق/مقدم/مراجه</label><input type="text" id="editor" class="in"></div>
+        <div><label>محقق/مقدم/مراجع</label><input type="text" id="editor" class="in"></div>
         <div><label>صفحات</label><input type="text" id="pages" class="in"></div>
     </div>
     <div class="compact-grid grid-7">
@@ -110,7 +110,7 @@ const cln = (s) => {
 function buildBiblio(r) {
     if(!r.title) return "";
     let b = `<b>${r.author}</b>. ${r.title}`;
-    if(r.collab) b += `؛ بمشاركة ${r.collab}`;
+    if(r.collab) b += ` ؛ ${r.collab}`;
     if(r.translator) b += `؛ ترجمة ${r.translator}`;
     if(r.editor) b += `؛ ${r.editor}`;
     b += `. - ${r.place}: ${r.publisher}, ${r.year}.`;
