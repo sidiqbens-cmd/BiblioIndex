@@ -79,8 +79,8 @@
     <button class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
     <button class="btn" style="background:#555" onclick="previewIndex('author')">كشاف المؤلفين</button>
     <button class="btn" style="background:#d43f3a" onclick="previewIndex('title')">كشاف العناوين</button>
-    <button class="btn" style="background:#555" onclick="previewIndex('collab')">كشاف المترجمين</button>
-    <button class="btn" style="background:#d43f3a" onclick="previewIndex('orig_title')">العنوان الأصلي</button>
+    <button class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
+    <button class="btn" style="background:#2c3e50" onclick="previewJournalList()">قائمة المجلات</button>
 </div>
 
 <table class="preview-table">
@@ -94,7 +94,15 @@ let currentProj = localStorage.getItem('p_active') || 'المشروع_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
 
-const cln = (s) => s ? String(s).trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
+const cln = (s) => {
+    if (!s) return "";
+    let str = String(s).trim();
+    str = str.replace(/^ال(?=[^ل])/, "");
+    str = str.replace(/آ/g, "اا");
+    str = str.replace(/[أإآ]/g, "ا");
+    str = str.replace(/ى/g, "ي");
+    return str;
+};
 
 function processSmart() {
     let raw = document.getElementById('smartInput').value;
@@ -170,26 +178,43 @@ function previewIndex(type) {
             <div style="clear:both"></div>
         </div>`;
     });
-    content += `</div>`; 
-    win.document.write(content);
+    content += `</div>`; win.document.write(content);
 }
 
-function importExcel(e) {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-        const wb = XLSX.read(evt.target.result, {type: 'binary'});
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        records = XLSX.utils.sheet_to_json(ws);
-        updateUI();
-    };
-    reader.readAsBinaryString(file);
+function previewSubjectList() {
+    let win = window.open('', '', 'width=600,height=700');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; font-size:12pt;"><h3>قائمة رؤوس الموضوعات والإحالات</h3><hr>`;
+    let subjects = [];
+    records.forEach(r => {
+        subjects.push({text: r.subject, type: 'رأس موضوع'});
+        if(r.see) subjects.push({text: r.see, type: 'إحالة انظر'});
+        if(r.see_also) subjects.push({text: r.see_also, type: 'إحالة انظر أيضاً'});
+    });
+    let uniqueSubs = Array.from(new Set(subjects.map(s => JSON.stringify(s)))).map(s => JSON.parse(s));
+    uniqueSubs.sort((a,b) => cln(a.text).localeCompare(cln(b.text), 'ar')).forEach(s => {
+        content += `<div style="margin-bottom:5px;"><b>${s.text}</b> <span style="color:#666; font-size:10pt;">(${s.type})</span></div>`;
+    });
+    win.document.write(content + `</div>`);
+}
+
+function previewJournalList() {
+    let win = window.open('', '', 'width=600,height=700');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; font-size:12pt;"><h3>قائمة المجلات</h3><hr>`;
+    let journals = Array.from(new Set(records.filter(r => r.type === 'مقالة' && r.publisher).map(r => r.publisher)));
+    journals.sort((a,b) => cln(a).localeCompare(cln(b), 'ar')).forEach(j => {
+        content += `<div style="margin-bottom:5px;">${j}</div>`;
+    });
+    win.document.write(content + `</div>`);
 }
 
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:14px;">`;
+    let allSubjects = records.map(r => r.subject);
     records.forEach(r => {
+        if (r.see && !allSubjects.includes(r.see)) alert(`تنبيه: المحال إليه "${r.see}" غير موجود في القاعدة`);
+        if (r.see_also && !allSubjects.includes(r.see_also)) alert(`تنبيه: المحال إليه "${r.see_also}" غير موجود في القاعدة`);
+        
         if(r.subject !== lastSub) {
             c += `<h3 style="text-align:center; background:#f0f0f0; padding:5px; border:1px solid #ccc; margin-top:20px;">${r.subject}</h3>`;
             if(r.see) c += `<p style="text-align:center;">انظر: ${r.see}</p>`;
@@ -197,7 +222,6 @@ function previewFullList() {
             lastSub = r.subject;
         }
         if(r.title && !r.see) {
-            // التعديل هنا: الرقم في أقصى اليسار مقابل سطر المؤلف
             c += `<div style="position:relative; margin-bottom:15px;">
                     <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
                     <p style="margin:0; padding-left:40px;"><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.</p>
@@ -207,10 +231,20 @@ function previewFullList() {
     win.document.write(c + `</div>`);
 }
 
+function importExcel(e) {
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const wb = XLSX.read(evt.target.result, {type: 'binary'});
+        records = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        updateUI();
+    };
+    reader.readAsBinaryString(e.target.files[0]);
+}
+
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
-function deleteRec(i) { if(confirm("هل تريد حذف هذا السجل؟")) { records.splice(i,1); updateUI(); } }
+function deleteRec(i) { if(confirm("حذف السجل؟")) { records.splice(i,1); updateUI(); } }
 function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
-function createNewProject() { let n = prompt("اسم المشروع الجديد:"); if(n){ projects.push(n); localStorage.setItem('p_list', JSON.stringify(projects)); switchProject(n); }}
+function createNewProject() { let n = prompt("المشروع الجديد:"); if(n){ projects.push(n); localStorage.setItem('p_list', JSON.stringify(projects)); switchProject(n); }}
 function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
 
 window.onload = updateUI;
