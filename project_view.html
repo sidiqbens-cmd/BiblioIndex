@@ -19,6 +19,7 @@
         .preview-table td { border: 1px solid #ccc; padding: 3px; text-align: right; font-size: 10px; }
         .action-cell { display: flex; gap: 3px; justify-content: center; width: 90px; }
         .btn-t { padding: 2px 5px; font-size: 9px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; }
+        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:2000; width:450px; box-shadow: 0 5px 25px rgba(0,0,0,0.4); border-radius:8px; }
     </style>
 </head>
 <body>
@@ -32,12 +33,22 @@
     </div>
 </div>
 
+<div id="smartModal">
+    <h3 style="margin:0 0 10px 0;">توزيع النص آلياً</h3>
+    <p style="font-size:10px; color:#666;">الصيغة المتوقعة: مؤلف. عنوان. مكان: ناشر، سنة</p>
+    <textarea id="smartInput" style="width:100%; height:100px; padding:5px; border:1px solid #ccc; font-family:inherit; font-size:12px;" placeholder="ألصق النص هنا..."></textarea>
+    <div style="margin-top:10px; display:flex; gap:5px;">
+        <button class="btn btn-save" onclick="processSmartPaste()">توزيع على الخانات</button>
+        <button class="btn btn-danger" onclick="document.getElementById('smartModal').style.display='none'">إغلاق</button>
+    </div>
+</div>
+
 <form id="biblioForm">
     <div class="compact-grid">
         <div class="field-group"><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subjectsList"></div>
         <div class="field-group"><label>إحالة انظر</label><input type="text" id="see" class="in" list="subjectsList"></div>
         <div class="field-group"><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subjectsList"></div>
-        <div class="field-group"><label>المؤلف (اللقب، الاسم)</label><input type="text" id="author" class="in" onblur="autoFlipName(this)"></div>
+        <div class="field-group"><label>المؤلف</label><input type="text" id="author" class="in"></div>
         <div class="field-group"><label>العنوان</label><input type="text" id="title" class="in"></div>
         <div class="field-group"><label>المشاركون</label><input type="text" id="collab" class="in"></div>
     </div>
@@ -85,11 +96,23 @@ let editIdx = -1;
 
 const cln = (s) => s ? s.trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
 
-function autoFlipName(input) {
-    let val = input.value.trim();
-    if (val && !val.includes('،') && val.split(' ').length >= 2) {
-        let pts = val.split(' '); let last = pts.pop(); input.value = last + '، ' + pts.join(' ');
+function processSmartPaste() {
+    let raw = document.getElementById('smartInput').value;
+    let parts = raw.split('.');
+    if(parts[0]) document.getElementById('author').value = parts[0].trim();
+    if(parts[1]) document.getElementById('title').value = parts[1].trim();
+    
+    let imprint = parts[2] || "";
+    if(imprint.includes(':')) {
+        let loc = imprint.split(':');
+        document.getElementById('place').value = loc[0].trim();
+        if(loc[1].includes('،')) {
+            let pub = loc[1].split('،');
+            document.getElementById('publisher').value = pub[0].trim();
+            document.getElementById('year').value = pub[1].replace(/[^0-9]/g, '').trim();
+        }
     }
+    document.getElementById('smartModal').style.display = 'none';
 }
 
 function saveData() {
@@ -125,19 +148,19 @@ function updateUI() {
 
 function previewIndex(type) {
     let win = window.open();
-    let map = {}; let s = 1;
+    let map = {}; let serialCounter = 1;
     records.forEach(r => {
         if(r.title) {
             let val = r[type] || "";
             val.split('؛').forEach(v => {
-                v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(s); }
+                v = v.trim(); if(v) { if(!map[v]) map[v]=[]; map[v].push(serialCounter); }
             });
-            s++;
+            serialCounter++;
         }
     });
-    let c = `<div dir="rtl" style="column-count:2; padding:1in; font-family:Arial; font-size:12px;">`;
+    let c = `<div dir="rtl" style="padding:1in; font-family:Arial; font-size:12px;"><h2>كشاف ${type}</h2>`;
     Object.keys(map).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => {
-        c += `<div style="border-bottom:1px solid #eee; margin-bottom:5px;">${k} <span style="float:left"><b>(${map[k].join(') ( ')})</b></span><div style="clear:both"></div></div>`;
+        c += `<div style="border-bottom:1px solid #eee; padding:5px;">${k} <span style="float:left"><b>(${map[k].join(') ( ')})</b></span><div style="clear:both"></div></div>`;
     });
     win.document.write(c + `</div>`);
 }
@@ -153,7 +176,7 @@ function previewFullList() {
             last = r.subject;
         }
         if(r.title) {
-            c += `<p style="margin-bottom:10px;"><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. <span style="float:left">(${s++})</span></p><div style="clear:both"></div>`;
+            c += `<p><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}. <span style="float:left">(${s++})</span></p><div style="clear:both"></div>`;
         }
     });
     win.document.write(c + `</div>`);
