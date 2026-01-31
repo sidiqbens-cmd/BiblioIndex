@@ -94,7 +94,7 @@ let currentProj = localStorage.getItem('p_active') || 'المشروع_1';
 let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
 let editIdx = -1;
 
-const cln = (s) => s ? s.trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
+const cln = (s) => s ? String(s).trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
 
 function processSmart() {
     let raw = document.getElementById('smartInput').value;
@@ -145,13 +145,10 @@ function updateUI() {
     document.getElementById('activeProjectLabel').innerText = currentProj;
 }
 
-// الكود البرمجي للكشاف - تم إصلاح منطق العد ليتوافق مع المؤلف والعنوان
 function previewIndex(type) {
     let win = window.open('', '', 'width=900,height=700');
     let content = `<div dir="rtl" style="font-family:'Times New Roman', serif; padding:1in; column-count: 2; column-gap: 30px; font-size:11pt;">`;
-    let indexMap = {}; 
-    let serial = 1;
-
+    let indexMap = {}; let serial = 1;
     records.forEach(r => {
         if(!r.see && !r.see_also && r.title) {
             let val = r[type];
@@ -164,17 +161,15 @@ function previewIndex(type) {
                     }
                 });
             }
-            serial++; // العد يتزامن تماماً مع ترتيب القائمة الرئيسية
+            serial++;
         }
     });
-
     Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => {
         content += `<div style="margin-bottom:5pt; border-bottom:0.5pt solid #eee;">
             ${key} <span style="float:left; font-weight:bold;">(${indexMap[key].join(')( ')})</span>
             <div style="clear:both"></div>
         </div>`;
     });
-    
     content += `</div>`; 
     win.document.write(content);
 }
@@ -202,7 +197,11 @@ function previewFullList() {
             lastSub = r.subject;
         }
         if(r.title && !r.see) {
-            c += `<p>(${s++}) <b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.</p>`;
+            // التعديل هنا: الرقم في أقصى اليسار مقابل سطر المؤلف
+            c += `<div style="position:relative; margin-bottom:15px;">
+                    <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
+                    <p style="margin:0; padding-left:40px;"><b>${r.author}</b>. ${r.title}. - ${r.place}: ${r.publisher}, ${r.year}.</p>
+                  </div>`;
         }
     });
     win.document.write(c + `</div>`);
