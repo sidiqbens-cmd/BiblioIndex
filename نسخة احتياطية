@@ -15,11 +15,8 @@
         .btn-save { background: #27ae60; } .btn-smart { background: #f39c12; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; margin-top: 2px; border: 1px solid #ccc; }
         .preview-table td { border: 1px solid #ccc; padding: 2px; text-align: right; font-size: 10px; line-height: 1.2; }
-        
-        /* ضبط خلفيات العرض في الواجهة */
-        .subject-bg { background: #dcdcdc; color: #000; font-weight: bold; padding: 0 4px; border-radius: 2px; } /* رمادي أدكن للرأس */
-        .ref-bg { background: #f2f2f2; color: #000; padding: 0 4px; border-radius: 2px; } /* رمادي أخف للإحالة */
-        
+        .subject-bg { background: #dcdcdc; color: #000; font-weight: bold; padding: 0 4px; border-radius: 2px; }
+        .ref-bg { background: #f2f2f2; color: #000; padding: 0 4px; border-radius: 2px; width: 100%; display: block; text-align: center; }
         .short-in { width: 50px !important; display: block; margin: 0 auto; }
         .btn-t { padding: 1px 4px; font-size: 8px; cursor: pointer; border-radius: 2px; border: 1px solid #ccc; background: #f8f9fa; margin: 0 1px; }
     </style>
@@ -34,6 +31,15 @@
         <input type="file" id="fileInput" style="display:none" onchange="importExcel(event)">
         <button onclick="createNewProject()" class="btn" style="background:#2980b9">+ جديد</button>
         <select id="projSelect" onchange="switchProject(this.value)" style="height:18px; font-size:9px; width:80px;"></select>
+    </div>
+</div>
+
+<div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:450px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius:5px;">
+    <h4 style="margin:0 0 10px 0;">الإدخال الذكي</h4>
+    <textarea id="smartInput" style="width:100%; height:80px; padding:5px; border:1px solid #ccc; font-size:11px;" placeholder="ألصق النص الببليوغرافي هنا..."></textarea>
+    <div style="margin-top:10px; text-align:left;">
+        <button class="btn btn-save" onclick="processSmart()">توزيع</button>
+        <button class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
     </div>
 </div>
 
@@ -90,15 +96,16 @@ let editIdx = -1;
 
 const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.replace(/^ال(?=[^ل])/, "").replace(/آ/g, "اا").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي"); return str; };
 
-function buildBiblio(r) {
+function buildBiblioPart(r) {
     if(!r.title) return "";
-    let b = `<b>${r.author}</b>. ${r.title}`;
+    let b = `${r.title}`;
     if(r.collab) b += ` ؛ ${r.author} ، ${r.collab}`;
     if(r.translator) b += ` ؛ ترجمة ${r.translator}`;
     if(r.editor) b += ` ؛ ${r.editor}`;
     b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series})`;
+    if(r.orig_title) b += ` . ـــ ${r.orig_title}`;
     return b;
 }
 
@@ -113,10 +120,10 @@ function updateUI() {
             <td>
                 <div style="margin-bottom:1px;">
                     <span class="subject-bg">${r.subject}</span>
-                    ${r.see ? ` <span class="ref-bg">${r.subject} أنظر ${r.see}</span>` : ''}
-                    ${r.see_also ? `<br><span class="ref-bg">${r.subject} أنظر أيضاً ${r.see_also}</span>` : ''}
+                    ${r.see ? `<span class="ref-bg">أنظر ${r.see}</span>` : ''}
+                    ${r.see_also ? `<br><span class="ref-bg">أنظر أيضاً ${r.see_also}</span>` : ''}
                 </div>
-                ${isBook ? buildBiblio(r) : ''}
+                ${isBook ? `<div style="font-weight:bold">${r.author}</div><div>${buildBiblioPart(r)}</div>` : ''}
             </td>
             <td style="text-align:center; width:80px;"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
         </tr>`;
@@ -133,19 +140,44 @@ function previewFullList() {
     records.forEach(r => {
         if(r.title && !r.see) {
              if(r.subject !== lastSub) {
-                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc;">${r.subject}</div>`;
-                if(r.see_also) c += `<div style="font-size:13pt; text-align:center; background:#f2f2f2; margin-bottom:5px;">${r.subject} أنظر أيضاً ${r.see_also}</div>`;
+                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc; padding:2px; border:0.5pt solid #aaa;">${r.subject}</div>`;
+                if(r.see_also) c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin-bottom:5px; padding:2px;">أنظر أيضاً ${r.see_also}</div>`;
                 lastSub = r.subject;
             }
-            c += `<div style="position:relative; margin:8px 0; padding-left:45px;">
+            c += `<div style="position:relative; margin:10px 0; min-height:30px;">
                     <span style="position:absolute; left:0; font-weight:bold; font-size:12pt;">(${s++})</span>
-                    <span style="font-size:12pt; display:block; line-height:1.4;">${buildBiblio(r)}</span>
+                    <div style="font-size:12pt; font-weight:bold; margin-bottom:2px;">${r.author}</div>
+                    <div style="font-size:12pt; line-height:1.4;">${buildBiblioPart(r)}</div>
                   </div>`;
         } else if(r.see) {
-            c += `<div style="font-size:13pt; text-align:center; background:#f2f2f2; margin:10px 0;">${r.subject} أنظر ${r.see}</div>`;
+            c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin:10px 0; padding:2px;">أنظر ${r.see}</div>`;
         }
     });
     win.document.write(c + `</div>`);
+}
+
+function processSmart() {
+    let txt = document.getElementById('smartInput').value.trim();
+    if(!txt) return;
+    txt = txt.replace(/\s+/g, ' ');
+    let firstDot = txt.indexOf('.');
+    if (firstDot > -1) {
+        document.getElementById('author').value = txt.substring(0, firstDot).trim();
+        let remaining = txt.substring(firstDot + 1).trim();
+        let secondDot = remaining.indexOf('.');
+        if (secondDot > -1) {
+            document.getElementById('title').value = remaining.substring(0, secondDot).trim();
+        }
+    }
+    let placeMatch = txt.match(/[-.\s]([^-.\s:]+)\s*:/);
+    if (placeMatch) document.getElementById('place').value = placeMatch[1].trim();
+    let publisherMatch = txt.match(/:\s*([^،,]+)[،,]/);
+    if (publisherMatch) document.getElementById('publisher').value = publisherMatch[1].trim();
+    let yearMatch = txt.match(/\b(19|20)\d{2}\b/);
+    if (yearMatch) document.getElementById('year').value = yearMatch[0];
+    let pagesMatch = txt.match(/(\d+)\s*ص/) || txt.match(/ص\s*(\d+)/);
+    if (pagesMatch) document.getElementById('pages').value = pagesMatch[1] + " ص";
+    document.getElementById('smartModal').style.display = 'none';
 }
 
 function previewSubjectList() {
