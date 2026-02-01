@@ -93,13 +93,26 @@ const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.re
 function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = `${r.title}`;
-    if(r.collab) b += ` ؛ ${r.author} ، ${r.collab}`;
-    if(r.translator) b += ` ؛ ترجمة ${r.translator}`;
+    
+    // شرط: إذا وجد مشارك أو مترجم نضع / وإلا نضع . ـــ
+    if(r.collab || r.translator) {
+        b += ` / `;
+        if(r.collab) b += `${r.author} ، ${r.collab}`;
+        if(r.translator) b += (r.collab ? ` ؛ ` : ``) + `ترجمة ${r.translator}`;
+    } else {
+        b += ` . ـــ `;
+    }
+
     if(r.editor) b += ` ؛ ${r.editor}`;
+    
+    // بيانات الطبعة والنشر
+    if(r.edition) b += ` . - ط ${r.edition}`;
     b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
+    
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series})`;
     if(r.orig_title) b += `<br><div style="text-align:left; direction:ltr;">${r.orig_title}</div>`;
+    
     return b;
 }
 
