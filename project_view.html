@@ -94,7 +94,7 @@ function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = `${r.title}`;
     
-    // شرط: إذا وجد مشارك أو مترجم نضع / وإلا نضع . ـــ
+    // القاعدة الثابتة: إذا وجد مشارك أو مترجم نضع / وإلا نضع . ـــ
     if(r.collab || r.translator) {
         b += ` / `;
         if(r.collab) b += `${r.author} ، ${r.collab}`;
@@ -105,9 +105,19 @@ function buildBiblioPart(r) {
 
     if(r.editor) b += ` ؛ ${r.editor}`;
     
-    // بيانات الطبعة والنشر
+    // بيانات الطبعة
     if(r.edition) b += ` . - ط ${r.edition}`;
-    b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
+
+    // إصلاح نقطة التظليل: نضع الفاصل . - ثم نتحقق من مكان النشر
+    b += ` . - `;
+    if(r.place) {
+        b += `${r.place}: ${r.publisher}`;
+    } else {
+        b += `${r.publisher}`; // لو المكان فارغ يكتب "مجلة..." مباشرة بدون النقطتين :
+    }
+
+    if(r.year) b += `, ${r.year}`;
+    b += `. ـــ`;
     
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series})`;
