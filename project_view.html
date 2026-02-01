@@ -105,8 +105,7 @@ function buildBiblioPart(r) {
     b += `. - ${r.place}: ${r.publisher}, ${r.year}. ـــ`;
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series})`;
-    // التعديل هنا لكسر السطر والمحاذاة
-    if(r.orig_title) b += `<br><div style="text-align:left; direction:ltr;">${r.orig_title}</div>`;
+    if(r.orig_title) b += ` . ـــ ${r.orig_title}`;
     return b;
 }
 
