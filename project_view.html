@@ -7,9 +7,9 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 2px; font-size: 10px; line-height: 1.1; }
         .project-bar { background: #2c3e50; color: #fff; padding: 4px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 4px; margin-bottom: 1px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #0ad2f5; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin-top: 1px; }
+        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px; background: #fff; padding: 4px; border: 1px solid #ccc; border-radius: 4px; margin-top: 1px; }
         label { font-size: 9px; font-weight: bold; color: #555; text-align: center; display: block; margin-bottom: 1px; }
-        input, select { width: 100%; border: 1px solid #bbb; padding: 1px 4px; font-size: 12px; height: 28px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #c8dbf7; }
+        input, select { width: 100%; border: 1px solid #bbb; padding: 1px 4px; font-size: 10px; height: 18px; text-align: right; border-radius: 2px; box-sizing: border-box; background: #fdfdfd; }
         .actions { margin: 2px 0; display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; }
         .btn { padding: 3px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 9px; }
         .btn-save { background: #27ae60; } .btn-smart { background: #f39c12; }
@@ -24,7 +24,7 @@
 <body>
 
 <div class="project-bar">
-    <div><strong>منظومة البيانات الببليوغرافية</strong> | <span id="activeProjectLabel"></span></div>
+    <div><strong>الفهرس الليبي الموحد</strong> | <span id="activeProjectLabel"></span></div>
     <div style="display:flex; gap:4px;">
         <button onclick="document.getElementById('smartModal').style.display='block'" class="btn btn-smart">⚡ ذكي</button>
         <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">📥 استيراد</button>
