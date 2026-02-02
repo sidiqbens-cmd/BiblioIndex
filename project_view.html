@@ -7,29 +7,16 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; margin: 0; padding: 0; font-size: 11px; overflow: hidden; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
-        
-        /* التنسيق الذي طلبته للخانات */
-        .compact-grid { 
-            display: grid; 
-            grid-template-columns: repeat(6, 1fr); 
-            gap: 4px; 
-            background: #CFCFCF; 
-            padding: 5px 10px; 
-        }
+        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; background: #CFCFCF; padding: 5px 10px; }
         .compact-grid div { display: flex; flex-direction: column; }
         label { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 1px; }
         input, select { border: 1px solid #999; padding: 2px; font-size: 11px; height: 22px; border-radius: 2px; }
         .short-in { width: 60px; }
-
         .actions { display: flex; gap: 4px; justify-content: center; background: #CFCFCF; padding: 5px 0 10px 0; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 4px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
-        
-        /* الجدول المضغوط */
-        .scroll-content { margin-top: 170px; height: calc(100vh - 170px); overflow-y: auto; padding: 5px; }
+        .scroll-content { margin-top: 175px; height: calc(100vh - 175px); overflow-y: auto; padding: 5px; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed; }
-        .preview-table td { border: 1px solid #ccc; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-        
-        /* الألوان */
+        .preview-table td { border: 1px solid #ccc; padding: 3px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; text-align: right; }
         .ref-see { background: #fff3cd; color: #856404; padding: 0 4px; border-radius: 2px; }
         .ref-see-also { background: #d1ecf1; color: #0c5460; padding: 0 4px; border-radius: 2px; }
     </style>
@@ -136,19 +123,23 @@ function updateUI() {
 }
 
 function saveData() {
-    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    let d = {}; 
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
-    editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
-    updateUI(); document.getElementById('biblioForm').reset();
+    editIdx = -1; 
+    records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
+    updateUI(); 
+    document.getElementById('biblioForm').reset();
 }
 
+// دوال المعاينة والكشافات
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:13pt;">`;
     records.forEach(r => {
         if (r.subject !== lastSub) {
-            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; font-weight:bold;">${r.subject} ${r.see ? 'انظر ' + r.see : ''}</div>`;
+            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; font-weight:bold;">${r.subject}</div>`;
             lastSub = r.subject;
         }
         if(r.title && !r.see) {
@@ -158,11 +149,10 @@ function previewFullList() {
     win.document.write(c + `</div>`);
 }
 
-// كشافات مبسطة
 function previewAuthorIndex() {
     let win = window.open(); let indexMap = {}; let s = 1;
     records.forEach(r => { if(r.title && !r.see) { let a = r.author; if(a) { if(!indexMap[a]) indexMap[a] = []; indexMap[a].push(s); } s++; }});
-    let c = `<div dir="rtl" style="padding:1in;"><h3>كشاف المؤلفين</h3>`;
+    let c = `<div dir="rtl" style="padding:1in;"><h3>كشاف المؤلفين</h3><hr>`;
     Object.keys(indexMap).sort().forEach(k => c += `<div>${k} [${indexMap[k].join(', ')}]</div>`);
     win.document.write(c + `</div>`);
 }
@@ -170,7 +160,7 @@ function previewAuthorIndex() {
 function previewIndex(fld, title) {
     let win = window.open(); let indexMap = {}; let s = 1;
     records.forEach(r => { if(r.title && !r.see) { let v = r[fld]; if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(s); } s++; }});
-    let c = `<div dir="rtl" style="padding:1in;"><h3>${title}</h3>`;
+    let c = `<div dir="rtl" style="padding:1in;"><h3>${title}</h3><hr>`;
     Object.keys(indexMap).sort().forEach(k => c += `<div>${k} [${indexMap[k].join(', ')}]</div>`);
     win.document.write(c + `</div>`);
 }
