@@ -52,6 +52,7 @@
         <strong>الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px;">
             <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد</button>
+            <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#2980b9">إدخال ذكي +</button>
             <input type="file" id="fileInput" style="display:none" onchange="importExcel(event)">
             <select id="projSelect" onchange="switchProject(this.value)" style="height:20px; font-size:10px;"></select>
         </div>
