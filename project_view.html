@@ -103,7 +103,9 @@ function updateUI() {
     records.forEach((r, i) => {
         subs.add(r.subject);
         h += `<tr><td style="width:30px; text-align:center;">${r.title && !r.see ? s++ : '-'}</td>
-            <td><strong>${r.subject}</strong>${r.see ? '<br><i>أنظر: '+r.see+'</i>' : ''}<br>${r.author || ''}<br>${buildBiblioPart(r)}</td>
+            <td><strong>${r.subject} ${r.see ? 'انظر ' + r.see : ''}</strong>
+            ${r.see_also ? '<br>انظر أيضاً: ' + r.see_also : ''}
+            <br>${r.author || ''}<br>${buildBiblioPart(r)}</td>
             <td style="width:50px;"><button onclick="editRec(${i})">تعديل</button></td></tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
@@ -116,9 +118,10 @@ function previewFullList() {
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
     records.forEach(r => {
         if (r.subject !== lastSub) {
-            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; border:1px solid #999; font-weight:bold;">${r.subject}</div>`;
-            if(r.see) c += `<div style="text-align:center; font-style:italic;">(أنظر: ${r.see})</div>`;
-            if(r.see_also) c += `<div style="text-align:center; font-style:italic;">(أنظر أيضاً: ${r.see_also})</div>`;
+            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; border:1px solid #999; font-weight:bold;">
+                    ${r.subject} ${r.see ? 'انظر ' + r.see : ''}
+                  </div>`;
+            if(r.see_also) c += `<div style="text-align:center; margin-bottom:10px;">انظر أيضاً: ${r.see_also}</div>`;
             lastSub = r.subject;
         }
         if(r.title && !r.see) {
