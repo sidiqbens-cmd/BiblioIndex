@@ -5,57 +5,55 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-    .scroll-content { 
-        margin-top: 195px; /* تقليل المسافة العلوية */
-        height: calc(100vh - 195px); 
-        overflow-y: auto; 
-        padding: 5px; 
-    }
-    /* تنسيق السطر الواحد للجدول */
-    .preview-table td { 
-        border: 1px solid #ccc; 
-        padding: 4px; 
-        white-space: nowrap; /* إجبار النص على سطر واحد */
-        overflow: hidden; 
-        text-overflow: ellipsis; /* إظهار نقاط عند طول النص */
-        max-width: 250px;
-    }
-        background-color: #fff3cd; 
-        color: #856404; 
-        padding: 0 4px; 
-        display: inline; 
-        border-radius: 2px;
-    }
-        .ref-see-also { 
-        background-color: #d1ecf1; 
-        color: #0c5460; 
-        padding: 0 4px; 
-        display: inline; 
-        border-radius: 2px;
-    }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; margin: 0; padding: 0; font-size: 11px; overflow: hidden; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; }
+        .compact-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #CFCFCF; padding: 8px; border-bottom: 2px solid #2c3e50; }
+        label { font-size: 10px; font-weight: bold; color: #444; display: block; }
+        input { width: 100%; border: 1px solid #999; padding: 2px; font-size: 11px; height: 22px; border-radius: 2px; box-sizing: border-box; }
+        .actions { display: flex; gap: 3px; justify-content: center; background: #CFCFCF; padding-bottom: 8px; flex-wrap: wrap; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
+        
+        .scroll-content { 
+            margin-top: 185px; 
+            height: calc(100vh - 185px); 
+            overflow-y: auto; 
+            padding: 5px; 
+        }
+        
+        .preview-table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed; }
+        .preview-table td { 
+            border: 1px solid #ccc; 
+            padding: 4px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            text-align: right;
+        }
+
+        /* ألوان الإحالات داخل الجدول */
+        .ref-see { background-color: #fff3cd; color: #856404; padding: 0 4px; border-radius: 2px; }
+        .ref-see-also { background-color: #d1ecf1; color: #0c5460; padding: 0 4px; border-radius: 2px; }
     </style>
 </head>
 <body>
-<button type="button" class="btn" style="background:#2980b9; margin: 5px;" onclick="document.getElementById('smartModal').style.display='block'">+ الإدخال الذكي</button>
 
-    <div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:450px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius:5px; color:#333;">
-        <h4 style="margin:0 0 10px 0;">الإدخال الذكي</h4>
-        <textarea id="smartInput" style="width:100%; height:80px; padding:5px; border:1px solid #ccc;" placeholder="ألصق النص الببليوغرافي هنا..."></textarea>
-        <div style="margin-top:10px; text-align:left;">
-            <button type="button" class="btn" style="background:#27ae60" onclick="processSmart()">توزيع</button>
-            <button type="button" class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
-        </div>
+<div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:450px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); border-radius:5px; color:#333;">
+    <h4 style="margin:0 0 10px 0;">الإدخال الذكي</h4>
+    <textarea id="smartInput" style="width:100%; height:80px; padding:5px; border:1px solid #ccc; font-family:Arial; font-size:12px;" placeholder="ألصق النص الببليوغرافي هنا..."></textarea>
+    <div style="margin-top:10px; text-align:left;">
+        <button type="button" class="btn" style="background:#27ae60" onclick="processSmart()">توزيع</button>
+        <button type="button" class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
     </div>
+</div>
 
-<button type="button" class="btn" style="background:#2980b9; margin:10px;" onclick="document.getElementById('smartModal').style.display='block'">+ فتح الإدخال الذكي</button>
 <div class="fixed-header">
-    <div style="color:#fff; padding:2px 15px; display:flex; justify-content:space-between;">
+    <div style="color:#fff; padding:2px 15px; display:flex; justify-content:space-between; align-items:center;">
         <strong>الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px;">
-            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد</button>
+            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد Excel</button>
             <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#2980b9">إدخال ذكي +</button>
             <input type="file" id="fileInput" style="display:none" onchange="importExcel(event)">
-            <select id="projSelect" onchange="switchProject(this.value)" style="height:20px; font-size:10px;"></select>
+            <select id="projSelect" onchange="switchProject(this.value)" style="height:22px; font-size:10px;"></select>
         </div>
     </div>
 
@@ -96,7 +94,9 @@
 </div>
 
 <div class="scroll-content">
-    <table class="preview-table"><tbody id="tableBody"></tbody></table>
+    <table class="preview-table">
+        <tbody id="tableBody"></tbody>
+    </table>
 </div>
 
 <script>
@@ -107,21 +107,27 @@ let editIdx = -1;
 
 const cln = (s) => { if (!s) return ""; return String(s).trim().replace(/^ال(?=[^ل])/, "").replace(/آ/g, "اا").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي"); };
 
-// الإدخال الذكي
+function smartFill(val) {
+    if (!val) return;
+    let existing = records.find(r => r.subject.trim() === val.trim() && (r.see || r.see_also));
+    if (existing) {
+        document.getElementById('see').value = existing.see || "";
+        document.getElementById('see_also').value = existing.see_also || "";
+    }
+}
+
 function processSmart() {
     let txt = document.getElementById('smartInput').value;
     if (!txt) return;
-
-    // تحليل أولي لتوزيع النص (يعتمد على الفواصل التقليدية)
+    let parts = txt.split('/'); // قمت بتعريف الـ parts هنا ليعمل الكود
     if (parts.length > 0) document.getElementById('author').value = parts[0].trim();
     if (parts.length > 1) {
         let titlePart = parts[1].split('.')[0];
         document.getElementById('title').value = titlePart.trim();
     }
-    // إغلاق الصندوق وتفريغه - يكتب مرة واحدة فقط
     document.getElementById('smartModal').style.display = 'none';
     document.getElementById('smartInput').value = '';
-} // هذا القوس الوحيد الذي يجب أن يكون في السطر 126 لإغلاق الدالة
+}
 
 function buildBiblioPart(r) {
     if(!r.title) return "";
@@ -150,36 +156,31 @@ function updateUI() {
     records.forEach((r, i) => {
         subs.add(r.subject);
         let isBook = r.title && !r.see;
-        // استبدل سطر العرض داخل حلقة records.forEach بهذا:
-    h += `<tr>
-        <td style="width:30px; text-align:center;">${isBook ? s++ : '-'}</td>
-        <td style="width:150px;"><strong>${r.subject}</strong></td>
-        <td style="width:150px;"><em>${r.author || ''}</em></td>
-        <td>${r.title || (r.see ? '<span class="ref-see">انظر: '+r.see+'</span>' : '')}</td>
-        <td style="width:50px;"><button onclick="editRec(${i})">تعديل</button></td>
-    </tr>`;
+        h += `<tr>
+            <td style="width:30px; text-align:center;">${isBook ? s++ : '-'}</td>
+            <td style="width:150px;"><strong>${r.subject}</strong></td>
+            <td style="width:150px;"><em>${r.author || ''}</em></td>
+            <td>${r.title || (r.see ? '<span class="ref-see">انظر: '+r.see+'</span>' : '')} ${r.see_also ? '<span class="ref-see-also">انظر أيضاً: '+r.see_also+'</span>' : ''}</td>
+            <td style="width:60px; text-align:center;"><button class="btn" style="background:#2c3e50; padding:2px 5px;" onclick="editRec(${i})">تعديل</button></td>
+        </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
     document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
     document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
 }
 
+// دوال المعاينة والكشافات (بقيت كما هي دون تغيير)
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:13pt;">`;
     records.forEach(r => {
         if (r.subject !== lastSub) {
-            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; font-weight:bold;">
-                    ${r.subject} ${r.see ? 'انظر ' + r.see : ''}
-                  </div>`;
+            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; font-weight:bold;">${r.subject} ${r.see ? 'انظر ' + r.see : ''}</div>`;
             if(r.see_also) c += `<div style="text-align:center; margin-bottom:10px;">انظر أيضاً: ${r.see_also}</div>`;
             lastSub = r.subject;
         }
         if(r.title && !r.see) {
-            c += `<div style="position:relative; margin:15px 40px 0 0;">
-                    <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
-                    <strong>${r.author}</strong><br>${buildBiblioPart(r)}
-                  </div>`;
+            c += `<div style="position:relative; margin:15px 40px 0 0;"><span style="position:absolute; left:0; font-weight:bold;">(${s++})</span><strong>${r.author}</strong><br>${buildBiblioPart(r)}</div>`;
         }
     });
     win.document.write(c + `</div>`);
@@ -233,9 +234,9 @@ function saveData() {
     if(!d.subject) return alert("الرأس مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
     editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
-   updateUI(); 
+    updateUI(); 
     document.getElementById('biblioForm').reset();
-} // تأكد من وجود هذا القوس لإغلاق دالة saveData
+}
 
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
 function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
