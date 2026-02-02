@@ -98,7 +98,7 @@ function buildBiblioPart(r) {
     if (r.place) b += r.place + ": ";
     b += r.journal ? r.journal + (r.publisher ? " (" + r.publisher + ")" : "") : (r.publisher || "");
     if (r.affiliation) b += " [" + r.affiliation + "]";
-    if (r.issue) b += "، ع " + r.issue;
+    if (r.issue) b += "، " + r.issue;
     if (r.year) b += "، " + r.year;
     b += ". ـــ";
     if (r.pages) b += " ص " + r.pages;
@@ -126,10 +126,10 @@ function updateUI() {
 
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
+    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:13pt;">`;
     records.forEach(r => {
         if (r.subject !== lastSub) {
-            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; border:1px solid #999; font-weight:bold;">
+            c += `<div style="background:#eee; padding:5px; margin-top:20px; text-align:center; font-weight:bold;">
                     ${r.subject} ${r.see ? 'انظر ' + r.see : ''}
                   </div>`;
             if(r.see_also) c += `<div style="text-align:center; margin-bottom:10px;">انظر أيضاً: ${r.see_also}</div>`;
