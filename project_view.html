@@ -5,68 +5,64 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; margin: 0; padding: 0; font-size: 11px; overflow-x: hidden; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        body { font-family: sans-serif; background: #eceef1; margin: 0; padding: 0; font-size: 11px; }
+        .header-box { position: fixed; top: 0; width: 100%; background: #2c3e50; z-index: 999; color: white; padding: 5px 0; }
         
-        .compact-grid { 
-            display: grid !important; 
-            grid-template-columns: repeat(7, 1fr) !important; 
-            gap: 5px; 
-            background: #CFCFCF; 
-            padding: 10px;
+        /* إجبار الشبكة على 7 أعمدة أفقية */
+        .grid-row { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 4px; 
+            background: #cfcfcf; 
+            padding: 5px 10px;
         }
         
-        .compact-grid div { display: flex; flex-direction: column; min-width: 0; }
-        label { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 2px; white-space: nowrap; }
-        input, select { width: 100%; border: 1px solid #999; padding: 2px 4px; font-size: 11px; height: 24px; border-radius: 2px; box-sizing: border-box; }
-
-        .actions { display: flex; gap: 5px; justify-content: center; background: #CFCFCF; padding: 5px 0 10px 0; border-bottom: 3px solid #2c3e50; flex-wrap: wrap; }
-        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+        .grid-row div { display: flex; flex-direction: column; }
+        label { font-size: 10px; font-weight: bold; color: #333; margin-bottom: 2px; }
+        input { border: 1px solid #999; padding: 2px; font-size: 11px; height: 22px; border-radius: 2px; width: 100%; box-sizing: border-box; }
         
-        .scroll-content { margin-top: 185px; height: calc(100vh - 185px); overflow-y: auto; padding: 10px; }
-        .preview-table { width: 100%; border-collapse: collapse; background: #fff; }
-        .preview-table td { border: 1px solid #ccc; padding: 6px; font-size: 12px; text-align: right; }
+        .actions-bar { background: #cfcfcf; padding: 5px; text-align: center; border-bottom: 2px solid #2c3e50; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; margin: 0 2px; }
         
-        .ref-see { background: #fff3cd; color: #856404; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
-        .ref-see-also { background: #d1ecf1; color: #0c5460; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
+        .content { margin-top: 180px; padding: 10px; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        table td { border: 1px solid #ccc; padding: 4px; font-size: 11px; text-align: right; }
+        
+        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:400px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-<div class="fixed-header">
-    <div style="color:#fff; padding:5px 20px; display:flex; justify-content:space-between; align-items:center; background:#34495e;">
-        <strong style="font-size:14px;">الفهرس الليبي الموحد</strong>
-        <div style="display:flex; gap:8px; align-items:center;">
-            <button onclick="createNewProject()" class="btn" style="background:#27ae60"> + مشروع جديد</button>
-            <select id="projSelect" onchange="switchProject(this.value)" style="height:24px; font-size:10px; width:120px;"></select>
-            <button onclick="deleteCurrentProject()" class="btn" style="background:#c0392b; padding:2px 8px;">حذف</button>
-            
-            <div style="border-right:1px solid #555; height:20px; margin:0 5px;"></div>
-            
+<div class="header-box">
+    <div style="display:flex; justify-content:space-between; padding:0 20px; align-items:center;">
+        <strong>الفهرس الليبي الموحد</strong>
+        <div>
+            <button onclick="addProject()" class="btn" style="background:#27ae60">+ مشروع</button>
+            <select id="projSelect" onchange="switchProject(this.value)" style="font-size:10px; height:20px;"></select>
             <button onclick="document.getElementById('smartModal').style.display='block'" class="btn" style="background:#2980b9">إدخال ذكي</button>
-            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد Excel</button>
-            <input type="file" id="fileInput" style="display:none" onchange="importExcel(event)">
         </div>
     </div>
 
     <form id="biblioForm">
-        <div class="compact-grid">
+        <div class="grid-row">
             <div><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subList"></div>
             <div><label>إحالة انظر</label><input type="text" id="see" class="in"></div>
             <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></div>
             <div><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></div>
-            <div><label>المؤلف (للمعاينة)</label><input type="text" id="author_preview" class="in"></div>
+            <div><label>المؤلف (معاينة)</label><input type="text" id="author_preview" class="in"></div>
             <div><label>العنوان</label><input type="text" id="title" class="in"></div>
-            <div><label>المشارك (للمعاينة)</label><input type="text" id="collab" class="in"></div>
-            
-            <div><label>المشارك (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
-            <div><label>المترجم (للمعاينة)</label><input type="text" id="translator" class="in"></div>
-            <div><label>المترجم (للكشاف)</label><input type="text" id="trans_idx" class="in"></div>
+            <div><label>المشارك (معاينة)</label><input type="text" id="collab" class="in"></div>
+        </div>
+        <div class="grid-row">
+            <div><label>المشارك (كشاف)</label><input type="text" id="collab_idx" class="in"></div>
+            <div><label>المترجم (معاينة)</label><input type="text" id="translator" class="in"></div>
+            <div><label>المترجم (كشاف)</label><input type="text" id="trans_idx" class="in"></div>
             <div><label>المجلة</label><input type="text" id="journal" class="in"></div>
             <div><label>الناشر</label><input type="text" id="publisher" class="in"></div>
             <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
-            <div><label>التبعية/الجهة</label><input type="text" id="affiliation" class="in"></div>
-            
+            <div><label>التبعية</label><input type="text" id="affiliation" class="in"></div>
+        </div>
+        <div class="grid-row">
             <div><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></div>
             <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
             <div><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
@@ -75,120 +71,80 @@
             <div><label>طبعة</label><input type="text" id="edition" class="in"></div>
             <div><label>صفحات</label><input type="text" id="pages" class="in"></div>
         </div>
-        
-        <div class="actions">
+        <div class="actions-bar">
             <button type="button" class="btn" style="background:#27ae60" onclick="saveData()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
-            <button type="button" class="btn" style="background:#555" onclick="previewAuthorIndex()">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#d43f3a" onclick="previewIndex('title', 'كشاف العناوين')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#c0392b" onclick="previewJournalList()">المجلات</button>
-            <button type="button" class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="previewAll()">المعاينة</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="deleteProject()">حذف المشروع</button>
         </div>
     </form>
 </div>
 
-<div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:450px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); border-radius:5px;">
-    <h4 style="margin:0 0 10px 0;">نافذة الإدخال الذكي</h4>
-    <textarea id="smartInput" style="width:100%; height:100px; padding:5px; border:1px solid #ccc; font-size:12px;" placeholder="ألصق النص هنا..."></textarea>
-    <div style="margin-top:10px; text-align:left;">
-        <button class="btn" style="background:#27ae60" onclick="processSmart()">توزيع</button>
-        <button class="btn" style="background:#c0392b" onclick="document.getElementById('smartModal').style.display='none'">إغلاق</button>
-    </div>
+<div id="smartModal">
+    <h4>الإدخال الذكي</h4>
+    <textarea id="smartInput" style="width:100%; height:80px;"></textarea><br><br>
+    <button class="btn" style="background:#27ae60" onclick="runSmart()">توزيع</button>
+    <button class="btn" style="background:#555" onclick="document.getElementById('smartModal').style.display='none'">إلغاء</button>
 </div>
 
-<div class="scroll-content">
-    <table class="preview-table">
-        <tbody id="tableBody"></tbody>
-    </table>
+<div class="content">
+    <table id="dataTable"></table>
 </div>
 
 <script>
-// تهيئة البيانات
 let projects = JSON.parse(localStorage.getItem('p_list')) || ['افتراضي'];
-let currentProj = localStorage.getItem('p_active') || 'افتراضي';
-let records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
+let current = localStorage.getItem('p_active') || 'افتراضي';
+let records = JSON.parse(localStorage.getItem('recs_' + current)) || [];
 let editIdx = -1;
 
-const cln = (s) => s ? String(s).trim().replace(/^ال(?=[^ل])/, "").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي") : "";
-
 function updateUI() {
-    localStorage.setItem('recs_'+currentProj, JSON.stringify(records));
+    localStorage.setItem('recs_'+current, JSON.stringify(records));
     localStorage.setItem('p_list', JSON.stringify(projects));
-    localStorage.setItem('p_active', currentProj);
+    localStorage.setItem('p_active', current);
     
-    let h = ''; let s = 1; let subs = new Set();
+    let h = ''; let s = 1;
     records.forEach((r, i) => {
-        subs.add(r.subject);
-        let isBook = r.title && !r.see;
         h += `<tr>
-            <td style="width:35px; text-align:center;">${isBook ? s++ : '-'}</td>
-            <td style="width:150px;"><strong>${r.subject}</strong></td>
-            <td>
-                ${r.see ? `<span class="ref-see">انظر: ${r.see}</span>` : ''}
-                ${r.see_also ? `<span class="ref-see-also">انظر أيضاً: ${r.see_also}</span>` : ''}
-                ${r.title ? `<strong>${r.author || ''}</strong>. ${r.title}` : ''}
-            </td>
-            <td style="width:60px;"><button class="btn" style="background:#2c3e50; padding:2px 8px;" onclick="editRec(${i})">تعديل</button></td>
+            <td width="30">${r.title ? s++ : '-'}</td>
+            <td width="150"><b>${r.subject}</b></td>
+            <td>${r.author || ''} ${r.title ? '- ' + r.title : ''} ${r.see ? '(انظر: '+r.see+')' : ''}</td>
+            <td width="50"><button onclick="editRec(${i})">تعديل</button></td>
         </tr>`;
     });
-    document.getElementById('tableBody').innerHTML = h;
-    document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
-    document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
-}
-
-// وظائف المشاريع
-function createNewProject() {
-    let name = prompt("أدخل اسم المشروع الجديد:");
-    if(name && !projects.includes(name)) {
-        projects.push(name);
-        currentProj = name;
-        records = [];
-        updateUI();
-    }
-}
-
-function deleteCurrentProject() {
-    if(projects.length <= 1) return alert("لا يمكن حذف المشروع الوحيد.");
-    if(confirm(`هل أنت متأكد من حذف المشروع "${currentProj}" وكل بياناته؟`)) {
-        localStorage.removeItem('recs_' + currentProj);
-        projects = projects.filter(p => p !== currentProj);
-        currentProj = projects[0];
-        records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
-        updateUI();
-    }
-}
-
-function switchProject(v) {
-    currentProj = v;
-    records = JSON.parse(localStorage.getItem('recs_' + currentProj)) || [];
-    updateUI();
+    document.getElementById('dataTable').innerHTML = h;
+    document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===current?'selected':''}>${p}</option>`).join('');
 }
 
 function saveData() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("يرجى إدخال رأس الموضوع");
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
+    if(!d.subject) return alert("الرأس مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
     editIdx = -1;
-    records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
-    updateUI();
-    document.getElementById('biblioForm').reset();
+    records.sort((a,b) => a.subject.localeCompare(b.subject, 'ar'));
+    updateUI(); document.getElementById('biblioForm').reset();
 }
 
 function editRec(i) {
     editIdx = i;
     Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; });
-    window.scrollTo(0,0);
 }
 
-function importExcel(e) {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-        const workbook = XLSX.read(evt.target.result, {type: 'binary'});
-        records = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-        updateUI();
-    };
-    reader.readAsBinaryString(e.target.files[0]);
+function addProject() {
+    let n = prompt("اسم المشروع:");
+    if(n) { projects.push(n); current = n; records = []; updateUI(); }
+}
+
+function switchProject(v) { current = v; records = JSON.parse(localStorage.getItem('recs_'+v)) || []; updateUI(); }
+
+function deleteProject() {
+    if(confirm("حذف؟")) { localStorage.removeItem('recs_'+current); projects = projects.filter(p=>p!==current); current=projects[0] || 'افتراضي'; updateUI(); location.reload(); }
+}
+
+function runSmart() {
+    let t = document.getElementById('smartInput').value;
+    let p = t.split('/');
+    if(p[0]) document.getElementById('author').value = p[0].trim();
+    if(p[1]) document.getElementById('title').value = p[1].split('.')[0].trim();
+    document.getElementById('smartModal').style.display='none';
 }
 
 window.onload = updateUI;
