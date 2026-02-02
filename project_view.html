@@ -5,17 +5,32 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
+        /* التنسيق العام لضغط الواجهة */
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; margin: 0; padding: 0; font-size: 11px; overflow: hidden; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: #CFCFCF; padding: 8px; border-bottom: 2px solid #2c3e50; }
-        label { font-size: 10px; font-weight: bold; color: #444; display: block; }
+        
+        /* الهيدر الثابت */
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
+        
+        /* شبكة الخانات: 7 أعمدة لتقليل الارتفاع */
+        .compact-grid { 
+            display: grid; 
+            grid-template-columns: repeat(7, 1fr); 
+            gap: 4px; 
+            background: #CFCFCF; 
+            padding: 8px; 
+            border-bottom: 2px solid #2c3e50;
+        }
+        
+        label { font-size: 10px; font-weight: bold; color: #333; display: block; margin-bottom: 2px; }
         input { width: 100%; border: 1px solid #999; padding: 2px; font-size: 11px; height: 22px; border-radius: 2px; box-sizing: border-box; }
+        
         .actions { display: flex; gap: 3px; justify-content: center; background: #CFCFCF; padding-bottom: 8px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         
+        /* منطقة الجدول المضغوطة */
         .scroll-content { 
-            margin-top: 185px; 
-            height: calc(100vh - 185px); 
+            margin-top: 175px; /* المسافة من الأعلى لتبدأ بعد الخانات مباشرة */
+            height: calc(100vh - 175px); 
             overflow-y: auto; 
             padding: 5px; 
         }
@@ -28,9 +43,10 @@
             overflow: hidden; 
             text-overflow: ellipsis; 
             text-align: right;
+            font-size: 11px;
         }
 
-        /* ألوان الإحالات داخل الجدول */
+        /* ألوان الإحالات */
         .ref-see { background-color: #fff3cd; color: #856404; padding: 0 4px; border-radius: 2px; }
         .ref-see-also { background-color: #d1ecf1; color: #0c5460; padding: 0 4px; border-radius: 2px; }
     </style>
@@ -47,7 +63,7 @@
 </div>
 
 <div class="fixed-header">
-    <div style="color:#fff; padding:2px 15px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="color:#fff; padding:2px 15px; display:flex; justify-content:space-between; align-items:center; background:#34495e;">
         <strong>الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px;">
             <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد Excel</button>
@@ -119,7 +135,7 @@ function smartFill(val) {
 function processSmart() {
     let txt = document.getElementById('smartInput').value;
     if (!txt) return;
-    let parts = txt.split('/'); // قمت بتعريف الـ parts هنا ليعمل الكود
+    let parts = txt.split('/');
     if (parts.length > 0) document.getElementById('author').value = parts[0].trim();
     if (parts.length > 1) {
         let titlePart = parts[1].split('.')[0];
@@ -158,8 +174,8 @@ function updateUI() {
         let isBook = r.title && !r.see;
         h += `<tr>
             <td style="width:30px; text-align:center;">${isBook ? s++ : '-'}</td>
-            <td style="width:150px;"><strong>${r.subject}</strong></td>
-            <td style="width:150px;"><em>${r.author || ''}</em></td>
+            <td style="width:120px;"><strong>${r.subject}</strong></td>
+            <td style="width:120px;"><em>${r.author || ''}</em></td>
             <td>${r.title || (r.see ? '<span class="ref-see">انظر: '+r.see+'</span>' : '')} ${r.see_also ? '<span class="ref-see-also">انظر أيضاً: '+r.see_also+'</span>' : ''}</td>
             <td style="width:60px; text-align:center;"><button class="btn" style="background:#2c3e50; padding:2px 5px;" onclick="editRec(${i})">تعديل</button></td>
         </tr>`;
@@ -169,7 +185,6 @@ function updateUI() {
     document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
 }
 
-// دوال المعاينة والكشافات (بقيت كما هي دون تغيير)
 function previewFullList() {
     let win = window.open(); let s = 1; let lastSub = "";
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:13pt;">`;
