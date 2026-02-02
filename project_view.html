@@ -84,6 +84,7 @@ let editIdx = -1;
 const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.replace(/^ال(?=[^ل])/, "").replace(/آ/g, "اا").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي"); return str; };
 
 // --- الدالة كما أرسلتها أنت حرفياً ---
+// --- الدالة مصححة ومنظمة لتعمل فوراً ---
 function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = `${r.title}`;
@@ -100,8 +101,6 @@ function buildBiblioPart(r) {
         }
     } else {
         b += " . ـــ ";
-    }
-        b += " . ـــ "; 
     }
 
     if(r.editor) b += ` ؛ ${r.editor}`;
