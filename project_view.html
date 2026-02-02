@@ -45,12 +45,14 @@
             <div><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></div>
             <div><label>العنوان</label><input type="text" id="title" class="in"></div>
             <div><label>المشاركون (للمعاينة)</label><input type="text" id="collab" class="in"></div>
+
             <div><label>المشاركون (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
             <div><label>المترجم (للمعاينة)</label><input type="text" id="translator" class="in"></div>
             <div><label>المترجم (للكشاف)</label><input type="text" id="trans_idx" class="in"></div>
             <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
             <div><label>الناشر / المجلة</label><input type="text" id="publisher" class="in"></div>
             <div><label>العدد/المجلد</label><input type="text" id="issue" class="in short-in"></div>
+
             <div class="year-shift"><label>السنة</label><input type="text" id="year" class="in short-in"></div>
             <div><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></div>
             <div><label>صفحات</label><input type="text" id="pages" class="in short-in"></div>
@@ -83,31 +85,46 @@ let editIdx = -1;
 
 const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.replace(/^ال(?=[^ل])/, "").replace(/آ/g, "اا").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي"); return str; };
 
+// الدالة المعتمدة بناءً على منطقك الدقيق لمعالجة المشاركين للمعاينة فقط
 function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = `${r.title}`;
+    
+    // القاعدة الثابتة: تأخذ من collab و translator فقط (للمعاينة)
     if(r.collab || r.translator) {
         b += ` / `;
         if(r.collab) b += `${r.author} ، ${r.collab}`;
+        else b += `${r.author}`;
         if(r.translator) b += (r.collab ? ` ؛ ` : ``) + `ترجمة ${r.translator}`;
-    } else { b += ` . ـــ `; }
+    } else { 
+        b += ` . ـــ `; 
+    }
+
     if(r.editor) b += ` ؛ ${r.editor}`;
     if(r.edition) b += ` . - ط ${r.edition}`;
+
     b += ` . - `;
     if(r.place) { b += `${r.place}: ${r.publisher}`; } else { b += `${r.publisher}`; }
+
     if(r.issue) b += `، ع ${r.issue}`;
     if(r.year) b += `، ${r.year}`;
     b += `. ـــ`;
+    
     if(r.pages) b += ` ${r.pages}`;
     if(r.series) b += ` . - (${r.series})`;
     if(r.orig_title) b += `<br><div style="text-align:left; direction:ltr;">${r.orig_title}</div>`;
+    
     return b;
 }
 
+// دالة تنسيق الأرقام لرؤوس الموضوعات (1-8) إذا كانت أكثر من 3 ومتسلسلة
 function formatNumbers(nums) {
     if (nums.length <= 3) return nums.join(', ');
-    let sorted = nums.sort((a, b) => a - b);
-    let isSequential = sorted.every((val, i) => i === 0 || val === sorted[i-1] + 1);
+    let sorted = nums.map(Number).sort((a, b) => a - b);
+    let isSequential = true;
+    for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] !== sorted[i-1] + 1) { isSequential = false; break; }
+    }
     return isSequential ? `${sorted[0]}-${sorted[sorted.length-1]}` : sorted.join(', ');
 }
 
