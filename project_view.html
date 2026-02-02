@@ -108,22 +108,15 @@ function processSmart() {
     if (!txt) return;
 
     // تحليل أولي لتوزيع النص (يعتمد على الفواصل التقليدية)
-    let parts = txt.split('/');
     if (parts.length > 0) document.getElementById('author').value = parts[0].trim();
     if (parts.length > 1) {
         let titlePart = parts[1].split('.')[0];
         document.getElementById('title').value = titlePart.trim();
     }
-    
-    // إغلاق الصندوق وتفريغه
+    // إغلاق الصندوق وتفريغه - يكتب مرة واحدة فقط
     document.getElementById('smartModal').style.display = 'none';
     document.getElementById('smartInput').value = '';
-}
-    
-    // إغلاق الصندوق وتفريغه
-    document.getElementById('smartModal').style.display = 'none';
-    document.getElementById('smartInput').value = '';
-}
+} // هذا القوس الوحيد الذي يجب أن يكون في السطر 126 لإغلاق الدالة
 }
 
 function buildBiblioPart(r) {
