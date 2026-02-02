@@ -102,6 +102,12 @@ function buildBiblioPart(r) {
     } else {
         b += " . ـــ ";
     }
+        if (r.translator && r.translator.trim() !== "") {
+            b += " ؛ ترجمة " + r.translator;
+        }
+    } else {
+        b += " . ـــ ";
+    }
 
     if(r.editor) b += ` ؛ ${r.editor}`;
     if(r.edition) b += ` . - ط ${r.edition}`;
