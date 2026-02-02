@@ -6,17 +6,46 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 0; font-size: 12px; line-height: 1.2; overflow: hidden; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        
+        /* لوحة الإدخال الثابتة في الأعلى */
+        .fixed-header { 
+            position: fixed; top: 0; left: 0; right: 0; 
+            background: #2c3e50; z-index: 1000; padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
         .project-bar { color: #fff; padding: 5px 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; background: #f1f1f1; padding: 15px; border-bottom: 2px solid #aaa; }
+        
+        /* تكبير اللوحة بمقدار الثلث وتثبيت الألوان */
+        .compact-grid { 
+            display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; 
+            background: #CFCFCF; padding: 15px; border-bottom: 2px solid #aaa;
+        }
+
         label { font-size: 11px; font-weight: bold; color: #444; text-align: right; display: block; margin-bottom: 3px; }
-        input, select { width: 100%; border: 1px solid #999; padding: 4px 6px; font-size: 12px; height: 28px; text-align: right; border-radius: 3px; box-sizing: border-box; background: #E6E6E6; }
-        .scroll-content { margin-top: 270px; height: calc(100vh - 270px); overflow-y: auto; padding: 10px; }
+        
+        input, select { 
+            width: 100%; border: 1px solid #999; padding: 4px 6px; 
+            font-size: 12px; height: 28px; text-align: right; 
+            border-radius: 3px; box-sizing: border-box; background: #E6E6E6; 
+        }
+
+        /* إزاحة السنة لليسار */
+        .year-shift { margin-right: auto; padding-right: 15px; }
+
+        .scroll-content { 
+            margin-top: 275px; 
+            height: calc(100vh - 275px); overflow-y: auto; padding: 10px;
+        }
+
         .actions { margin: 0; display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; background: #CFCFCF; padding: 5px 0 10px 0; }
+        
         .btn { padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-weight: bold; font-size: 11px; }
-        .btn-save { background: #27ae60; padding: 8px 20px; font-size: 12px; }
+        .btn-save { background: #27ae60; padding: 8px 20px; font-size: 12px; } 
+        
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ccc; }
         .preview-table td { border: 1px solid #ccc; padding: 5px; text-align: right; font-size: 12px; line-height: 1.4; }
+        
         .subject-bg { background: #dcdcdc; color: #000; font-weight: bold; padding: 2px 8px; border-radius: 2px; display: inline-block; }
         .ref-bg { background: #f2f2f2; color: #000; padding: 2px 8px; border-radius: 2px; width: 100%; display: block; text-align: center; margin: 2px 0; }
         .short-in { width: 65px !important; display: block; margin: 0 auto; }
@@ -45,19 +74,22 @@
             <div><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></div>
             <div><label>العنوان</label><input type="text" id="title" class="in"></div>
             <div><label>المشاركون (للمعاينة)</label><input type="text" id="collab" class="in"></div>
+            
             <div><label>المشاركون (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
             <div><label>المترجم (للمعاينة)</label><input type="text" id="translator" class="in"></div>
             <div><label>المترجم (للكشاف)</label><input type="text" id="trans_idx" class="in"></div>
             <div><label>مكان النشر</label><input type="text" id="place" class="in"></div>
             <div><label>الناشر / المجلة</label><input type="text" id="publisher" class="in"></div>
-            <div><label>السنة</label><input type="text" id="year" class="in short-in"></div>
+            <div><label>العدد/المجلد</label><input type="text" id="issue" class="in short-in"></div>
+
+            <div class="year-shift"><label>السنة</label><input type="text" id="year" class="in short-in"></div>
             <div><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></div>
             <div><label>صفحات</label><input type="text" id="pages" class="in short-in"></div>
             <div><label>الطبعة</label><input type="text" id="edition" class="in short-in"></div>
             <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
             <div><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
-            <div><label>النوع</label><select id="type" class="in"><option>كتاب</option><option>مقالة</option><option>رسالة</option></select></div>
         </div>
+        
         <div class="actions">
             <button type="button" class="btn btn-save" onclick="saveData()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
@@ -66,13 +98,14 @@
             <button type="button" class="btn" style="background:#d43f3a" onclick="previewIndex('title')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#555" onclick="previewIndex('trans_idx')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
-            <button type="button" class="btn" style="background:#2c3e50" onclick="previewJournalList()">قائمة المجلات</button>
         </div>
     </form>
 </div>
 
 <div class="scroll-content">
-    <table class="preview-table"><tbody id="tableBody"></tbody></table>
+    <table class="preview-table">
+        <tbody id="tableBody"></tbody>
+    </table>
 </div>
 
 <div id="smartModal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; width:450px;">
@@ -94,7 +127,7 @@ function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = `${r.title}`;
     
-    // القاعدة الثابتة: إذا وجد مشارك أو مترجم نضع / وإلا نضع . ـــ
+    // القاعدة الثابتة المتفق عليها
     if(r.collab || r.translator) {
         b += ` / `;
         if(r.collab) b += `${r.author} ، ${r.collab}`;
@@ -104,19 +137,18 @@ function buildBiblioPart(r) {
     }
 
     if(r.editor) b += ` ؛ ${r.editor}`;
-    
-    // بيانات الطبعة
     if(r.edition) b += ` . - ط ${r.edition}`;
 
-    // إصلاح نقطة التظليل: نضع الفاصل . - ثم نتحقق من مكان النشر
+    // النشر مع إصلاح التظليل وإضافة العدد
     b += ` . - `;
     if(r.place) {
         b += `${r.place}: ${r.publisher}`;
     } else {
-        b += `${r.publisher}`; // لو المكان فارغ يكتب "مجلة..." مباشرة بدون النقطتين :
+        b += `${r.publisher}`;
     }
 
-    if(r.year) b += `, ${r.year}`;
+    if(r.issue) b += `، ع ${r.issue}`; 
+    if(r.year) b += `، ${r.year}`;
     b += `. ـــ`;
     
     if(r.pages) b += ` ${r.pages}`;
@@ -149,47 +181,22 @@ function updateUI() {
     document.getElementById('activeProjectLabel').innerText = currentProj;
 }
 
-function previewFullList() {
-    let win = window.open(); let s = 1; let lastSub = "";
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman';">`;
-    records.forEach(r => {
-        if(r.title && !r.see) {
-             if(r.subject !== lastSub) {
-                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc; padding:2px; border:0.5pt solid #aaa;">${r.subject}</div>`;
-                if(r.see_also) c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin-bottom:5px; padding:2px;">أنظر أيضاً ${r.see_also}</div>`;
-                lastSub = r.subject;
-            }
-            c += `<div style="position:relative; margin:10px 0; min-height:30px;"><span style="position:absolute; left:0; font-weight:bold; font-size:12pt;">(${s++})</span><div style="font-size:12pt; font-weight:bold; margin-bottom:2px;">${r.author}</div><div style="font-size:12pt; line-height:1.4;">${buildBiblioPart(r)}</div></div>`;
-        } else if(r.see) {
-            c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin:10px 0; padding:2px;">أنظر ${r.see}</div>`;
-        }
-    });
-    win.document.write(c + `</div>`);
-}
-
-function previewSubjectList() {
-    let win = window.open('', '', 'width=600,height=600');
-    let subjectMap = {}; let s = 1;
-    records.forEach(r => { if(r.title && !r.see) { if(!subjectMap[r.subject]) subjectMap[r.subject] = []; subjectMap[r.subject].push(s++); } });
-    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
-    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => { content += `<div style="margin-bottom:5px;">${sub} <span style="float:left">${subjectMap[sub].join(', ')}</span></div>`; });
-    win.document.write(content + `</div>`);
-}
-
-function previewJournalList() {
-    let win = window.open('', '', 'width=600,height=600');
-    let journals = Array.from(new Set(records.filter(r => r.type === 'مقالة' && r.publisher).map(r => r.publisher)));
-    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>قائمة المجلات</h3><hr>`;
-    journals.sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(j => { content += `<div>${j}</div>`; });
-    win.document.write(content + `</div>`);
-}
-
 function previewAuthorIndex() {
     let win = window.open('', '', 'width=800,height=600');
     let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
     let indexMap = {}; let serial = 1;
-    records.forEach(r => { if(!r.see && r.title) { let authors = [r.author, r.collab_idx].filter(v => v); authors.join('؛').split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); serial++; } });
-    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${indexMap[key].join(')( ')})</span></div>`; });
+    records.forEach(r => {
+        if(!r.see && r.title) {
+            let authors = [r.author, r.collab_idx].filter(v => v);
+            authors.join('؛').split('؛').forEach(v => { 
+                v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } 
+            });
+            serial++;
+        }
+    });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => {
+        content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${indexMap[key].join(')( ')})</span></div>`;
+    });
     win.document.write(content + `</div>`);
 }
 
@@ -197,8 +204,16 @@ function previewIndex(type) {
     let win = window.open('', '', 'width=800,height=600');
     let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
     let indexMap = {}; let serial = 1;
-    records.forEach(r => { if(!r.see && r.title) { let val = r[type]; if(val) { String(val).split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); } serial++; } });
-    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${indexMap[key].join(')( ')})</span></div>`; });
+    records.forEach(r => {
+        if(!r.see && r.title) {
+            let val = r[type];
+            if(val) { String(val).split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); }
+            serial++;
+        }
+    });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => {
+        content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${indexMap[key].join(')( ')})</span></div>`;
+    });
     win.document.write(content + `</div>`);
 }
 
@@ -209,6 +224,7 @@ function saveData() {
     editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
     updateUI(); document.getElementById('biblioForm').reset();
 }
+
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
 function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
 function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
