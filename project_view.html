@@ -41,8 +41,8 @@
             <div><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></div>
             <div><label>المؤلف (للمعاينة)</label><input type="text" id="author_preview" class="in"></div>
             <div><label>العنوان</label><input type="text" id="title" class="in"></div>
-            <div><label>المشاركون (للمعاينة)</label><input type="text" id="collab" class="in"></div>
-            <div><label>المشاركون (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
+            <div><label>المشارك (للمعاينة)</label><input type="text" id="collab" class="in"></div>
+            <div><label>المشارك (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
             <div><label>المترجم (للمعاينة)</label><input type="text" id="translator" class="in"></div>
             <div><label>المترجم (للكشاف)</label><input type="text" id="trans_idx" class="in"></div>
             <div><label>المجلة</label><input type="text" id="journal" class="in"></div>
@@ -61,7 +61,8 @@
             <button type="button" class="btn" style="background:#27ae60" onclick="saveData()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
             <button type="button" class="btn" style="background:#555" onclick="previewAuthorIndex()">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#d43f3a" onclick="previewIndex('title')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#d43f3a" onclick="previewIndex('title', 'كشاف العناوين')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#555" onclick="previewIndex('trans_idx', 'كشاف المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="previewJournalList()">قائمة المجلات</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
             <button type="button" class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
@@ -100,7 +101,6 @@ function buildBiblioPart(r) {
 
     b += " . - ";
     if(r.place) b += r.place + ": ";
-    
     if(r.journal) { b += r.journal; if(r.publisher) b += " (" + r.publisher + ")"; }
     else { b += r.publisher; }
     
@@ -148,6 +148,19 @@ function previewJournalList() {
     win.document.write(content + `</div>`);
 }
 
+function previewSubjectList() {
+    let win = window.open('', '', 'width=600,height=600');
+    let subjectMap = {}; let s = 1;
+    records.forEach(r => { if(r.title && !r.see) { if(!subjectMap[r.subject]) subjectMap[r.subject] = []; subjectMap[r.subject].push(s++); } });
+    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
+    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => {
+        let n = subjectMap[sub];
+        let rng = n.length > 1 ? `${n[0]} - ${n[n.length-1]}` : n[0];
+        content += `<div style="margin-bottom:5px;">${sub} <span style="float:left; font-weight:bold;">${rng}</span></div>`; 
+    });
+    win.document.write(content + `</div>`);
+}
+
 function previewFullList() {
     let win = window.open(); let s = 1;
     let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
@@ -165,52 +178,26 @@ function previewFullList() {
 
 function previewAuthorIndex() {
     let win = window.open('', '', 'width=800,height=600');
-    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;"><h3>كشاف المؤلفين</h3><hr>`;
     let indexMap = {}; let serial = 1;
     records.forEach(r => { if(!r.see && r.title) { 
         let authors = [r.author, r.collab_idx].filter(v => v);
         authors.join('؛').split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); 
         serial++; 
     }});
-    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { 
-        content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">${indexMap[key].join(', ')}</span></div>`; 
-    });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => { content += `<div>${k} <span style="float:left">${indexMap[k].join(', ')}</span></div>`; });
     win.document.write(content + `</div>`);
 }
 
-function previewIndex(type) {
+function previewIndex(fld, title) {
     let win = window.open('', '', 'width=800,height=600');
-    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;"><h3>${title}</h3><hr>`;
     let indexMap = {}; let serial = 1;
-    records.forEach(r => { if(!r.see && r.title) { let val = r[type]; if(val) { String(val).split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); } serial++; } });
-    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">${indexMap[serial-1].join(', ')}</span></div>`; });
-    win.document.write(content + `</div>`);
-}
-
-function previewSubjectList() {
-    let win = window.open('', '', 'width=600,height=600');
-    let subjectMap = {}; 
-    let s = 1;
-    
-    // تجميع الأرقام لكل رأس موضوع
-    records.forEach(r => { 
-        if(r.title && !r.see) { 
-            if(!subjectMap[r.subject]) subjectMap[r.subject] = []; 
-            subjectMap[r.subject].push(s++); 
-        } 
-    });
-
-    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
-    
-    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => {
-        let nums = subjectMap[sub];
-        let displayRange = nums.length > 1 ? `${nums[0]} - ${nums[nums.length-1]}` : nums[0];
-        
-        content += `<div style="margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:2px;">
-                        ${sub} <span style="float:left; font-weight:bold;">${displayRange}</span>
-                    </div>`;
-    });
-    
+    records.forEach(r => { if(!r.see && r.title) {
+        let val = r[fld]; if(val) { val.split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); }
+        serial++;
+    }});
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(k => { content += `<div>${k} <span style="float:left">${indexMap[k].join(', ')}</span></div>`; });
     win.document.write(content + `</div>`);
 }
 
