@@ -89,13 +89,13 @@ function buildBiblioPart(r) {
     let b = `${r.title}`;
     
     if(r.collab || r.translator) {
-        b += ` / `;
-        if(r.collab) b += `${r.author} ، ${r.collab}`;
-        else b += `${r.author}`; 
+        b += " / "; 
+        if(r.collab) b += r.author + " ، " + r.collab;
+        else b += r.author; 
 
-        if(r.translator) b += ` ؛ ترجمة ${r.translator}`; 
+        if(r.translator) b += " ؛ ترجمة " + r.translator; 
     } else { 
-        b += ` . ـــ `; 
+        b += " . ـــ "; 
     }
 
     if(r.editor) b += ` ؛ ${r.editor}`;
