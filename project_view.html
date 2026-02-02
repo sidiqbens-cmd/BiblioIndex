@@ -87,17 +87,21 @@ function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = r.title;
     
-    if (r.collab || r.translator) {
-        b += " / ";
-        if (r.collab && r.collab.trim() !== "") {
-            b += r.author + " ، " + r.collab;
-        } else {
-            b += r.author;
-        }
-        if (r.translator && r.translator.trim() !== "") {
-            b += " ؛ ترجمة " + r.translator;
-        }
-    } else {
+    // التعديل المطلوب: يظهر المؤلف فقط إذا وُجد مشارك (collab)
+    if (r.collab && r.collab.trim() !== "") {
+        b += " / " + r.author + " ، " + r.collab;
+    } 
+    
+    // المترجم يضاف بشكل مستقل ولا يستدعي ظهور اسم المؤلف قبله
+    if (r.translator && r.translator.trim() !== "") {
+        // إذا لم يضف المشارك سابقاً، نضع علامة الميلة "/" أولاً
+        if (!r.collab || r.collab.trim() === "") b += " / ";
+        else b += " ؛ "; // إذا وُجد مشارك نستخدم الفصلة المنقوطة
+        b += "ترجمة " + r.translator;
+    }
+
+    // إذا لم يوجد مشارك ولا مترجم، نضع علامة الفصل
+    if ((!r.collab || r.collab.trim() === "") && (!r.translator || r.translator.trim() === "")) {
         b += " . ـــ ";
     }
 
@@ -105,13 +109,9 @@ function buildBiblioPart(r) {
     if(r.edition) b += " . - ط " + r.edition;
 
     b += " . - ";
-    if(r.place) { 
-        b += r.place + ": " + r.publisher; 
-    } else { 
-        b += r.publisher; 
-    }
+    if(r.place) { b += r.place + ": " + r.publisher; } else { b += r.publisher; }
 
-    if(r.issue) b += "، ع " + r.issue;
+    if(r.issue) b += "، " + r.issue;
     if(r.year) b += "، " + r.year;
     b += ". ـــ";
     
