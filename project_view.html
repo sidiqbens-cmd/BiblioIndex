@@ -107,13 +107,18 @@ function processSmart() {
     let txt = document.getElementById('smartInput').value;
     if (!txt) return;
 
-    // تحليل أولي بسيط (يمكنك تعديل القواعد حسب نمط نصوصك)
+    // تحليل أولي لتوزيع النص (يعتمد على الفواصل التقليدية)
     let parts = txt.split('/');
     if (parts.length > 0) document.getElementById('author').value = parts[0].trim();
     if (parts.length > 1) {
-        let subParts = parts[1].split('.');
-        document.getElementById('title').value = subParts[0].trim();
+        let titlePart = parts[1].split('.')[0];
+        document.getElementById('title').value = titlePart.trim();
     }
+    
+    // إغلاق الصندوق وتفريغه
+    document.getElementById('smartModal').style.display = 'none';
+    document.getElementById('smartInput').value = '';
+}
     
     // إغلاق الصندوق وتفريغه
     document.getElementById('smartModal').style.display = 'none';
