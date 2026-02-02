@@ -83,7 +83,6 @@ let editIdx = -1;
 
 const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.replace(/^ال(?=[^ل])/, "").replace(/آ/g, "اا").replace(/[أإآ]/g, "ا").replace(/ى/g, "ي"); return str; };
 
-// --- الدالة المصححة تماماً (بدون تكرار وبدون أخطاء أقواس) ---
 function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = r.title;
@@ -141,3 +140,88 @@ function updateUI() {
         let isBook = !!r.title && !r.see;
         h += `<tr>
             <td style="text-align:center; width:35px; font-weight:bold;">${isBook ? s++ : '--'}</td>
+            <td>
+                <div><span class="subject-bg">${r.subject}</span></div>
+                ${r.see ? `<span class="ref-bg">أنظر ${r.see}</span>` : ''}
+                ${r.see_also ? `<span class="ref-bg">أنظر أيضاً ${r.see_also}</span>` : ''}
+                ${isBook ? `<div style="font-weight:bold; margin-top:3px;">${r.author}</div><div>${buildBiblioPart(r)}</div>` : ''}
+            </td>
+            <td style="text-align:center; width:90px;"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
+        </tr>`;
+    });
+    document.getElementById('tableBody').innerHTML = h;
+    document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
+    document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
+    document.getElementById('activeProjectLabel').innerText = currentProj;
+}
+
+function previewFullList() {
+    let win = window.open(); let s = 1; let lastSub = "";
+    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman';">`;
+    records.forEach(r => {
+        if(r.title && !r.see) {
+            if(r.subject !== lastSub) {
+                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc; padding:2px; border:0.5pt solid #aaa;">${r.subject}</div>`;
+                lastSub = r.subject;
+            }
+            c += `<div style="position:relative; margin:10px 0; min-height:30px;"><span style="position:absolute; left:0; font-weight:bold; font-size:12pt;">(${s++})</span><div style="font-size:12pt; font-weight:bold; margin-bottom:2px;">${r.author}</div><div style="font-size:12pt; line-height:1.4;">${buildBiblioPart(r)}</div></div>`;
+        }
+    });
+    win.document.write(c + `</div>`);
+}
+
+function previewSubjectList() {
+    let win = window.open('', '', 'width=600,height=600');
+    let subjectMap = {}; let s = 1;
+    records.forEach(r => { if(r.title && !r.see) { if(!subjectMap[r.subject]) subjectMap[r.subject] = []; subjectMap[r.subject].push(s++); } });
+    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
+    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => { 
+        content += `<div style="margin-bottom:5px;">${sub} <span style="float:left">${formatNumbers(subjectMap[sub])}</span></div>`; 
+    });
+    win.document.write(content + `</div>`);
+}
+
+function previewJournalList() {
+    let win = window.open('', '', 'width=600,height=600');
+    let journals = Array.from(new Set(records.filter(r => r.publisher && r.title).map(r => r.publisher)));
+    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>قائمة المجلات والناشرين</h3><hr>`;
+    journals.sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(j => { content += `<div>${j}</div>`; });
+    win.document.write(content + `</div>`);
+}
+
+function previewAuthorIndex() {
+    let win = window.open('', '', 'width=800,height=600');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
+    let indexMap = {}; let serial = 1;
+    records.forEach(r => { if(!r.see && r.title) { let authors = [r.author, r.collab_idx].filter(v => v); authors.join('؛').split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); serial++; } });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${formatNumbers(indexMap[key])})</span></div>`; });
+    win.document.write(content + `</div>`);
+}
+
+function previewIndex(type) {
+    let win = window.open('', '', 'width=800,height=600');
+    let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
+    let indexMap = {}; let serial = 1;
+    records.forEach(r => { if(!r.see && r.title) { let val = r[type]; if(val) { String(val).split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); } serial++; } });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">(${formatNumbers(indexMap[key])})</span></div>`; });
+    win.document.write(content + `</div>`);
+}
+
+function saveData() {
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value ? i.value.trim() : "");
+    if(!d.subject) return alert("رأس الموضوع مطلوب");
+    if(editIdx > -1) records[editIdx] = d; else records.push(d);
+    editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
+    updateUI(); document.getElementById('biblioForm').reset();
+}
+function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
+function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
+function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
+function createNewProject() { let n = prompt("المشروع:"); if(n){ projects.push(n); localStorage.setItem('p_list', JSON.stringify(projects)); switchProject(n); }}
+function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
+function importExcel(e) { const reader = new FileReader(); reader.onload = (evt) => { records = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type: 'binary'}).Sheets[XLSX.read(evt.target.result, {type: 'binary'}).SheetNames[0]]); updateUI(); }; reader.readAsBinaryString(e.target.files[0]); }
+window.onload = updateUI;
+</script>
+<datalist id="subList"></datalist>
+</body>
+</html>
