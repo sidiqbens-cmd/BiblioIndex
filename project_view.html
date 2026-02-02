@@ -162,19 +162,25 @@ function previewSubjectList() {
 }
 
 function previewFullList() {
-    let win = window.open(); let s = 1;
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
-    records.forEach(r => { 
+    let win = window.open(); let s = 1; let lastSub = "";
+    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman';">`;
+    records.forEach(r => {
         if(r.title && !r.see) {
-            c += `<div style="position:relative; margin-bottom:15px; min-height:40px;">
-                    <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
-                    <div style="font-weight:bold;">${r.author}</div>
-                    <div>${buildBiblioPart(r)}</div>
+             if(r.subject !== lastSub) {
+                c += `<div style="font-size:14pt; font-weight:bold; text-align:center; margin:15px 0 5px 0; background:#dcdcdc; padding:2px; border:0.5pt solid #aaa;">${r.subject}</div>`;
+                if(r.see_also) c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin-bottom:5px; padding:2px;">أنظر أيضاً ${r.see_also}</div>`;
+                lastSub = r.subject;
+            }
+            c += `<div style="position:relative; margin:10px 0; min-height:30px;">
+                    <span style="position:absolute; left:0; font-weight:bold; font-size:12pt;">(${s++})</span>
+                    <div style="font-size:12pt; font-weight:bold; margin-bottom:2px;">${r.author}</div>
+                    <div style="font-size:12pt; line-height:1.4;">${buildBiblioPart(r)}</div>
                   </div>`;
+        } else if(r.see) {
+            c += `<div style="font-size:12pt; text-align:center; background:#f2f2f2; margin:10px 0; padding:2px;">أنظر ${r.see}</div>`;
         }
     });
-    win.document.write(c + `</div>`);
-}
+    win.document
 
 function previewAuthorIndex() {
     let win = window.open('', '', 'width=800,height=600');
