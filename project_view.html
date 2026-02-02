@@ -15,6 +15,20 @@
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; }
         .preview-table td { border: 1px solid #ccc; padding: 5px; text-align: right; }
+        .ref-see { 
+        background-color: #fff3cd; 
+        color: #856404; 
+        padding: 0 4px; 
+        display: inline; 
+        border-radius: 2px;
+    }
+    .ref-see-also { 
+        background-color: #d1ecf1; 
+        color: #0c5460; 
+        padding: 0 4px; 
+        display: inline; 
+        border-radius: 2px;
+    }
     </style>
 </head>
 <body>
@@ -79,7 +93,9 @@ const cln = (s) => { if (!s) return ""; return String(s).trim().replace(/^ال(?
 
 // الإدخال الذكي
 function smartFill(val) {
-    let existing = records.find(r => r.subject === val);
+    if (!val) return;
+    // البحث عن أول سجل يحتوي على هذا الرأس ولديه إحالات
+    let existing = records.find(r => r.subject.trim() === val.trim() && (r.see || r.see_also));
     if (existing) {
         document.getElementById('see').value = existing.see || "";
         document.getElementById('see_also').value = existing.see_also || "";
@@ -113,11 +129,12 @@ function updateUI() {
     records.forEach((r, i) => {
         subs.add(r.subject);
         let isBook = r.title && !r.see;
-        h += `<tr><td style="width:30px; text-align:center;">${isBook ? s++ : '-'}</td>
-            <td><strong>${r.subject} ${r.see ? 'انظر ' + r.see : ''}</strong>
-            ${r.see_also ? '<br>انظر أيضاً: ' + r.see_also : ''}
-            ${isBook ? `<br><strong>${r.author}</strong><br>${buildBiblioPart(r)}` : ''}</td>
-            <td style="width:50px;"><button onclick="editRec(${i})">تعديل</button></td></tr>`;
+        // استبدل سطر العرض داخل حلقة records.forEach بهذا:
+    h += `<tr><td style="width:30px; text-align:center;">${r.title && !r.see ? s++ : '-'}</td>
+        <td><strong>${r.subject}</strong> ${r.see ? ' <span class="ref-see">انظر: ' + r.see + '</span>' : ''}
+        ${r.see_also ? '<br><span class="ref-see-also">انظر أيضاً: ' + r.see_also + '</span>' : ''}
+        ${r.title && !r.see ? `<br><strong>${r.author}</strong><br>${buildBiblioPart(r)}` : ''}</td>
+        <td style="width:50px;"><button onclick="editRec(${i})">تعديل</button></td></tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
     document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
