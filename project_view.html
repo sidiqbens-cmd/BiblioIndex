@@ -43,6 +43,7 @@
             <div><label>إحالة انظر</label><input type="text" id="see" class="in" list="subList"></div>
             <div><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in" list="subList"></div>
             <div><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></div>
+            <div><label>المؤلف (للمعاينة)</label><input type="text" id="author_preview" class="in"></div> 
             <div><label>العنوان</label><input type="text" id="title" class="in"></div>
             <div><label>المشاركون (للمعاينة)</label><input type="text" id="collab" class="in"></div>
             <div><label>المشاركون (للكشاف)</label><input type="text" id="collab_idx" class="in"></div>
@@ -87,34 +88,34 @@ function buildBiblioPart(r) {
     if(!r.title) return "";
     let b = r.title;
     
-    // التعديل المطلوب: يظهر المؤلف فقط إذا وُجد مشارك (collab)
+    // الحالة الأولى: وجود مؤلف مشارك (يظهر المؤلف الرئيس غير المقلوب ثم المشارك)
     if (r.collab && r.collab.trim() !== "") {
-        b += " / " + r.author + " ، " + r.collab;
+        let mainAuthor = (r.author_preview && r.author_preview.trim() !== "") ? r.author_preview : r.author;
+        b += " / " + mainAuthor + " ، " + r.collab;
     } 
     
-    // المترجم يضاف بشكل مستقل ولا يستدعي ظهور اسم المؤلف قبله
+    // الحالة الثانية: وجود مترجم فقط (لا يظهر اسم المؤلف بعد العنوان)
     if (r.translator && r.translator.trim() !== "") {
-        // إذا لم يضف المشارك سابقاً، نضع علامة الميلة "/" أولاً
-        if (!r.collab || r.collab.trim() === "") b += " / ";
-        else b += " ؛ "; // إذا وُجد مشارك نستخدم الفصلة المنقوطة
-        b += "ترجمة " + r.translator;
+        if (!r.collab || r.collab.trim() === "") {
+            b += " / ترجمة " + r.translator;
+        } else {
+            b += " ؛ ترجمة " + r.translator;
+        }
     }
 
-    // إذا لم يوجد مشارك ولا مترجم، نضع علامة الفصل
+    // الحالة الثالثة: لا مشارك ولا مترجم
     if ((!r.collab || r.collab.trim() === "") && (!r.translator || r.translator.trim() === "")) {
         b += " . ـــ ";
     }
 
+    // استكمال بقية الحقول (التحقيق، الطبعة، النشر)
     if(r.editor) b += " ؛ " + r.editor;
     if(r.edition) b += " . - ط " + r.edition;
-
     b += " . - ";
     if(r.place) { b += r.place + ": " + r.publisher; } else { b += r.publisher; }
-
-    if(r.issue) b += "، " + r.issue;
+    if(r.issue) b += "، ع " + r.issue;
     if(r.year) b += "، " + r.year;
     b += ". ـــ";
-    
     if(r.pages) b += " " + r.pages;
     if(r.series) b += " . - (" + r.series + ")";
     if(r.orig_title) b += "<br><div style='text-align:left; direction:ltr;'>" + r.orig_title + "</div>";
