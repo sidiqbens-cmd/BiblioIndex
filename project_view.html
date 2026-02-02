@@ -87,8 +87,9 @@ const cln = (s) => { if (!s) return ""; let str = String(s).trim(); str = str.re
 // --- الدالة مصححة ومنظمة لتعمل فوراً ---
 function buildBiblioPart(r) {
     if(!r.title) return "";
-    let b = `${r.title}`;
+    let b = r.title;
     
+    // فحص خانات المعاينة فقط (collab و translator) لضمان عدم التكرار
     if (r.collab || r.translator) {
         b += " / ";
         if (r.collab && r.collab.trim() !== "") {
@@ -96,18 +97,35 @@ function buildBiblioPart(r) {
         } else {
             b += r.author;
         }
+        
+        // وضع " ؛ " قبل المترجم دائماً لضمان عدم الالتصاق
         if (r.translator && r.translator.trim() !== "") {
             b += " ؛ ترجمة " + r.translator;
         }
     } else {
         b += " . ـــ ";
     }
-        if (r.translator && r.translator.trim() !== "") {
-            b += " ؛ ترجمة " + r.translator;
-        }
-    } else {
-        b += " . ـــ ";
+
+    if(r.editor) b += " ؛ " + r.editor;
+    if(r.edition) b += " . - ط " + r.edition;
+
+    b += " . - ";
+    if(r.place) { 
+        b += r.place + ": " + r.publisher; 
+    } else { 
+        b += r.publisher; 
     }
+
+    if(r.issue) b += "، ع " + r.issue;
+    if(r.year) b += "، " + r.year;
+    b += ". ـــ";
+    
+    if(r.pages) b += " " + r.pages;
+    if(r.series) b += " . - (" + r.series + ")";
+    if(r.orig_title) b += "<br><div style='text-align:left; direction:ltr;'>" + r.orig_title + "</div>";
+    
+    return b;
+}
 
     if(r.editor) b += ` ؛ ${r.editor}`;
     if(r.edition) b += ` . - ط ${r.edition}`;
