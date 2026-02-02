@@ -6,21 +6,18 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; color: #333; margin: 0; padding: 0; font-size: 12px; line-height: 1.2; overflow: hidden; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .project-bar { color: #fff; padding: 2px 15px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
-        .compact-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; background: #CFCFCF; padding: 10px; border-bottom: 2px solid #aaa; }
-        label { font-size: 11px; font-weight: bold; color: #444; text-align: right; display: block; margin-bottom: 3px; }
-        input, select { width: 100%; border: 1px solid #999; padding: 3px 5px; font-size: 12px; height: 26px; text-align: right; border-radius: 3px; box-sizing: border-box; background: #fff; }
-        .w-num { width: 60px !important; margin: 0 auto; display: block; }
-        .scroll-content { margin-top: 270px; height: calc(100vh - 270px); overflow-y: auto; padding: 10px; }
-        .actions { margin: 0; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; background: #CFCFCF; padding: 0 5px 10px 5px; }
-        .btn { padding: 5px 10px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-weight: bold; font-size: 11px; }
-        .btn-save { background: #27ae60; padding: 6px 20px; }
-        .preview-table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #ccc; }
-        .preview-table td { border: 1px solid #ccc; padding: 6px; text-align: right; font-size: 12px; line-height: 1.4; }
-        .subject-bg { background: #dcdcdc; color: #000; font-weight: bold; padding: 2px 8px; border-radius: 2px; display: inline-block; }
-        .ref-bg { background: #f9f9f9; padding: 2px 8px; border-radius: 2px; width: 100%; display: block; text-align: center; margin: 2px 0; border: 1px dashed #bbb; font-style: italic; }
-        .btn-t { padding: 2px 6px; font-size: 10px; cursor: pointer; border-radius: 3px; border: 1px solid #ccc; background: #f8f9fa; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; }
+        .project-bar { color: #fff; padding: 2px 15px; display: flex; align-items: center; justify-content: space-between; }
+        .compact-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; background: #CFCFCF; padding: 10px; border-bottom: 2px solid #aaa; }
+        label { font-size: 11px; font-weight: bold; color: #444; display: block; margin-bottom: 2px; }
+        input { width: 100%; border: 1px solid #999; padding: 4px; font-size: 12px; height: 28px; border-radius: 3px; box-sizing: border-box; }
+        .scroll-content { margin-top: 280px; height: calc(100vh - 280px); overflow-y: auto; padding: 10px; }
+        .actions { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; background: #CFCFCF; padding-bottom: 10px; }
+        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-weight: bold; font-size: 11px; }
+        .preview-table { width: 100%; border-collapse: collapse; background: #fff; }
+        .preview-table td { border: 1px solid #ccc; padding: 8px; text-align: right; }
+        .subject-header { background: #dcdcdc; font-weight: bold; padding: 3px 10px; border-radius: 3px; display: inline-block; margin-bottom: 5px; }
+        .ref-box { background: #f0f0f0; border: 1px dashed #999; padding: 3px; text-align: center; margin: 2px 0; font-style: italic; }
     </style>
 </head>
 <body>
@@ -28,11 +25,11 @@
 <div class="fixed-header">
     <div class="project-bar">
         <div><strong>الفهرس الليبي الموحد</strong> | <span id="activeProjectLabel"></span></div>
-        <div style="display:flex; gap:8px;">
-            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">📥 استيراد</button>
+        <div style="display:flex; gap:5px;">
+            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">استيراد</button>
             <input type="file" id="fileInput" style="display:none" onchange="importExcel(event)">
             <button onclick="createNewProject()" class="btn" style="background:#2980b9">+ جديد</button>
-            <select id="projSelect" onchange="switchProject(this.value)" style="height:22px; font-size:11px; width:100px;"></select>
+            <select id="projSelect" onchange="switchProject(this.value)" style="width:100px; height:24px;"></select>
         </div>
     </div>
 
@@ -55,20 +52,19 @@
             <div><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></div>
             <div><label>السلسلة</label><input type="text" id="series" class="in"></div>
             <div><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></div>
-            <div><label>العدد</label><input type="text" id="issue" class="in w-num"></div>
-            <div><label>السنة</label><input type="text" id="year" class="in w-num"></div>
-            <div><label>طبعة</label><input type="text" id="edition" class="in w-num"></div>
-            <div><label>صفحات</label><input type="text" id="pages" class="in w-num"></div>
+            <div><label>العدد</label><input type="text" id="issue" class="in"></div>
+            <div><label>السنة</label><input type="text" id="year" class="in"></div>
+            <div><label>طبعة</label><input type="text" id="edition" class="in"></div>
+            <div><label>صفحات</label><input type="text" id="pages" class="in"></div>
         </div>
         <div class="actions">
-            <button type="button" class="btn btn-save" onclick="saveData()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
+            <button type="button" class="btn" style="background:#27ae60" onclick="saveData()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="previewFullList()">المعاينة</button>
             <button type="button" class="btn" style="background:#555" onclick="previewAuthorIndex()">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d43f3a" onclick="previewIndex('title')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#555" onclick="previewIndex('trans_idx')">كشاف المترجمين</button>
-            <button type="button" class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="previewJournalList()">قائمة المجلات</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="previewSubjectList()">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="exportToExcel()">Excel</button>
         </div>
     </form>
 </div>
@@ -90,8 +86,8 @@ function buildBiblioPart(r) {
     let b = r.title;
     
     if (r.collab && r.collab.trim() !== "") {
-        let dispAuth = (r.author_preview && r.author_preview.trim() !== "") ? r.author_preview : r.author;
-        b += " / " + dispAuth + " ، " + r.collab;
+        let disp = (r.author_preview && r.author_preview.trim() !== "") ? r.author_preview : r.author;
+        b += " / " + disp + " ، " + r.collab;
     } 
     
     if (r.translator && r.translator.trim() !== "") {
@@ -99,26 +95,19 @@ function buildBiblioPart(r) {
     }
 
     if (!r.collab && !r.translator) b += " . ـــ ";
-
     if(r.editor) b += " ؛ " + r.editor;
     if(r.edition) b += " . - ط " + r.edition;
 
     b += " . - ";
     if(r.place) b += r.place + ": ";
     
-    if(r.journal) {
-        b += r.journal; 
-        if(r.publisher) b += " (" + r.publisher + ")";
-    } else {
-        b += r.publisher;
-    }
+    if(r.journal) { b += r.journal; if(r.publisher) b += " (" + r.publisher + ")"; }
+    else { b += r.publisher; }
     
     if(r.affiliation) b += " [" + r.affiliation + "]";
-
     if(r.issue) b += "، ع " + r.issue;
     if(r.year) b += "، " + r.year;
     b += ". ـــ";
-    
     if(r.pages) b += " ص " + r.pages;
     if(r.series) b += " . - (" + r.series + ")";
     if(r.orig_title) b += "<br><div style='text-align:left; direction:ltr; font-style:italic;'>" + r.orig_title + "</div>";
@@ -133,20 +122,22 @@ function updateUI() {
         subs.add(r.subject);
         let isBook = !!r.title && !r.see;
         h += `<tr>
-            <td style="text-align:center; width:35px; font-weight:bold;">${isBook ? s++ : '--'}</td>
+            <td style="width:35px; text-align:center;">${isBook ? s++ : '-'}</td>
             <td>
-                <div><span class="subject-bg">${r.subject}</span></div>
-                ${r.see ? `<span class="ref-bg">أنظر: ${r.see}</span>` : ''}
-                ${r.see_also ? `<span class="ref-bg">أنظر أيضاً: ${r.see_also}</span>` : ''}
-                ${isBook ? `<div style="font-weight:bold; margin-top:3px;">${r.author}</div><div>${buildBiblioPart(r)}</div>` : ''}
+                <div class="subject-header">${r.subject}</div>
+                ${r.see ? `<div class="ref-box">أنظر: ${r.see}</div>` : ''}
+                ${r.see_also ? `<div class="ref-box">أنظر أيضاً: ${r.see_also}</div>` : ''}
+                ${isBook ? `<div style="font-weight:bold; margin-top:2px;">${r.author}</div><div>${buildBiblioPart(r)}</div>` : ''}
             </td>
-            <td style="text-align:center; width:90px;"><button class="btn-t" onclick="editRec(${i})">تعديل</button><button class="btn-t" style="color:red" onclick="deleteRec(${i})">حذف</button></td>
+            <td style="width:80px; text-align:center;">
+                <button onclick="editRec(${i})">تعديل</button>
+            </td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
-    document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
     document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentProj?'selected':''}>${p}</option>`).join('');
     document.getElementById('activeProjectLabel').innerText = currentProj;
+    document.getElementById('subList').innerHTML = Array.from(subs).sort().map(x=>`<option value="${x}">`).join('');
 }
 
 function previewJournalList() {
@@ -155,6 +146,21 @@ function previewJournalList() {
     let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>قائمة المجلات</h3><hr>`;
     journals.sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(j => { content += `<div>${j}</div>`; });
     win.document.write(content + `</div>`);
+}
+
+function previewFullList() {
+    let win = window.open(); let s = 1;
+    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
+    records.forEach(r => { 
+        if(r.title && !r.see) {
+            c += `<div style="position:relative; margin-bottom:15px; min-height:40px;">
+                    <span style="position:absolute; left:0; font-weight:bold;">(${s++})</span>
+                    <div style="font-weight:bold;">${r.author}</div>
+                    <div>${buildBiblioPart(r)}</div>
+                  </div>`;
+        }
+    });
+    win.document.write(c + `</div>`);
 }
 
 function previewAuthorIndex() {
@@ -177,38 +183,48 @@ function previewIndex(type) {
     let content = `<div dir="rtl" style="font-family:'Times New Roman'; padding:1in; column-count:2; font-size:11pt;">`;
     let indexMap = {}; let serial = 1;
     records.forEach(r => { if(!r.see && r.title) { let val = r[type]; if(val) { String(val).split('؛').forEach(v => { v = v.trim(); if(v) { if(!indexMap[v]) indexMap[v] = []; indexMap[v].push(serial); } }); } serial++; } });
-    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">${indexMap[key].join(', ')}</span></div>`; });
+    Object.keys(indexMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(key => { content += `<div style="margin-bottom:4pt; border-bottom:0.5pt solid #eee;">${key} <span style="float:left">${indexMap[serial-1].join(', ')}</span></div>`; });
     win.document.write(content + `</div>`);
 }
 
 function previewSubjectList() {
     let win = window.open('', '', 'width=600,height=600');
-    let subjectMap = {}; let s = 1;
-    records.forEach(r => { if(r.title && !r.see) { if(!subjectMap[r.subject]) subjectMap[r.subject] = []; subjectMap[r.subject].push(s++); } });
-    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
-    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => { content += `<div style="margin-bottom:5px;">${sub} <span style="float:left">${subjectMap[sub].join(', ')}</span></div>`; });
-    win.document.write(content + `</div>`);
-}
+    let subjectMap = {}; 
+    let s = 1;
+    
+    // تجميع الأرقام لكل رأس موضوع
+    records.forEach(r => { 
+        if(r.title && !r.see) { 
+            if(!subjectMap[r.subject]) subjectMap[r.subject] = []; 
+            subjectMap[r.subject].push(s++); 
+        } 
+    });
 
-function previewFullList() {
-    let win = window.open(); let s = 1;
-    let c = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;">`;
-    records.forEach(r => { if(r.title && !r.see) c += `<div style="margin-bottom:15px;"><strong>(${s++}) ${r.author}</strong><br>${buildBiblioPart(r)}</div>`; });
-    win.document.write(c + `</div>`);
+    let content = `<div dir="rtl" style="padding:1in; font-family:'Times New Roman'; font-size:12pt;"><h3>رؤوس الموضوعات</h3><hr>`;
+    
+    Object.keys(subjectMap).sort((a,b)=>cln(a).localeCompare(cln(b),'ar')).forEach(sub => {
+        let nums = subjectMap[sub];
+        let displayRange = nums.length > 1 ? `${nums[0]} - ${nums[nums.length-1]}` : nums[0];
+        
+        content += `<div style="margin-bottom:5px; border-bottom:1px solid #eee; padding-bottom:2px;">
+                        ${sub} <span style="float:left; font-weight:bold;">${displayRange}</span>
+                    </div>`;
+    });
+    
+    win.document.write(content + `</div>`);
 }
 
 function saveData() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("رأس الموضوع مطلوب");
+    if(!d.subject) return alert("الرأس مطلوب");
     if(editIdx > -1) records[editIdx] = d; else records.push(d);
     editIdx = -1; records.sort((a,b) => cln(a.subject).localeCompare(cln(b.subject), 'ar'));
     updateUI(); document.getElementById('biblioForm').reset();
 }
 function editRec(i) { editIdx = i; Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; }); }
-function deleteRec(i) { if(confirm("حذف؟")) { records.splice(i,1); updateUI(); } }
 function switchProject(v) { localStorage.setItem('p_active', v); location.reload(); }
 function createNewProject() { let n = prompt("المشروع:"); if(n){ projects.push(n); localStorage.setItem('p_list', JSON.stringify(projects)); switchProject(n); }}
-function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Records"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
+function exportToExcel() { const ws = XLSX.utils.json_to_sheet(records); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${currentProj}.xlsx`); }
 function importExcel(e) { const reader = new FileReader(); reader.onload = (evt) => { records = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type: 'binary'}).Sheets[XLSX.read(evt.target.result, {type: 'binary'}).SheetNames[0]]); updateUI(); }; reader.readAsBinaryString(e.target.files[0]); }
 window.onload = updateUI;
 </script>
