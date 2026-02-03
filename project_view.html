@@ -5,31 +5,22 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #eceef1; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
-        
-        /* تصميم لوحة الإدخال المكثفة */
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 3px; padding: 2px; table-layout: fixed; }
-        label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; margin-bottom: 1px; white-space: nowrap; }
+        label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; margin-bottom: 1px; }
         input { width: 100%; height: 18px; font-size: 10px; border: 1px solid #999; border-radius: 2px; padding: 0 3px; box-sizing: border-box; text-align: right; background: #fff; }
-        
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; border-bottom: 2px solid #2c3e50; }
-        .btn { padding: 3px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 9px; font-weight: bold; }
-        
-        /* منطقة عرض البيانات */
+        .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 9px; font-weight: bold; }
         .scroll-area { margin-top: 170px; padding: 10px; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed; }
         .preview-table td { border: 1px solid #ccc; padding: 6px; font-size: 11px; text-align: right; vertical-align: top; word-wrap: break-word; }
-        
-        .subject-col { width: 130px; font-weight: bold; background: #f9f9f9; color: #2c3e50; }
-        .index-num { width: 35px; text-align: center !important; color: #666; font-weight: bold; }
+        .subject-col { width: 130px; font-weight: bold; background: #f9f9f9; }
+        .index-num { width: 40px; text-align: center !important; font-weight: bold; background: #eee; }
         .biblio-text { line-height: 1.6; }
-        .see-ref { color: #c0392b; font-weight: bold; display: block; margin-bottom: 2px; }
-
-        /* نافذة المعاينة والكشافات */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:90%; margin:2% auto; padding:20px; border-radius:5px; height: 85vh; overflow-y: auto; position:relative; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .close-modal { sticky; top:0; float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer; font-weight:bold; border-radius:3px; }
+        .modal-content { background:white; width:90%; margin:2% auto; padding:20px; border-radius:5px; height: 85vh; overflow-y: auto; position:relative; }
+        .close-btn { position: sticky; top: 0; float: left; background: #c0392b; color: white; border: none; padding: 5px 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -37,12 +28,12 @@
 <div class="fixed-header">
     <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:4px 15px;">
         <strong style="font-size:12px;">الفهرس الليبي الموحد</strong>
-        <div style="display:flex; gap:6px; align-items:center;">
+        <div style="display:flex; gap:6px;">
             <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">📥 استيراد Excel</button>
-            <input type="file" id="xlIn" style="display:none" accept=".xlsx, .xls" onchange="importX(event)">
-            <div style="border-right:1px solid #555; height:15px;"></div>
+            <button onclick="exportX()" class="btn" style="background:#2980b9">💾 تصدير (نسخ احتياطي)</button>
+            <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
             <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
-            <select id="pSel" onchange="switchP(this.value)" style="font-size:10px; height:18px; border-radius:2px;"></select>
+            <select id="pSel" onchange="switchP(this.value)" style="font-size:10px; height:18px;"></select>
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
         </div>
     </div>
@@ -81,14 +72,14 @@
             <button type="button" class="btn" style="background:#d35400" onclick="idx('title', 'العناوين')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#c0392b" onclick="idx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#16a085" onclick="idx('journal', 'المجلات')">قائمة المجلات</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="idx('subject', 'رؤوس الموضوعات')">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="idx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
         </div>
     </form>
 </div>
 
 <div id="modalOverlay">
     <div class="modal-content">
-        <button class="close-modal" onclick="document.getElementById('modalOverlay').style.display='none'">إغلاق</button>
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').style.display='none'">إغلاق</button>
         <div id="modalBody"></div>
     </div>
 </div>
@@ -100,12 +91,10 @@
 </div>
 
 <script>
-// تهيئة البيانات
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || 'مشروع_1';
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 
-// دالة تحديث الواجهة والجدول
 function draw() {
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
@@ -113,101 +102,94 @@ function draw() {
     
     let h = ''; let n = 1;
     recs.forEach((r, i) => {
+        r.entryNumber = r.title ? n++ : null; // تخصيص رقم مادة لكل سجل يحتوي عنوان
         h += `<tr>
-            <td class="index-num">${r.title ? n++ : '-'}</td>
+            <td class="index-num">${r.entryNumber || '-'}</td>
             <td class="subject-col">${r.subject || ''}</td>
             <td class="biblio-text">
-                ${r.see ? `<span class="see-ref">انظر: ${r.see}</span>` : ''}
-                ${r.see_also ? `<span class="see-ref">انظر أيضاً: ${r.see_also}</span>` : ''}
+                ${r.see ? `<div style="color:red; font-weight:bold;">انظر: ${r.see}</div>` : ''}
+                ${r.see_also ? `<div style="color:red; font-weight:bold;">انظر أيضاً: ${r.see_also}</div>` : ''}
                 ${r.author_preview ? `<b>${r.author_preview}</b>. ` : ''}
                 ${r.title ? `<em>${r.title}</em> / ` : ''}
                 ${r.collab ? `${r.collab}; ` : ''}
                 ${r.translator ? `ترجمة ${r.translator}. - ` : ''}
-                ${r.editor ? `تحقيق ${r.editor}. - ` : ''}
                 ${r.place ? `${r.place}: ` : ''}
                 ${r.publisher ? `${r.publisher}, ` : ''}
                 ${r.year ? `${r.year}. - ` : ''}
                 ${r.pages ? `ص ${r.pages}` : ''}
-                ${r.journal ? `<br>في: <b>${r.journal}</b>` : ''}
             </td>
-            <td width="45"><button onclick="edit(${i})" style="font-size:9px; cursor:pointer;">تعديل</button></td>
+            <td width="40"><button onclick="edit(${i})" style="font-size:9px;">تعديل</button></td>
         </tr>`;
     });
     document.getElementById('out').innerHTML = h;
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
-// دالة الحفظ
 function save() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("يرجى إدخال رأس الموضوع");
-    
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    if(!d.subject) return alert("الرأس مطلوب");
     recs.push(d);
     recs.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
-    draw(); 
-    document.getElementById('bForm').reset();
-    document.getElementById('subject').focus();
+    draw(); document.getElementById('bForm').reset();
 }
 
-// دالة استخراج الكشافات مرقمة
+// دالة الكشافات الملحقة بأرقام المواد
 function idx(field, title) {
-    let list = [...new Set(recs.map(r => r[field]).filter(v => v && v.trim() !== ""))];
-    list.sort((a,b) => String(a).localeCompare(String(b), 'ar'));
-    
-    let html = `<h2 style="text-align:center; border-bottom:2px solid #2c3e50; padding-bottom:10px;">كشاف ${title}</h2>`;
-    if(list.length === 0) {
-        html += `<p style="text-align:center; color:red; margin-top:20px;">لا توجد بيانات مسجلة في هذا الكشاف.</p>`;
-    } else {
-        html += `<ul style="columns:2; list-style:none; padding:10px;">`;
-        list.forEach((item, index) => {
-            html += `<li style="border-bottom:1px solid #eee; padding:4px; font-size:12px;">
-                        <span style="color:#888;">${index + 1}.</span> ${item}
-                     </li>`;
-        });
-        html += `</ul>`;
-    }
+    let map = {};
+    recs.forEach(r => {
+        let val = r[field];
+        if(val && val.trim() !== "" && r.entryNumber) {
+            if(!map[val]) map[val] = [];
+            map[val].push(r.entryNumber);
+        }
+    });
+
+    let keys = Object.keys(map).sort((a,b) => a.localeCompare(b, 'ar'));
+    let html = `<h2 style="text-align:center">كشاف ${title}</h2><ul style="columns:2; list-style:none;">`;
+    keys.forEach(k => {
+        html += `<li style="border-bottom:1px solid #eee; padding:3px; font-size:12px;">
+                    <strong>${k}</strong> <span style="color:#2980b9; margin-right:10px;">[ ${map[k].join(', ')} ]</span>
+                 </li>`;
+    });
+    html += `</ul>`;
     document.getElementById('modalBody').innerHTML = html;
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-// دالة المعاينة النهائية
+function exportX() {
+    const ws = XLSX.utils.json_to_sheet(recs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "النسخة الاحتياطية");
+    XLSX.writeFile(wb, `فهرس_${curP}_${new Date().toLocaleDateString()}.xlsx`);
+}
+
 function showPreview() {
-    let content = `<h2 style="text-align:center">المعاينة الببليوغرافية النهائية</h2>
-                   <table class="preview-table">${document.getElementById('out').innerHTML}</table>`;
-    document.getElementById('modalBody').innerHTML = content;
+    document.getElementById('modalBody').innerHTML = `<table class="preview-table">` + document.getElementById('out').innerHTML + `</table>`;
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-// دالة التعديل
 function edit(i) {
     let r = recs[i];
     Object.keys(r).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = r[k]; });
-    recs.splice(i, 1);
-    draw(); window.scrollTo(0,0);
+    recs.splice(i, 1); draw(); window.scrollTo(0,0);
 }
 
-// وظائف المشاريع
-function newP() { let n = prompt("اسم المشروع الجديد:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
-function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
-function delP() { if(confirm("حذف المشروع الحالي نهائياً؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); location.reload(); } }
-
-// استيراد من إكسل
 function importX(e) {
     const reader = new FileReader();
     reader.onload = (evt) => {
         const data = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]);
-        if(confirm(`تم العثور على ${data.length} سجل. إضافة؟`)) {
-            recs = [...recs, ...data];
-            recs.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
-            draw();
-        }
+        recs = [...recs, ...data];
+        recs.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
+        draw();
     };
     reader.readAsBinaryString(e.target.files[0]);
 }
 
+function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
+function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
+function delP() { if(confirm("حذف؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); location.reload(); } }
+
 window.onload = draw;
 </script>
-
 </body>
 </html>
