@@ -5,7 +5,7 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; overflow-x: hidden; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 2px; table-layout: fixed; }
         label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; }
@@ -13,11 +13,18 @@
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         
-        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow: auto; padding: 0 5px; }
-        .admin-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 11px; }
-        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 10; padding: 5px; }
+        /* الجدول الإداري الشامل مع تجميد الأعمدة والرأس */
+        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow: auto; padding: 0; }
+        .admin-table { border-collapse: collapse; background: #fff; font-size: 10px; min-width: 2500px; }
+        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 5px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 3px; text-align: right; }
+        
+        /* تجميد أول 3 أعمدة */
+        .admin-table th:nth-child(1), .admin-table td:nth-child(1) { position: sticky; right: 0; background: #eee; z-index: 20; width: 40px; }
+        .admin-table th:nth-child(2), .admin-table td:nth-child(2) { position: sticky; right: 40px; background: #eee; z-index: 20; width: 60px; }
+        .admin-table th:nth-child(3), .admin-table td:nth-child(3) { position: sticky; right: 100px; background: #fff; z-index: 20; width: 150px; border-left: 2px solid #2c3e50; }
 
+        /* المعاينة */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:85%; margin:1% auto; padding:30px; height: 90vh; overflow-y: auto; }
         .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 15px 0 5px 0; font-size: 16px; border: 1px solid #999; }
@@ -26,7 +33,9 @@
         .first-line { display: flex; justify-content: space-between; align-items: baseline; }
         .bold-text { font-weight: bold; }
         
+        /* كشافات بخط 12 وتنسيق المحرر المائل */
         .idx-list { columns: 2; list-style: none; padding: 0; font-size: 12px; font-weight: normal; }
+        .editor-style { font-style: italic; color: #555; }
     </style>
 </head>
 <body>
@@ -83,11 +92,16 @@
     </form>
 </div>
 
-<div id="modalOverlay"><div class="modal-content"><button onclick="closeM()" style="float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer;">إغلاق</button><div id="modalBody"></div></div></div>
+<div id="modalOverlay">
+    <div class="modal-content">
+        <button onclick="closeM()" style="float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer; font-weight:bold;">إغلاق</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
 
 <div class="scroll-area">
     <table class="admin-table">
-        <thead><tr><th>رقم</th><th>إجراء</th><th>رأس الموضوع</th><th>المؤلف المقلوب</th><th>العنوان</th></tr></thead>
+        <thead id="adminHead"></thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
@@ -96,7 +110,9 @@
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || 'مشروع_1';
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
+const flds = ['subject', 'see', 'see_also', 'author', 'author_preview', 'title', 'collab', 'collab_idx', 'translator', 'trans_idx', 'journal', 'publisher', 'place', 'affiliation', 'editor', 'orig_title', 'year', 'pages'];
 
 function draw() {
     recs.sort((a, b) => cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar'));
@@ -104,12 +120,15 @@ function draw() {
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
 
+    let hHead = '<tr><th>رقم</th><th>إجراء</th><th>رأس الموضوع</th>' + flds.slice(1).map(f => `<th>${f}</th>`).join('') + '</tr>';
+    document.getElementById('adminHead').innerHTML = hHead;
+
     let hBody = '', entryCounter = 1;
     recs.forEach((r, i) => {
         let isRef = (r.see || r.see_also) && !r.title;
         let displayNum = isRef ? '-' : entryCounter++;
         r.finalID = isRef ? null : displayNum;
-        hBody += `<tr><td>${displayNum}</td><td><button onclick="edit(${i})">تعديل</button></td><td>${r.subject}</td><td>${r.author || ''}</td><td>${r.title || ''}</td></tr>`;
+        hBody += `<tr><td>${displayNum}</td><td><button onclick="edit(${i})">تعديل</button></td>` + flds.map(f => `<td>${r[f] || ''}</td>`).join('') + `</tr>`;
     });
     document.getElementById('adminBody').innerHTML = hBody;
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
@@ -127,17 +146,21 @@ function showBiblio() {
             lastSub = r.subject;
         }
         if (r.title) {
-            // السطر الأول: المؤلف مقلوب (داكن) + الرقم
-            // السطر الثاني: العنوان (داكن لو المؤلف غائب) / المؤلف للمعاينة ; المشارك
+            // منطق علامات الترقيم التتابعي
+            let responsibility = '';
+            if(r.author_preview) responsibility += r.author_preview;
+            if(r.collab) responsibility += (responsibility ? '، ' : '') + r.collab;
+            if(r.translator) responsibility += (responsibility ? '؛ ' : '') + 'ترجمة ' + r.translator;
+            if(r.editor) responsibility += (responsibility ? '؛ ' : '') + r.editor;
+
             h += `<div class="entry-container">
                 <div class="first-line">
                     <span class="bold-text">${r.author || ''}</span>
                     <span class="entry-num">(${r.finalID})</span>
                 </div>
                 <div>
-                    <span class="${!r.author ? 'bold-text' : ''}">${r.title}</span> / 
-                    ${r.author_preview ? r.author_preview : ''}${r.collab ? '؛ ' + r.collab : ''} 
-                    ${r.translator ? '؛ ترجمة ' + r.translator + '. - ' : ''}
+                    <span class="${!r.author ? 'bold-text' : ''}">${r.title}</span> 
+                    ${responsibility ? ' / ' + responsibility : ''}. - 
                     ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''}
                     ${r.year ? r.year + '. - ' : ''} ${r.pages ? 'ص ' + r.pages : ''}
                 </div>
@@ -152,11 +175,19 @@ function idx(field, title) {
     let map = {};
     recs.forEach(r => {
         let val = (field === 'journal') ? (r.journal ? r.journal + (r.affiliation ? ' - ' + r.affiliation : '') : null) : r[field];
-        if (val && r.finalID) { if (!map[val]) map[val] = []; map[val].push(r.finalID); }
+        if (val && r.finalID) {
+            if (!map[val]) map[val] = [];
+            // التحقق من صفة "محرر"
+            let isEditor = (r.author_preview && r.author_preview.includes("تحرير")) || (r.collab && r.collab.includes("تحرير"));
+            map[val].push({ num: r.finalID, editor: isEditor });
+        }
     });
     let keys = Object.keys(map).sort((a,b) => cleanAL(a).localeCompare(cleanAL(b), 'ar'));
     let h = `<h3 style="text-align:center">كشاف ${title}</h3><ul class="idx-list">`;
-    keys.forEach(k => h += `<li>${k} [${map[k].join(', ')}]</li>`);
+    keys.forEach(k => {
+        let nums = map[k].map(n => n.editor ? `<span class="editor-style">محرر (${n.num})</span>` : `(${n.num})`).join(' ');
+        h += `<li>${k} ${nums}</li>`;
+    });
     document.getElementById('modalBody').innerHTML = h + '</ul>';
     document.getElementById('modalOverlay').style.display = 'block';
 }
@@ -185,14 +216,14 @@ function exportX() {
 
 function edit(i) {
     let r = recs[i];
-    document.querySelectorAll('.in').forEach(input => { input.value = r[input.id] || ''; });
+    flds.forEach(f => { if(document.getElementById(f)) document.getElementById(f).value = r[f] || ''; });
     recs.splice(i, 1); draw(); window.scrollTo(0,0);
 }
 
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
 function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
-function delP() { if(confirm("حذف؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); } }
+function delP() { if(confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); } }
 window.onload = draw;
 </script>
 </body>
