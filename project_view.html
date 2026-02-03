@@ -8,21 +8,26 @@
         body { font-family: 'Segoe UI', sans-serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 2px 0; border-bottom: 2px solid #000; }
         
-        /* إجبار التوزيع الأفقي باستخدام الجدول */
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 4px; padding: 2px; table-layout: fixed; }
-        .input-table td { vertical-align: top; }
-        
         label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; margin-bottom: 1px; white-space: nowrap; }
         input { width: 100%; height: 18px; font-size: 10px; border: 1px solid #999; border-radius: 2px; padding: 0 3px; box-sizing: border-box; text-align: right; }
         
-        .actions { background: #cfcfcf; text-align: center; padding: 5px; border-bottom: 2px solid #2c3e50; }
-        .btn { padding: 3px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; margin: 0 2px; }
+        .actions { background: #cfcfcf; text-align: center; padding: 5px; border-bottom: 2px solid #2c3e50; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+        .btn { padding: 3px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 9px; font-weight: bold; }
         
-        .scroll-area { margin-top: 160px; padding: 10px; }
+        .scroll-area { margin-top: 170px; padding: 10px; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; }
-        .preview-table td { border: 1px solid #ccc; padding: 4px; font-size: 11px; text-align: right; }
+        .preview-table td { border: 1px solid #ccc; padding: 6px; font-size: 11px; text-align: right; vertical-align: top; }
         
-        #smartModal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; border:2px solid #2c3e50; padding:15px; z-index:9999; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        /* تنسيق البطاقة الببليوغرافية */
+        .biblio-entry { line-height: 1.6; }
+        .subject-head { font-weight: bold; color: #2c3e50; background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
+        .see-ref { color: #c0392b; font-style: italic; font-weight: bold; }
+
+        /* نوافذ المعاينة */
+        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; overflow-y:auto; }
+        .modal-content { background:white; width:90%; margin:20px auto; padding:20px; border-radius:5px; position:relative; min-height:80vh; }
+        .close-btn { position:sticky; top:0; float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer; font-weight:bold; }
     </style>
 </head>
 <body>
@@ -40,7 +45,7 @@
     <form id="biblioForm">
         <table class="input-table">
             <tr>
-                <td><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subList"></td>
+                <td><label>رأس الموضوع</label><input type="text" id="subject" class="in"></td>
                 <td><label>إحالة انظر</label><input type="text" id="see" class="in"></td>
                 <td><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></td>
                 <td><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></td>
@@ -60,23 +65,28 @@
                 <td><label>التبعية/الجهة</label><input type="text" id="affiliation" class="in"></td>
                 <td><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></td>
                 <td><label>عنوان أصلي</label><input type="text" id="orig_title" class="in"></td>
-                <td><label>السنة</label><input type="text" id="year" style="width:50px; margin:0 auto; display:block;" class="in"></td>
-                <td><label>صفحات</label><input type="text" id="pages" style="width:50px; margin:0 auto; display:block;" class="in"></td>
+                <td><label>السنة</label><input type="text" id="year" class="in"></td>
+                <td><label>صفحات</label><input type="text" id="pages" class="in"></td>
             </tr>
         </table>
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="saveRecord()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="document.getElementById('smartModal').style.display='block'">إدخال ذكي</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="alert('سيتم فتح المعاينة')">معاينة القائمة</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="showFullPreview()">المعاينة</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="showIndex('author', 'كشاف المؤلفين')">كشاف المؤلفين</button>
+            <button type="button" class="btn" style="background:#d35400" onclick="showIndex('title', 'كشاف العناوين')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="showIndex('trans_idx', 'كشاف المترجمين')">كشاف المترجمين</button>
+            <button type="button" class="btn" style="background:#16a085" onclick="showIndex('journal', 'قائمة المجلات')">قائمة المجلات</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="showIndex('subject', 'رؤوس الموضوعات')">رؤوس الموضوعات</button>
         </div>
     </form>
 </div>
 
-<div id="smartModal">
-    <h4 style="margin-top:0;">إدخال ذكي</h4>
-    <textarea id="smartInput" style="width:100%; height:80px;"></textarea><br><br>
-    <button class="btn" style="background:#27ae60" onclick="processSmart()">توزيع</button>
-    <button class="btn" style="background:#555" onclick="document.getElementById('smartModal').style.display='none'">إغلاق</button>
+<div id="modalOverlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="document.getElementById('modalOverlay').style.display='none'">إغلاق</button>
+        <h2 id="modalTitle" style="text-align:center; border-bottom:2px solid #2c3e50; padding-bottom:10px;"></h2>
+        <div id="modalBody"></div>
+    </div>
 </div>
 
 <div class="scroll-area">
@@ -87,20 +97,32 @@
 let projects = JSON.parse(localStorage.getItem('LBY_PROJS')) || ['مشروع_1'];
 let currentP = localStorage.getItem('LBY_ACTIVE') || 'مشروع_1';
 let records = JSON.parse(localStorage.getItem('RECS_' + currentP)) || [];
-let editIdx = -1;
 
 function update() {
     localStorage.setItem('RECS_' + currentP, JSON.stringify(records));
     localStorage.setItem('LBY_PROJS', JSON.stringify(projects));
     localStorage.setItem('LBY_ACTIVE', currentP);
     
-    let h = '';
+    let h = ''; let count = 1;
     records.forEach((r, i) => {
         h += `<tr>
-            <td width="30">${i+1}</td>
-            <td width="150"><b>${r.subject}</b></td>
-            <td>${r.author || ''} - ${r.title || ''}</td>
-            <td width="50"><button onclick="editRec(${i})">تعديل</button></td>
+            <td width="30">${r.title ? count++ : '-'}</td>
+            <td width="150"><span class="subject-head">${r.subject}</span></td>
+            <td class="biblio-entry">
+                ${r.see ? `<span class="see-ref">انظر: ${r.see}</span>` : ''}
+                ${r.see_also ? `<span class="see-ref">انظر أيضاً: ${r.see_also}</span>` : ''}
+                ${r.author_preview ? `<strong>${r.author_preview}</strong>. ` : ''}
+                ${r.title ? `<em>${r.title}</em> / ` : ''}
+                ${r.collab ? `${r.collab}; ` : ''}
+                ${r.translator ? `ترجمة ${r.translator}; ` : ''}
+                ${r.editor ? `تحقيق ${r.editor}. - ` : ''}
+                ${r.place ? `${r.place}: ` : ''}
+                ${r.publisher ? `${r.publisher}, ` : ''}
+                ${r.year ? `${r.year}. - ` : ''}
+                ${r.pages ? `ص ${r.pages}` : ''}
+                ${r.orig_title ? `<br><small>العنوان الأصلي: ${r.orig_title}</small>` : ''}
+            </td>
+            <td width="50"><button onclick="editRec(${i})" style="font-size:9px;">تعديل</button></td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
@@ -111,50 +133,11 @@ function saveRecord() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
     if(!d.subject) return alert("الرأس مطلوب");
-    if(editIdx > -1) records[editIdx] = d; else records.push(d);
-    editIdx = -1;
+    records.push(d);
     records.sort((a,b) => a.subject.localeCompare(b.subject, 'ar'));
     update();
     document.getElementById('biblioForm').reset();
 }
 
-function editRec(i) {
-    editIdx = i;
-    Object.keys(records[i]).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = records[i][k]; });
-    window.scrollTo(0,0);
-}
-
-function newProject() {
-    let n = prompt("اسم المشروع الجديد:");
-    if(n) { projects.push(n); currentP = n; records = []; update(); }
-}
-
-function switchProject(v) {
-    currentP = v;
-    records = JSON.parse(localStorage.getItem('RECS_' + v)) || [];
-    update();
-}
-
-function deleteProject() {
-    if(confirm("حذف المشروع الحالي؟")) {
-        localStorage.removeItem('RECS_' + currentP);
-        projects = projects.filter(p => p !== currentP);
-        currentP = projects[0] || 'مشروع_1';
-        records = JSON.parse(localStorage.getItem('RECS_' + currentP)) || [];
-        update();
-    }
-}
-
-function processSmart() {
-    let t = document.getElementById('smartInput').value;
-    let p = t.split('/');
-    if(p[0]) document.getElementById('author').value = p[0].trim();
-    if(p[1]) document.getElementById('title').value = p[1].split('.')[0].trim();
-    document.getElementById('smartModal').style.display='none';
-}
-
-window.onload = update;
-</script>
-<datalist id="subList"></datalist>
-</body>
-</html>
+function showFullPreview() {
+    document.getElementById('modalTitle').innerText = "المعاينة الببليوغرافية
