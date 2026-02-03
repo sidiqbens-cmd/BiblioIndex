@@ -5,7 +5,7 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Times New Roman', Times, serif; background: #eceef1; margin: 0; padding: 0; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 2px; table-layout: fixed; }
         label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; }
@@ -13,18 +13,21 @@
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         
-        /* تصميم المعاينة الفنية (البطاقات) */
-        .scroll-area { margin-top: 175px; padding: 20px 15%; background: #fff; min-height: 100vh; }
-        .subject-header { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin-top: 20px; font-size: 16px; border: 1px solid #aaa; }
-        .see-also-box { background: #e1e1e1; text-align: center; font-size: 14px; padding: 3px; border: 1px solid #ccc; margin-bottom: 15px; }
-        .biblio-entry { margin-bottom: 20px; position: relative; line-height: 1.4; font-size: 15px; text-align: justify; }
-        .author-line { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 2px; }
-        .entry-num { font-weight: normal; }
-        .details-line { font-weight: normal; color: #000; }
-        .bold-title { font-weight: bold; }
+        /* الجدول الإداري السفلي */
+        .scroll-area { margin-top: 175px; padding: 10px; }
+        .admin-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 11px; }
+        .admin-table td, .admin-table th { border: 1px solid #ccc; padding: 4px; text-align: right; }
+        .admin-table th { background: #eee; }
 
+        /* تنسيق المعاينة الببليوغرافية (Modal) */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:90%; margin:2% auto; padding:20px; height: 85vh; overflow-y: auto; }
+        .modal-content { background:white; width:80%; margin:2% auto; padding:40px; height: 85vh; overflow-y: auto; text-align: justify; }
+        .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 20px 0 10px 0; font-size: 16px; }
+        .preview-see { background: #e1e1e1; text-align: center; font-size: 14px; padding: 3px; margin-bottom: 10px; }
+        .entry-container { margin-bottom: 15px; line-height: 1.4; font-size: 15px; }
+        .first-line { display: flex; justify-content: space-between; align-items: baseline; }
+        .bold-text { font-weight: bold; }
+        .entry-num { font-weight: normal; }
     </style>
 </head>
 <body>
@@ -33,7 +36,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:4px 15px;">
         <strong style="font-size:12px;">الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:6px;">
-            <button onclick="exportX()" class="btn" style="background:#2980b9">💾 نسخ احتياطي Excel</button>
+            <button onclick="exportX()" class="btn" style="background:#2980b9">💾 تصدير Excel</button>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
             <select id="pSel" onchange="switchP(this.value)" style="font-size:10px; height:18px;"></select>
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
@@ -69,6 +72,8 @@
         </table>
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
+            <button type="button" class="btn" style="background:#e67e22" onclick="smartFill()">إدخال ذكي</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="showBiblio()">معاينة القائمة</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="idx('author', 'المؤلفين')">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="idx('title', 'العناوين')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#c0392b" onclick="idx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
@@ -78,58 +83,49 @@
     </form>
 </div>
 
-<div id="modalOverlay"><div class="modal-content" id="modalBody"></div></div>
+<div id="modalOverlay">
+    <div class="modal-content">
+        <button onclick="closeM()" style="float:left; background:red; color:white; border:none; padding:5px; cursor:pointer;">إغلاق</button>
+        <div id="modalBody"></div>
+    </div>
+</div>
 
-<div class="scroll-area" id="mainDisplay"></div>
+<div class="scroll-area">
+    <table class="admin-table">
+        <thead>
+            <tr><th>م</th><th>رأس الموضوع</th><th>المؤلف</th><th>العنوان</th><th>إجراء</th></tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+    </table>
+</div>
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || 'مشروع_1';
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 
+// دالة لتنظيف النص من "الـ" للترتيب
+const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
+
 function draw() {
+    // الترتيب الهجائي مع تجاهل الـ التعريف
+    recs.sort((a, b) => cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar'));
+    
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
-    
-    let html = '';
-    let lastSub = '';
-    let count = 305; // ترقيم تجريبي يبدأ من الرقم في صورتك
 
+    let h = '';
     recs.forEach((r, i) => {
-        // عرض رأس الموضوع
-        if(r.subject && r.subject !== lastSub) {
-            html += `<div class="subject-header">${r.subject}</div>`;
-            if(r.see_also) html += `<div class="see-also-box">أنظر أيضاً: ${r.see_also}</div>`;
-            lastSub = r.subject;
-        }
-
-        // إحالات انظر المستقلة
-        if(r.see && !r.title) {
-            html += `<div class="subject-header">${r.subject}</div><div class="see-also-box">أنظر: ${r.see}</div>`;
-            return;
-        }
-
-        // مادة ببليوغرافية
-        if(r.title) {
-            let num = count++;
-            r.entryNum = num; 
-            html += `<div class="biblio-entry">
-                <div class="author-line">
-                    <span>${r.author_preview ? r.author_preview : `<span class="bold-title">${r.title}</span>`}</span>
-                    <span class="entry-num">(${num})</span>
-                </div>
-                <div class="details-line">
-                    ${r.author_preview ? r.title : ''} / ${r.collab ? r.collab + '; ' : ''} 
-                    ${r.translator ? 'ترجمة ' + r.translator + '. - ' : ''}
-                    ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''}
-                    ${r.year ? r.year + '. - ' : ''} ${r.pages ? 'ص ' + r.pages : ''}
-                </div>
-                <button onclick="edit(${i})" style="font-size:8px; opacity:0.3;">تعديل</button>
-            </div>`;
-        }
+        h += `<tr>
+            <td>${i+1}</td>
+            <td>${r.subject}</td>
+            <td>${r.author_preview || ''}</td>
+            <td>${r.title || ''}</td>
+            <td><button onclick="edit(${i})">تعديل</button></td>
+        </tr>`;
     });
-    document.getElementById('mainDisplay').innerHTML = html;
+    document.getElementById('adminBody').innerHTML = h;
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
@@ -137,30 +133,77 @@ function save() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
     recs.push(d);
-    recs.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
     draw(); document.getElementById('bForm').reset();
+}
+
+function showBiblio() {
+    let h = '<h2 style="text-align:center">القائمة الببليوغرافية</h2>';
+    let lastSub = '';
+    let startNum = 305; // مثال للترقيم المتسلسل
+
+    recs.forEach((r) => {
+        if (r.subject !== lastSub) {
+            h += `<div class="preview-subject">${r.subject}</div>`;
+            if (r.see_also) h += `<div class="preview-see">انظر أيضاً: ${r.see_also}</div>`;
+            if (r.see && !r.title) h += `<div class="preview-see">انظر: ${r.see}</div>`;
+            lastSub = r.subject;
+        }
+
+        if (r.title) {
+            let n = startNum++;
+            r.currentNum = n; 
+            h += `<div class="entry-container">
+                <div class="first-line">
+                    <span class="${r.author_preview ? 'bold-text' : ''}">${r.author_preview || ''}</span>
+                    <span class="entry-num">(${n})</span>
+                </div>
+                <div class="details-line">
+                    <span class="${!r.author_preview ? 'bold-text' : ''}">${r.title}</span> / 
+                    ${r.collab ? r.collab + '; ' : ''} ${r.translator ? 'ترجمة ' + r.translator + '. - ' : ''}
+                    ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''}
+                    ${r.year ? r.year + '. - ' : ''} ${r.pages ? 'ص ' + r.pages : ''}
+                </div>
+            </div>`;
+        }
+    });
+    document.getElementById('modalBody').innerHTML = h;
+    document.getElementById('modalOverlay').style.display = 'block';
 }
 
 function idx(field, title) {
     let map = {};
     recs.forEach(r => {
-        if(r[field] && r.entryNum) {
-            if(!map[r[field]]) map[r[field]] = [];
-            map[r[field]].push(r.entryNum);
+        let val = (field === 'journal') ? (r.journal ? r.journal + (r.affiliation ? ' - ' + r.affiliation : '') : null) : r[field];
+        if (val && r.currentNum) {
+            if (!map[val]) map[val] = [];
+            map[val].push(r.currentNum);
         }
     });
-    let keys = Object.keys(map).sort((a,b) => a.localeCompare(b, 'ar'));
-    let h = `<h2>كشاف ${title}</h2><button onclick="closeM()">إغلاق</button><hr><ul style="columns:2">`;
+    let keys = Object.keys(map).sort((a,b) => cleanAL(a).localeCompare(cleanAL(b), 'ar'));
+    let h = `<h3>كشاف ${title}</h3><ul style="columns:2">`;
     keys.forEach(k => h += `<li><b>${k}</b> [${map[k].join(', ')}]</li>`);
-    document.getElementById('modalBody').innerHTML = h + `</ul>`;
+    document.getElementById('modalBody').innerHTML = h + '</ul>';
     document.getElementById('modalOverlay').style.display = 'block';
+}
+
+function smartFill() {
+    let txt = prompt("أدخل النص المراد توزيعه:");
+    if(!txt) return;
+    // منطق بسيط للتوزيع: يعتمد على الفواصل أو الكلمات الدلالية
+    if(txt.includes('/')) {
+        let parts = txt.split('/');
+        document.getElementById('author_preview').value = parts[0].trim();
+        document.getElementById('title').value = parts[1].split('.')[0].trim();
+    } else {
+        document.getElementById('title').value = txt;
+    }
 }
 
 function exportX() {
     const ws = XLSX.utils.json_to_sheet(recs);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Backup");
-    XLSX.writeFile(wb, `Backup_${curP}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, `Fahras_${curP}.xlsx`);
 }
 
 function edit(i) {
