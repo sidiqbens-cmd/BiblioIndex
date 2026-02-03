@@ -5,7 +5,7 @@
     <title>الفهرس الليبي الموحد</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; overflow-x: hidden; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 2px; table-layout: fixed; }
         label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; }
@@ -13,18 +13,12 @@
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         
-        /* الجدول الإداري الشامل مع تجميد الأعمدة والرأس */
-        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow: auto; padding: 0; }
+        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow: auto; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 10px; min-width: 2500px; }
-        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 5px; border: 1px solid #2c3e50; }
+        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 5px; }
         .admin-table td { border: 1px solid #ccc; padding: 3px; text-align: right; }
+        .admin-table td:nth-child(1), .admin-table td:nth-child(2), .admin-table td:nth-child(3) { position: sticky; right: 0; background: #f9f9f9; z-index: 20; }
         
-        /* تجميد أول 3 أعمدة */
-        .admin-table th:nth-child(1), .admin-table td:nth-child(1) { position: sticky; right: 0; background: #eee; z-index: 20; width: 40px; }
-        .admin-table th:nth-child(2), .admin-table td:nth-child(2) { position: sticky; right: 40px; background: #eee; z-index: 20; width: 60px; }
-        .admin-table th:nth-child(3), .admin-table td:nth-child(3) { position: sticky; right: 100px; background: #fff; z-index: 20; width: 150px; border-left: 2px solid #2c3e50; }
-
-        /* المعاينة */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:85%; margin:1% auto; padding:30px; height: 90vh; overflow-y: auto; }
         .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 15px 0 5px 0; font-size: 16px; border: 1px solid #999; }
@@ -33,8 +27,7 @@
         .first-line { display: flex; justify-content: space-between; align-items: baseline; }
         .bold-text { font-weight: bold; }
         
-        /* كشافات بخط 12 وتنسيق المحرر المائل */
-        .idx-list { columns: 2; list-style: none; padding: 0; font-size: 12px; font-weight: normal; }
+        .idx-list { columns: 2; list-style: none; padding: 0; font-size: 12px; }
         .editor-style { font-style: italic; color: #555; }
     </style>
 </head>
@@ -92,12 +85,7 @@
     </form>
 </div>
 
-<div id="modalOverlay">
-    <div class="modal-content">
-        <button onclick="closeM()" style="float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer; font-weight:bold;">إغلاق</button>
-        <div id="modalBody"></div>
-    </div>
-</div>
+<div id="modalOverlay"><div class="modal-content"><button onclick="closeM()" style="float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer;">إغلاق</button><div id="modalBody"></div></div></div>
 
 <div class="scroll-area">
     <table class="admin-table">
@@ -110,7 +98,6 @@
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || 'مشروع_1';
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 const flds = ['subject', 'see', 'see_also', 'author', 'author_preview', 'title', 'collab', 'collab_idx', 'translator', 'trans_idx', 'journal', 'publisher', 'place', 'affiliation', 'editor', 'orig_title', 'year', 'pages'];
 
@@ -146,12 +133,17 @@ function showBiblio() {
             lastSub = r.subject;
         }
         if (r.title) {
-            // منطق علامات الترقيم التتابعي
             let responsibility = '';
             if(r.author_preview) responsibility += r.author_preview;
             if(r.collab) responsibility += (responsibility ? '، ' : '') + r.collab;
             if(r.translator) responsibility += (responsibility ? '؛ ' : '') + 'ترجمة ' + r.translator;
             if(r.editor) responsibility += (responsibility ? '؛ ' : '') + r.editor;
+
+            // قاعدة "ص" المتحركة
+            let pgStr = '';
+            if(r.pages) {
+                pgStr = r.journal ? 'ص ' + r.pages : r.pages + ' ص';
+            }
 
             h += `<div class="entry-container">
                 <div class="first-line">
@@ -162,7 +154,7 @@ function showBiblio() {
                     <span class="${!r.author ? 'bold-text' : ''}">${r.title}</span> 
                     ${responsibility ? ' / ' + responsibility : ''}. - 
                     ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''}
-                    ${r.year ? r.year + '. - ' : ''} ${r.pages ? 'ص ' + r.pages : ''}
+                    ${r.year ? r.year + '. - ' : ''} ${pgStr}
                 </div>
             </div>`;
         }
@@ -174,12 +166,15 @@ function showBiblio() {
 function idx(field, title) {
     let map = {};
     recs.forEach(r => {
-        let val = (field === 'journal') ? (r.journal ? r.journal + (r.affiliation ? ' - ' + r.affiliation : '') : null) : r[field];
-        if (val && r.finalID) {
-            if (!map[val]) map[val] = [];
-            // التحقق من صفة "محرر"
-            let isEditor = (r.author_preview && r.author_preview.includes("تحرير")) || (r.collab && r.collab.includes("تحرير"));
-            map[val].push({ num: r.finalID, editor: isEditor });
+        let rawVal = (field === 'journal') ? (r.journal ? r.journal + (r.affiliation ? ' - ' + r.affiliation : '') : null) : r[field];
+        if (rawVal && r.finalID) {
+            // تفكيك الأسماء المتعددة بناءً على الفواصل
+            let parts = rawVal.split(/[،؛,;]/).map(p => p.trim()).filter(p => p !== "");
+            parts.forEach(p => {
+                if (!map[p]) map[p] = [];
+                let isEditor = (r.author_preview && r.author_preview.includes("تحرير")) || (r.collab && r.collab.includes("تحرير"));
+                map[p].push({ num: r.finalID, editor: isEditor });
+            });
         }
     });
     let keys = Object.keys(map).sort((a,b) => cleanAL(a).localeCompare(cleanAL(b), 'ar'));
@@ -198,6 +193,13 @@ function save() {
     recs.push(d); draw(); document.getElementById('bForm').reset(); document.getElementById('subject').focus();
 }
 
+function exportX() {
+    const ws = XLSX.utils.json_to_sheet(recs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, `Fahras_${curP}.xlsx`);
+}
+
 function importX(e) {
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -205,13 +207,6 @@ function importX(e) {
         draw();
     };
     reader.readAsBinaryString(e.target.files[0]);
-}
-
-function exportX() {
-    const ws = XLSX.utils.json_to_sheet(recs);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, `Fahras_${curP}.xlsx`);
 }
 
 function edit(i) {
