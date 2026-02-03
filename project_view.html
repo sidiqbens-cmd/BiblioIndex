@@ -7,24 +7,14 @@
     <style>
         body { font-family: 'Segoe UI', sans-serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 2px 0; border-bottom: 2px solid #000; }
-        
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 4px; padding: 2px; table-layout: fixed; }
         label { font-size: 9px; font-weight: bold; color: #333; display: block; text-align: center; margin-bottom: 1px; white-space: nowrap; }
         input { width: 100%; height: 18px; font-size: 10px; border: 1px solid #999; border-radius: 2px; padding: 0 3px; box-sizing: border-box; text-align: right; }
-        
         .actions { background: #cfcfcf; text-align: center; padding: 5px; border-bottom: 2px solid #2c3e50; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 3px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 9px; font-weight: bold; }
-        
         .scroll-area { margin-top: 170px; padding: 10px; }
         .preview-table { width: 100%; border-collapse: collapse; background: #fff; }
         .preview-table td { border: 1px solid #ccc; padding: 6px; font-size: 11px; text-align: right; vertical-align: top; }
-        
-        /* تنسيق البطاقة الببليوغرافية */
-        .biblio-entry { line-height: 1.6; }
-        .subject-head { font-weight: bold; color: #2c3e50; background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
-        .see-ref { color: #c0392b; font-style: italic; font-weight: bold; }
-
-        /* نوافذ المعاينة */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000; overflow-y:auto; }
         .modal-content { background:white; width:90%; margin:20px auto; padding:20px; border-radius:5px; position:relative; min-height:80vh; }
         .close-btn { position:sticky; top:0; float:left; background:#c0392b; color:white; border:none; padding:5px 15px; cursor:pointer; font-weight:bold; }
@@ -36,6 +26,11 @@
     <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:4px 15px;">
         <strong style="font-size:12px;">الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px; align-items:center;">
+            <button onclick="document.getElementById('fileInput').click()" class="btn" style="background:#e67e22">📥 استيراد Excel</button>
+            <input type="file" id="fileInput" style="display:none" accept=".xlsx, .xls" onchange="importExcel(event)">
+            
+            <div style="border-right:1px solid #555; height:15px; margin:0 5px;"></div>
+            
             <button onclick="newProject()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
             <select id="projSelect" onchange="switchProject(this.value)" style="font-size:10px; height:18px;"></select>
             <button onclick="deleteProject()" class="btn" style="background:#c0392b">حذف</button>
@@ -84,7 +79,7 @@
 <div id="modalOverlay">
     <div class="modal-content">
         <button class="close-btn" onclick="document.getElementById('modalOverlay').style.display='none'">إغلاق</button>
-        <h2 id="modalTitle" style="text-align:center; border-bottom:2px solid #2c3e50; padding-bottom:10px;"></h2>
+        <h2 id="modalTitle" style="text-align:center;"></h2>
         <div id="modalBody"></div>
     </div>
 </div>
@@ -107,37 +102,82 @@ function update() {
     records.forEach((r, i) => {
         h += `<tr>
             <td width="30">${r.title ? count++ : '-'}</td>
-            <td width="150"><span class="subject-head">${r.subject}</span></td>
-            <td class="biblio-entry">
-                ${r.see ? `<span class="see-ref">انظر: ${r.see}</span>` : ''}
-                ${r.see_also ? `<span class="see-ref">انظر أيضاً: ${r.see_also}</span>` : ''}
-                ${r.author_preview ? `<strong>${r.author_preview}</strong>. ` : ''}
-                ${r.title ? `<em>${r.title}</em> / ` : ''}
-                ${r.collab ? `${r.collab}; ` : ''}
-                ${r.translator ? `ترجمة ${r.translator}; ` : ''}
-                ${r.editor ? `تحقيق ${r.editor}. - ` : ''}
-                ${r.place ? `${r.place}: ` : ''}
-                ${r.publisher ? `${r.publisher}, ` : ''}
-                ${r.year ? `${r.year}. - ` : ''}
-                ${r.pages ? `ص ${r.pages}` : ''}
-                ${r.orig_title ? `<br><small>العنوان الأصلي: ${r.orig_title}</small>` : ''}
+            <td width="150"><strong>${r.subject || ''}</strong></td>
+            <td>
+                ${r.see ? `<span style="color:red">انظر: ${r.see}</span>` : ''}
+                ${r.author_preview ? `<b>${r.author_preview}</b>. ` : ''}${r.title || ''}
             </td>
-            <td width="50"><button onclick="editRec(${i})" style="font-size:9px;">تعديل</button></td>
+            <td width="50"><button onclick="editRec(${i})">تعديل</button></td>
         </tr>`;
     });
     document.getElementById('tableBody').innerHTML = h;
     document.getElementById('projSelect').innerHTML = projects.map(p=>`<option ${p===currentP?'selected':''}>${p}</option>`).join('');
 }
 
+// وظيفة الاستيراد من Excel
+function importExcel(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+        const wb = XLSX.read(evt.target.result, {type: 'binary'});
+        const sheetName = wb.SheetNames[0];
+        const data = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+        
+        if(confirm(`تم العثور على ${data.length} سجل. هل تريد إضافتها للمشروع الحالي؟`)) {
+            records = [...records, ...data];
+            records.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
+            update();
+        }
+    };
+    reader.readAsBinaryString(file);
+}
+
 function saveRecord() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
     if(!d.subject) return alert("الرأس مطلوب");
     records.push(d);
-    records.sort((a,b) => a.subject.localeCompare(b.subject, 'ar'));
+    records.sort((a,b) => String(a.subject).localeCompare(String(b.subject), 'ar'));
     update();
     document.getElementById('biblioForm').reset();
 }
 
-function showFullPreview() {
-    document.getElementById('modalTitle').innerText = "المعاينة الببليوغرافية
+function editRec(i) {
+    let r = records[i];
+    Object.keys(r).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = r[k]; });
+    records.splice(i, 1);
+    update();
+}
+
+function newProject() {
+    let n = prompt("اسم المشروع الجديد:");
+    if(n) { projects.push(n); currentP = n; records = []; update(); }
+}
+
+function switchProject(v) {
+    currentP = v;
+    records = JSON.parse(localStorage.getItem('RECS_' + v)) || [];
+    update();
+}
+
+function deleteProject() {
+    if(confirm("حذف المشروع؟")) {
+        localStorage.removeItem('RECS_' + currentP);
+        projects = projects.filter(p => p !== currentP);
+        currentP = projects[0] || 'مشروع_1';
+        records = JSON.parse(localStorage.getItem('RECS_' + currentP)) || [];
+        update();
+    }
+}
+
+function showIndex(field, title) {
+    document.getElementById('modalTitle').innerText = title;
+    let list = records.map(r => r[field]).filter(v => v && String(v).trim() !== "");
+    let unique = [...new Set(list)].sort((a,b) => String(a).localeCompare(String(b), 'ar'));
+    document.getElementById('modalBody').innerHTML = `<ul style="columns:2">${unique.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+    document.getElementById('modalOverlay').style.display = 'block';
+}
+
+window.onload = update;
+</script>
+</body>
+</html>
