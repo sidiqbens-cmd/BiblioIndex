@@ -119,7 +119,7 @@ function draw() {
         r.finalID = isRef ? null : dNum;
         
         // تعديل: المؤلف في بداية البيانات بالجدول
-        let dataSummary = `${r.author_preview || '[بدون مؤلف]'} | <b>${r.title || '[إحالة]'}</b> | ${r.journal || ''} | ${r.publisher || ''} | ${r.year || ''}`;
+        let dataSummary = `${r.author || r.author_preview || '[بدون مؤلف]'} | <b>${r.title || '[إحالة]'}</b> | ${r.journal || ''} | ${r.publisher || ''} | ${r.year || ''}`;
 
         hBody += `<tr>
             <td>${dNum}</td>
