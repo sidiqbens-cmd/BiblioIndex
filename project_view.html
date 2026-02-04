@@ -13,22 +13,17 @@
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 10px; font-weight: bold; }
         
-        /* الجدول السفلي بـ 3 أعمدة فقط */
         .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow: auto; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 5px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 5px; text-align: right; vertical-align: top; }
         
-        /* تجميد الأعمدة الأساسية */
         .admin-table th:nth-child(1), .admin-table td:nth-child(1) { width: 50px; text-align: center; background: #f0f0f0; }
         .admin-table th:nth-child(2), .admin-table td:nth-child(2) { width: 180px; font-weight: bold; }
 
-        /* نوافذ العرض */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:90%; margin:1% auto; padding:25px; height: 90vh; overflow-y: auto; position: relative; }
-        
-        /* زر إغلاق ثابت لا يحتاج تمرير */
-        .close-fixed { position: fixed; top: 20px; left: 60px; background: #c0392b; color: white; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; z-index: 3000; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .close-fixed { position: fixed; top: 20px; left: 60px; background: #c0392b; color: white; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; z-index: 3000; border-radius: 5px; }
         
         .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 15px 0 5px 0; font-size: 16px; border: 1px solid #999; }
         .entry-container { margin-bottom: 12px; font-size: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
@@ -123,8 +118,8 @@ function draw() {
         let dNum = isRef ? '-' : entryCounter++;
         r.finalID = isRef ? null : dNum;
         
-        // تجميع البيانات في عمود واحد للجدول الإداري
-        let dataSummary = `<b>${r.title || '[إحالة]'}</b> | ${r.author_preview || ''} | ${r.journal || ''} ${r.issue ? '('+r.issue+')' : ''} | ${r.publisher || ''} | ${r.year || ''}`;
+        // تعديل: المؤلف في بداية البيانات بالجدول
+        let dataSummary = `${r.author_preview || '[بدون مؤلف]'} | <b>${r.title || '[إحالة]'}</b> | ${r.journal || ''} | ${r.publisher || ''} | ${r.year || ''}`;
 
         hBody += `<tr>
             <td>${dNum}</td>
@@ -152,7 +147,6 @@ function processSmart() {
     const m = ['author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year', 'pages'];
     pts.forEach((v, i) => { if(m[i]) document.getElementById(m[i]).value = v; });
     closeM();
-    document.getElementById('title').focus();
 }
 
 function showBiblio() {
@@ -172,9 +166,12 @@ function showBiblio() {
             let journalPart = r.journal ? (r.journal + (r.issue ? ' . ـــ ' + r.issue : '')) : '';
             let pgStr = r.pages ? (r.journal ? 'ص ' + r.pages : r.pages + ' ص') : '';
 
+            // قاعدة: إذا لم توجد صفحات نضع نقطة (قاطعة) فقط في النهاية
+            let endMark = pgStr ? '. - ' + pgStr : '.';
+
             h += `<div class="entry-container">
                 <div style="display:flex; justify-content:space-between;"><b>${r.author || ''}</b> <span>(${r.finalID})</span></div>
-                <div>${r.title} / ${resp}. - ${journalPart ? journalPart + ', ' : ''} ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''} ${r.year ? r.year : ''}. - ${pgStr}</div>
+                <div>${r.title} / ${resp}. - ${journalPart ? journalPart + ', ' : ''} ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''} ${r.year ? r.year : ''}${endMark}</div>
             </div>`;
         }
     });
@@ -206,9 +203,6 @@ function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
-    if((d.see || d.see_also) && !recs.some(r => r.subject === (d.see || d.see_also))) {
-        if(!confirm("المحال إليه غير موجود، استمرار؟")) return;
-    }
     recs.push(d); draw(); document.getElementById('bForm').reset(); document.getElementById('subject').focus();
 }
 
