@@ -247,7 +247,7 @@ function openBiblioWindow() {
 
             content += `<div class="entry-container">
                 <div style="display:flex; justify-content:space-between;"><b>${r.author || ''}</b> <span>(${r.finalID})</span></div>
-                <div>${r.title} / ${resp}. - ${journalPart ? journalPart + ', ' : ''} ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''} ${r.year ? r.year : ''}${endPart}</div>
+                <div>${r.title} / ${resp}. - ${journalPart ? journalPart + ', ' : ''} ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + '، ' : ''} ${r.year ? r.year : ''}${endPart}</div>
             </div>`;
         }
     });
