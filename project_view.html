@@ -17,14 +17,9 @@
         .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 5px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 5px; text-align: right; vertical-align: top; }
-        .admin-table th:nth-child(1), .admin-table td:nth-child(1) { width: 40px; text-align: center; background: #f0f0f0; }
-        .admin-table th:nth-child(2), .admin-table td:nth-child(2) { width: 180px; font-weight: bold; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:90%; margin:1% auto; padding:25px; height: 90vh; overflow-y: auto; position: relative; }
         .close-fixed { position: fixed; top: 20px; left: 60px; background: #c0392b; color: white; border: none; padding: 8px 20px; cursor: pointer; font-weight: bold; z-index: 3000; border-radius: 5px; }
-        .data-cell-text { color: #555; font-size: 10px; line-height: 1.4; }
-        .btn-del { background: #c0392b; font-size: 9px; margin-right: 2px; }
-        .btn-edit { background: #2980b9; font-size: 9px; }
     </style>
 </head>
 <body>
@@ -69,9 +64,10 @@
                 <td class="w-sm"><label>صفحات</label><input type="text" id="pages" class="in"></td>
             </tr>
             <tr>
-                <td colspan="2"><label>السلسلة</label><input type="text" id="series" class="in"></td>
-                <td colspan="2"><label>العنوان الأصلي</label><input type="text" id="orig_title" class="in"></td>
-                <td colspan="2"><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></td>
+                <td><label>السلسلة</label><input type="text" id="series" class="in"></td>
+                <td><label>العنوان الأصلي</label><input type="text" id="orig_title" class="in"></td>
+                <td><label>نوع المادة</label><input type="text" id="material_type" class="in"></td>
+                <td colspan="3"><label>محقق/مراجعة</label><input type="text" id="editor" class="in"></td>
             </tr>
         </table>
         <div class="actions">
@@ -89,39 +85,30 @@
 
 <div id="modalOverlay"><button onclick="closeM()" class="close-fixed">إغلاق النافذة</button><div class="modal-content" id="modalContent"><div id="modalBody"></div></div></div>
 
-<div class="scroll-area">
-    <table class="admin-table">
-        <thead><tr><th>رقم</th><th>رأس الموضوع</th><th>البيانات الببليوغرافية</th><th>إجراء</th></tr></thead>
-        <tbody id="adminBody"></tbody>
-    </table>
-</div>
+<div class="scroll-area"><table class="admin-table"><thead><tr><th>رقم</th><th>رأس الموضوع</th><th>البيانات الببليوغرافية</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || 'مشروع_1';
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-let editIndex = -1; 
+let editIndex = -1;
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 
 function draw() {
-    // التعديل الجوهري للترتيب الهجائي المركب مع إسقاط ال التعريف
     recs.sort((a, b) => {
-        let subCompare = cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar');
-        if (subCompare !== 0) return subCompare;
+        let subC = cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar');
+        if (subC !== 0) return subC;
         return cleanAL(a.author).localeCompare(cleanAL(b.author), 'ar');
     });
-
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
-
     let hBody = '', entryCounter = 1;
     recs.forEach((r, i) => {
         let isRef = (r.see || r.see_also) && !r.title;
         let dNum = isRef ? '-' : entryCounter++;
         r.finalID = isRef ? null : dNum;
-        let authShow = r.author || r.author_preview || '[بدون مؤلف]';
-        let dataSummary = `${authShow} | <b>${r.title || '[إحالة]'}</b> | ${r.journal || ''} | ${r.publisher || ''} | ${r.year || ''}`;
+        let dataSummary = `${r.author || '[بدون مؤلف]'} | <b>${r.title || '[إحالة]'}</b> | ${r.publisher || ''} | ${r.year || ''}`;
         hBody += `<tr style="${editIndex === i ? 'background:#fff3cd' : ''}"><td>${dNum}</td><td>${r.subject}</td><td class="data-cell-text">${dataSummary}</td><td><button class="btn btn-edit" onclick="edit(${i})">تعديل</button><button class="btn btn-del" onclick="deleteRec(${i})">حذف</button></td></tr>`;
     });
     document.getElementById('adminBody').innerHTML = hBody;
@@ -129,8 +116,7 @@ function draw() {
 }
 
 function save() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
     if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; document.getElementById('inputGrid').style.background = "#cfcfcf"; document.getElementById('saveBtn').innerText = "حفظ السجل"; } 
     else { recs.push(d); }
@@ -143,45 +129,45 @@ function edit(i) {
     document.getElementById('inputGrid').style.background = "#fff3cd"; document.getElementById('saveBtn').innerText = "تحديث السجل"; window.scrollTo(0,0); draw();
 }
 
-function deleteRec(i) {
-    if(confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) { recs.splice(i, 1); if(editIndex === i) { editIndex = -1; document.getElementById('bForm').reset(); document.getElementById('inputGrid').style.background = "#cfcfcf"; } draw(); }
-}
+function deleteRec(i) { if(confirm("حذف السجل؟")) { recs.splice(i, 1); draw(); } }
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><title>القائمة الببليوغرافية</title><style>body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; } .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 20px 0 10px 0; font-size: 18px; border: 1px solid #999; } .entry-container { margin-bottom: 15px; font-size: 16px; border-bottom: 1px dashed #ccc; padding-bottom: 8px; } @media print { .no-print { display: none; } }</style></head><body><button onclick="window.print()" class="no-print">طباعة القائمة</button><h1 style="text-align:center">القائمة الببليوغرافية</h1>`;
+    let content = `<html dir="rtl"><head><title>القائمة الببليوغرافية</title><style>body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; } .preview-subject { background: #d1d1d1; text-align: center; font-weight: bold; padding: 5px; margin: 20px 0 10px 0; font-size: 18px; border: 1px solid #999; } .entry-container { margin-bottom: 15px; font-size: 16px; border-bottom: 1px dashed #ccc; padding-bottom: 8px; }</style></head><body><h1 style="text-align:center">القائمة الببليوغرافية</h1>`;
     let lastSub = '';
     recs.forEach((r) => {
-        if (r.subject !== lastSub) { content += `<div class="preview-subject">${r.subject}</div>`; if (r.see && !r.title) content += `<div style="text-align:center;">انظر: ${r.see}</div>`; lastSub = r.subject; }
+        if (r.subject !== lastSub) { content += `<div class="preview-subject">${r.subject}</div>`; lastSub = r.subject; }
         if (r.title) {
-            let resp = (r.author_preview || '') + (r.collab ? '، ' + r.collab : '') + (r.translator ? '؛ ترجمة ' + r.translator : '');
-            let journalPart = r.journal ? (r.journal + (r.issue ? ' . ـــ ' + r.issue : '')) : '';
+            // منطق الترقيم بعد العنوان بناءً على المترجم والمشارك
+            let titleSeparator = (r.translator && !r.collab) ? " / " : ". - ";
+            let resp = (r.author_preview || '') + (r.collab ? '، ' + r.collab : '') + (r.translator ? (r.collab ? '؛ ترجمة ' : 'ترجمة ') + r.translator : '');
             let pgStr = r.pages ? (r.journal ? 'ص ' + r.pages : r.pages + ' ص') : '';
-            let suffix = "";
-            if (r.series) suffix += " . ـــ " + r.series;
-            if (r.orig_title) suffix += " . ـــ العنوان الأصلي: " + r.orig_title;
-            let endPart = (pgStr ? ". - " + pgStr : "") + suffix + ".";
-            endPart = endPart.replace(/\.\./g, '.');
-            content += `<div class="entry-container"><div style="display:flex; justify-content:space-between;"><b>${r.author || ''}</b> <span>(${r.finalID})</span></div><div>${r.title} / ${resp}. - ${journalPart ? journalPart + ', ' : ''} ${r.place ? r.place + ': ' : ''} ${r.publisher ? r.publisher + ', ' : ''} ${r.year ? r.year : ''}${endPart}</div></div>`;
+            let endPart = (pgStr ? ". - " + pgStr : "") + (r.series ? " . ـــ " + r.series : "") + (r.orig_title ? " . ـــ العنوان الأصلي: " + r.orig_title : "") + (r.material_type ? " . ـــ " + r.material_type : "") + ".";
+            content += `<div class="entry-container"><b>${r.author || ''} (${r.finalID})</b><br>${r.title}${titleSeparator}${resp}. - ${r.journal ? r.journal + ', ' : ''}${r.place ? r.place + ': ' : ''}${r.publisher ? r.publisher + ', ' : ''}${r.year ? r.year : ''}${endPart}</div>`;
         }
     });
-    content += `</body></html>`; win.document.write(content); win.document.close();
+    win.document.write(content + '</body></html>'); win.document.close();
 }
 
-function idx(field, title) {
-    let map = {};
-    recs.forEach(r => { let val = (field === 'journal') ? (r.journal ? r.journal + (r.affiliation ? ' - ' + r.affiliation : '') : null) : r[field]; if (val && r.finalID) { val.split('/').forEach(p => { p = p.trim(); if (!map[p]) map[p] = []; map[p].push(r.finalID); }); } });
-    let h = `<h3>كشاف ${title}</h3><ul>`; Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar')).forEach(k => { h += `<li>${k} (${map[k].join(', ')})</li>`; });
-    document.getElementById('modalBody').innerHTML = h + '</ul>'; document.getElementById('modalOverlay').style.display = 'block';
+function importX(e) {
+    let f = e.target.files[0]; let r = new FileReader();
+    r.onload = function(e) {
+        let d = new Uint8Array(e.target.result); let wb = XLSX.read(d, {type:'array'});
+        let ws = wb.Sheets[wb.SheetNames[0]]; let json = XLSX.utils.sheet_to_json(ws);
+        recs = json; draw(); alert("تم الاستيراد بنجاح");
+    }; r.readAsArrayBuffer(f);
 }
 
-function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
-function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
-function delP() { if(confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); } }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `Fahras_${curP}.xlsx`); }
-function openSmartInput() { let h = `<h3>إدخال ذكي</h3><textarea id="smartArea" style="width:100%; height:120px; text-align:right;"></textarea><br><button class="btn" style="background:#27ae60" onclick="processSmart()">توزيع</button>`; document.getElementById('modalBody').innerHTML = h; document.getElementById('modalOverlay').style.display = 'block'; }
-function processSmart() { let pts = document.getElementById('smartArea').value.split('؛').map(p => p.trim()); const m = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year', 'pages']; pts.forEach((v, i) => { if(m[i]) document.getElementById(m[i]).value = v; }); closeM(); }
+function idx(f, t) {
+    let map = {}; recs.forEach(r => { if(r[f] && r.finalID) r[f].split('/').forEach(p => { p=p.trim(); if(!map[p]) map[p]=[]; map[p].push(r.finalID); })});
+    let h = `<h3>كشاف ${t}</h3><ul>`; Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar')).forEach(k => { h += `<li>${k} (${map[k].join(', ')})</li>`; });
+    document.getElementById('modalBody').innerHTML = h + '</ul>'; document.getElementById('modalOverlay').style.display='block';
+}
+function closeM() { document.getElementById('modalOverlay').style.display='none'; }
+function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function delP() { if(confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs=projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); } }
 window.onload = draw;
 </script>
 </body>
