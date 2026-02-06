@@ -28,7 +28,7 @@
         .column-wrapper { column-count: 2; column-gap: 30px; }
         .idx-group { break-inside: avoid; margin-bottom: 10px; }
         .idx-letter { background: #7f8c8d; color: white; padding: 2px 8px; font-weight: bold; display: block; margin-bottom: 3px; }
-        .idx-item { margin-bottom: 2px; border-bottom: 1px solid #eee; padding: 2px; }
+        .idx-item { margin-bottom: 2px; border-bottom: 1px solid #eee; padding: 2px; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -126,20 +126,13 @@ function draw() {
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
-function processSmart() {
-    let v = document.getElementById('smartInput').value;
-    if(!v) return;
-    let p = v.split(/[؛\.\|\-,]\s|؛/).map(x => x.trim());
-    const fields = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year'];
-    p.forEach((val, i) => { if(fields[i]) document.getElementById(fields[i]).value = val; });
-}
-
 function runIdx(f, l) {
     let m = {}; 
     recs.forEach(r => { 
         if(r[f] && r.finalID) {
-            // تقسيم الأسماء بناءً على الفواصل المحددة (، أو ؛)
-            r[f].split(/[،؛]/).forEach(n => { 
+            // تحسين: استخراج الأسماء من خانة المؤلف مقلوب بشكل أدق
+            let rawNames = r[f].split(/[؛،]/);
+            rawNames.forEach(n => { 
                 n = n.trim(); 
                 if(n) { 
                     if(!m[n]) m[n] = []; 
@@ -156,24 +149,14 @@ function runIdx(f, l) {
 }
 
 function journalIdx() {
-    let m = {}; 
-    let journalAffiliations = {};
-    
-    // بناء قاموس للمجلات والتبعية المسجلة لها
-    recs.forEach(r => {
-        if(r.journal && r.affiliation) {
-            journalAffiliations[r.journal.trim()] = r.affiliation.trim();
-        }
-    });
-
+    let m = {}; let journalAffiliations = {};
+    recs.forEach(r => { if(r.journal && r.affiliation) { journalAffiliations[r.journal.trim()] = r.affiliation.trim(); } });
     recs.forEach(r => { 
         if(r.journal && r.finalID) { 
             let jName = r.journal.trim();
-            // استخدام التبعية المسجلة مسبقاً إذا كانت خانة التبعية الحالية فارغة
             let aff = r.affiliation ? r.affiliation.trim() : (journalAffiliations[jName] || "");
             let k = jName + (aff ? ` (${aff})` : ""); 
-            if(!m[k]) m[k]=[]; 
-            m[k].push(r.finalID); 
+            if(!m[k]) m[k]=[]; m[k].push(r.finalID); 
         }
     });
     let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
@@ -190,6 +173,7 @@ function openBiblioWindow() {
         .sub { background: #e0e0e0; text-align: center; padding: 5px; margin: 15px 0 5px; font-size: 14pt; font-weight: bold; border: 1px solid #999; }
         .ent { margin-bottom: 12px; font-size: 13pt; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
         .bold-title { font-weight: bold; }
+        .url-line { display: block; margin-top: 5px; color: blue; font-size: 11pt; text-decoration: none; }
     </style></head><body>`;
 
     let lastSub = '';
@@ -215,11 +199,20 @@ function openBiblioWindow() {
                 if(pInfo) line += ` . ـــ ${pInfo}`;
             }
             if(r.pages) line += ` . ـــ ${r.journal ? 'ص ' + r.pages : r.pages + ' ص'}`;
-            if(r.url) line += `<br><small style="color:blue;">متاح على: ${r.url}</small>`;
+            // إضافة الرابط في سطر منفرد في النهاية
+            if(r.url) line += `<a href="${r.url}" class="url-line" target="_blank">الرابط: ${r.url}</a>`;
             content += `<div class="ent">${line}.</div>`;
         }
     });
     win.document.write(content + '</body></html>'); win.document.close();
+}
+
+function processSmart() {
+    let v = document.getElementById('smartInput').value;
+    if(!v) return;
+    let p = v.split(/[؛\.\|\-,]\s|؛/).map(x => x.trim());
+    const flds = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year'];
+    p.forEach((val, i) => { if(flds[i]) document.getElementById(flds[i]).value = val; });
 }
 
 function save() {
