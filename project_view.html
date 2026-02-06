@@ -141,23 +141,58 @@ function journalIdx() {
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><body><style>body{font-family:serif;padding:20px;}.sub{background:#eee;padding:5px;font-weight:bold;text-align:center;margin:10px 0;}.ent{margin-bottom:10px; border-bottom:1px solid #ddd;}</style>`;
+    let content = `<html dir="rtl"><head><style>
+        body{font-family:'Times New Roman', serif;padding:30px;line-height:1.6;}
+        .sub{background:#e0e0e0;text-align:center;padding:5px;margin:15px 0;font-weight:bold;border:1px solid #999;}
+        .ent{margin-bottom:15px;border-bottom:1px solid #eee;padding-bottom:10px;}
+        .url-line{display:block;margin-top:5px;color:blue;font-size:11pt;text-decoration:none;}
+    </style></head><body>`;
+    
     let lastSub = '';
     recs.forEach(r => {
         if (r.subject !== lastSub) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
+        
         if (r.title) {
-            let resp = [r.author_preview, r.collab].filter(x => x).join('، ');
-            if(r.translator) resp += (resp ? '؛ ترجمة ' : 'ترجمة ') + r.translator;
-            let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title} / ${resp}`;
-            if(r.journal) line += ` . ـــ ${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}`;
-            else line += ` . ـــ ${[r.place, r.publisher, r.year].filter(x=>x).join(': ')} . ـــ ${r.pages || ''} ص`;
-            if(r.url) line += `<br><small style="color:blue">الرابط: ${r.url}</small>`;
+            // تجميع بيان المسؤولية أولاً للتأكد من وجوده
+            let respParts = [];
+            if(r.author_preview) respParts.push(r.author_preview);
+            if(r.collab) respParts.push(r.collab);
+            
+            let respStr = respParts.join('، ');
+            if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
+            if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
+
+            // البدء بالسطر (المؤلف المقلوب + الرقم ثم العنوان)
+            let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
+            
+            // القاعدة: إذا وجد بيان مسؤولية نضع المائلة، وإذا لم يوجد ننتقل للشرطة مباشرة
+            if(respStr) {
+                line += ` / ${respStr} . ـــ `;
+            } else {
+                line += ` . ـــ `;
+            }
+            
+            // تجميع بيانات النشر أو المجلة
+            let biblioTail = "";
+            if(r.journal) {
+                biblioTail = `${r.journal}`;
+                if(r.issue) biblioTail += ` . ـــ ${r.issue}`;
+                if(r.year) biblioTail += ` . ـــ ${r.year}`;
+                if(r.pages) biblioTail += ` . ـــ ص ${r.pages}`;
+            } else {
+                let pub = [r.place, r.publisher, r.year].filter(x => x).join(': ');
+                if(pub) biblioTail = pub;
+                if(r.pages) biblioTail += (biblioTail ? " . ـــ " : "") + `${r.pages} ص`;
+            }
+
+            line += biblioTail;
+            
+            if(r.url) line += `<a href="${r.url}" class="url-line" target="_blank">الرابط: ${r.url}</a>`;
             content += `<div class="ent">${line}.</div>`;
         }
     });
-    win.document.write(content + '</body></html>');
+    win.document.write(content + '</body></html>'); win.document.close();
 }
-
 function save() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     if(!d.subject) return alert("الرأس مطلوب");
