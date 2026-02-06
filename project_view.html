@@ -8,22 +8,20 @@
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 1px; padding: 1px; table-layout: fixed; }
-        label { font-size: 10px; font-weight: bold; color: #333; display: block; text-align: center; line-height: 1; margin-bottom: 1px; }
-        input { width: 100%; height: 20px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; background: #fff; }
+        label { font-size: 10px; font-weight: bold; color: #333; display: block; text-align: center; margin-bottom: 1px; }
+        input { width: 100%; height: 20px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; }
         
-        /* أحجام مخصصة للخانات كما طلبت */
+        /* ضبط العرض المخصص */
         .w-xs { width: 60px !important; }
         .w-sm { width: 90px !important; }
+        .expand { width: 100%; } /* لتوسيع الخانات للنهاية */
         
-        .smart-zone { background: #bdc3c7; padding: 2px 5px; display: flex; gap: 5px; align-items: center; border-bottom: 1px solid #7f8c8d; }
         .actions { background: #cfcfcf; text-align: center; padding: 3px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        
         .scroll-area { margin-top: 205px; height: calc(100vh - 210px); overflow: auto; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 4px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 3px; text-align: right; }
-        
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 90vh; overflow-y: auto; }
     </style>
@@ -38,7 +36,7 @@
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
             <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
             <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع</button>
-            <select id="pSel" onchange="switchP(this.value)" style="font-size:11px;"></select>
+            <select id="pSel" onchange="switchP(this.value)"></select>
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
         </div>
     </div>
@@ -49,11 +47,11 @@
             <tr>
                 <td><label>رأس الموضوع</label><input type="text" id="subject" class="in" list="subjectsList"></td>
                 <td><label>إحالة انظر</label><input type="text" id="see" class="in"></td>
-                <td><label>إحالة انظر أيضاً</label><input type="text" id="see_also" class="in"></td>
-                <td colspan="2"><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></td>
+                <td colspan="2"><label>إحالة انظر أيضاً (موسعة)</label><input type="text" id="see_also" class="in"></td>
+                <td><label>المؤلف (مقلوب)</label><input type="text" id="author" class="in"></td>
             </tr>
             <tr>
-                <td colspan="2"><label>العنوان</label><input type="text" id="title" class="in"></td>
+                <td colspan="2"><label>العنوان (موسع للنهاية)</label><input type="text" id="title" class="in"></td>
                 <td><label>مؤلف معاينة</label><input type="text" id="author_preview" class="in"></td>
                 <td><label>مشارك معاينة</label><input type="text" id="collab" class="in"></td>
                 <td><label>مشارك كشاف</label><input type="text" id="collab_idx" class="in"></td>
@@ -78,20 +76,14 @@
             </tr>
         </table>
         
-        <div class="smart-zone">
-            <span style="font-size:10px; font-weight:bold;">لصق ذكي:</span>
-            <input type="text" id="smartInput" placeholder="الصق هنا..." style="height:18px;">
-            <button type="button" class="btn" style="background:#16a085" onclick="processSmart()">توزيع</button>
-        </div>
-
         <div class="actions">
             <button type="button" id="saveBtn" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة</button>
-            <button type="button" class="btn" style="background:#2c3e50" onclick="idx('author', 'المؤلفين')">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#d35400" onclick="idx('title', 'العناوين')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#c0392b" onclick="idx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author', 'المؤلفين')">كشاف المؤلفين</button>
+            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#16a085" onclick="journalIdx()">المجلات</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="idx('subject', 'الموضوعات')">الموضوعات</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('subject', 'الموضوعات')">الموضوعات</button>
         </div>
     </form>
 </div>
@@ -107,41 +99,24 @@ let editIndex = -1;
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 
 function draw() {
-    recs.sort((a, b) => {
-        let sA = cleanAL(a.subject), sB = cleanAL(b.subject);
-        if (sA !== sB) return sA.localeCompare(sB, 'ar');
-        return cleanAL(a.author).localeCompare(cleanAL(b.author), 'ar');
-    });
+    recs.sort((a, b) => cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar'));
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
     
-    let subs = [...new Set(recs.map(r => r.subject))];
-    document.getElementById('subjectsList').innerHTML = subs.map(s => `<option value="${s}">`).join('');
-
-    let hBody = '', entryCounter = 1;
-    recs.forEach((r, i) => {
+    let entryCounter = 1;
+    let hBody = recs.map((r, i) => {
         let isRef = (r.see || r.see_also) && !r.title;
-        let dNum = isRef ? '-' : entryCounter++;
-        r.finalID = isRef ? null : dNum;
-        hBody += `<tr><td>${dNum}</td><td>${r.subject}</td><td><b>${r.author || ''}</b> - ${r.title || 'إحالة'}</td><td><button onclick="edit(${i})">تعديل</button> <button onclick="deleteRec(${i})">حذف</button></td></tr>`;
-    });
+        r.finalID = isRef ? null : entryCounter++;
+        return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td><b>${r.author || ''}</b> - ${r.title || 'إحالة'}</td>
+        <td><button onclick="edit(${i})">تعديل</button> <button onclick="deleteRec(${i})">حذف</button></td></tr>`;
+    }).join('');
     document.getElementById('adminBody').innerHTML = hBody;
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
-function save() {
-    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("الرأس مطلوب");
-    if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; } 
-    else { recs.push(d); }
-    draw(); document.getElementById('bForm').reset();
-}
-
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    if(!win) return alert("يرجى السماح بالنوافذ المنبثقة");
-    
     let content = `<html dir="rtl"><head><style>
         body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.4; }
         .sub { background: #e0e0e0; text-align: center; padding: 5px; margin: 15px 0 5px; font-size: 14pt; font-weight: bold; border: 1px solid #999; }
@@ -156,19 +131,58 @@ function openBiblioWindow() {
         if (r.see_also) content += `<div class="ref">انظر أيضاً: ${r.see_also}</div>`;
         
         if (r.title) {
-            let resp = (r.author_preview || '') + (r.collab ? '، ' + r.collab : '') + (r.translator ? '؛ ترجمة ' + r.translator : '') + (r.editor ? '؛ ' + r.editor : '');
-            let pub = (r.place ? r.place + ': ' : '') + (r.publisher ? r.publisher + '، ' : '') + (r.year || '');
-            let jrn = r.journal ? (r.journal + (r.issue ? ' . ـــ ' + r.issue : '')) : '';
-            let pgs = r.pages ? (r.journal ? 'ص ' + r.pages : r.pages + ' ص') : '';
+            // تجميع بيان المسؤولية
+            let respParts = [];
+            if(r.author_preview) respParts.push(r.author_preview);
+            if(r.collab) respParts.push(r.collab);
+            let respStr = respParts.join('، ');
+            if(r.translator) respStr += (respStr ? '؛ ترجمة ' : 'ترجمة ') + r.translator;
+            if(r.editor) respStr += (respStr ? '؛ ' : '') + r.editor;
+
+            // بناء السطر بنظام الفواصل الذكية . ـــ
+            let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
+            if(respStr) line += ` / ${respStr}`;
             
-            let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title} / ${resp}.`;
-            if (pub || jrn) line += ` . ـــ ${jrn ? jrn : pub}`;
-            if (pgs) line += ` . ـــ ${pgs}`;
-            if (r.series) line += ` . ـــ ${r.series}`;
+            if(r.edition) line += ` . ـــ ط. ${r.edition}`;
+            
+            if(r.journal) {
+                line += ` . ـــ ${r.journal}`;
+                if(r.issue) line += ` . ـــ ${r.issue}`;
+            } else {
+                let pubInfo = [r.place, r.publisher, r.year].filter(x => x).join(': ');
+                if(pubInfo) line += ` . ـــ ${pubInfo}`;
+            }
+            
+            if(r.pages) line += ` . ـــ ${r.journal ? 'ص ' + r.pages : r.pages + ' ص'}`;
+            if(r.series) line += ` . ـــ ${r.series}`;
+            
             content += `<div class="ent">${line}.</div>`;
         }
     });
     win.document.write(content + '</body></html>'); win.document.close();
+}
+
+function runIdx(field, label) {
+    let map = {};
+    recs.forEach(r => {
+        let val = r[field];
+        if(val && r.finalID) {
+            val.split(/؛|،|\//).forEach(n => {
+                n = n.trim(); if(!n) return;
+                if(!map[n]) map[n] = []; map[n].push(r.finalID);
+            });
+        }
+    });
+    let h = `<h3>كشاف ${label}</h3><ul>` + Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'))
+        .map(k => `<li><b>${k}</b> (${map[k].join(', ')})</li>`).join('') + `</ul>`;
+    document.getElementById('modalBody').innerHTML = h; document.getElementById('modalOverlay').style.display='block';
+}
+
+function save() {
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    if(!d.subject) return alert("الرأس مطلوب");
+    if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; } else { recs.push(d); }
+    draw(); document.getElementById('bForm').reset();
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
