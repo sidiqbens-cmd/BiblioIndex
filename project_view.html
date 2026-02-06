@@ -13,13 +13,10 @@
         .w-xs { width: 50px !important; }
         .w-sm { width: 80px !important; }
         
-        /* سطر الرابط والإدخال الذكي */
         .smart-row { display: flex; background: #bdc3c7; padding: 2px; gap: 5px; align-items: center; border-bottom: 1px solid #7f8c8d; }
-
         .actions { background: #cfcfcf; text-align: center; padding: 2px; display: flex; justify-content: center; align-items: center; gap: 3px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 2px 6px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
         
-        /* ضبط ظهور الجدول السفلي ليكون مرئياً بالكامل */
         .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow-y: auto; padding: 5px; box-sizing: border-box; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; table-layout: fixed; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; z-index: 100; padding: 4px; border: 1px solid #2c3e50; }
@@ -31,6 +28,7 @@
         .column-wrapper { column-count: 2; column-gap: 30px; }
         .idx-group { break-inside: avoid; margin-bottom: 10px; }
         .idx-letter { background: #7f8c8d; color: white; padding: 2px 8px; font-weight: bold; display: block; margin-bottom: 3px; }
+        .idx-item { margin-bottom: 2px; border-bottom: 1px solid #eee; padding: 2px; }
     </style>
 </head>
 <body>
@@ -136,6 +134,55 @@ function processSmart() {
     p.forEach((val, i) => { if(fields[i]) document.getElementById(fields[i]).value = val; });
 }
 
+function runIdx(f, l) {
+    let m = {}; 
+    recs.forEach(r => { 
+        if(r[f] && r.finalID) {
+            // تقسيم الأسماء بناءً على الفواصل المحددة (، أو ؛)
+            r[f].split(/[،؛]/).forEach(n => { 
+                n = n.trim(); 
+                if(n) { 
+                    if(!m[n]) m[n] = []; 
+                    if(!m[n].includes(r.finalID)) m[n].push(r.finalID); 
+                }
+            }); 
+        }
+    });
+    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); });
+    let h = `<h3>كشاف ${l}</h3><div class="column-wrapper">`;
+    for(let c in groups) { h += `<div class="idx-group"><span class="idx-letter">${c}</span>` + groups[c].map(i => `<div class="idx-item"><b>${i.key}</b> (${i.ids.join(', ')})</div>`).join('') + `</div>`; }
+    document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block';
+}
+
+function journalIdx() {
+    let m = {}; 
+    let journalAffiliations = {};
+    
+    // بناء قاموس للمجلات والتبعية المسجلة لها
+    recs.forEach(r => {
+        if(r.journal && r.affiliation) {
+            journalAffiliations[r.journal.trim()] = r.affiliation.trim();
+        }
+    });
+
+    recs.forEach(r => { 
+        if(r.journal && r.finalID) { 
+            let jName = r.journal.trim();
+            // استخدام التبعية المسجلة مسبقاً إذا كانت خانة التبعية الحالية فارغة
+            let aff = r.affiliation ? r.affiliation.trim() : (journalAffiliations[jName] || "");
+            let k = jName + (aff ? ` (${aff})` : ""); 
+            if(!m[k]) m[k]=[]; 
+            m[k].push(r.finalID); 
+        }
+    });
+    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); });
+    let h = `<h3>قائمة المجلات والتبعية</h3><div class="column-wrapper">`;
+    for(let c in groups) { h += `<div class="idx-group"><span class="idx-letter">${c}</span>` + groups[c].map(i => `<div class="idx-item"><b>${i.key}</b> (${i.ids.join(', ')})</div>`).join('') + `</div>`; }
+    document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block';
+}
+
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><style>
@@ -173,24 +220,6 @@ function openBiblioWindow() {
         }
     });
     win.document.write(content + '</body></html>'); win.document.close();
-}
-
-function runIdx(f, l) {
-    let m = {}; recs.forEach(r => { if(r[f] && r.finalID) r[f].split(/؛|،|\//).forEach(n => { n=n.trim(); if(n) { if(!m[n]) m[n]=[]; m[n].push(r.finalID); }}); });
-    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); });
-    let h = `<h3>كشاف ${l}</h3><div class="column-wrapper">`;
-    for(let c in groups) { h += `<div class="idx-group"><span class="idx-letter">${c}</span>` + groups[c].map(i => `<div class="idx-item"><b>${i.key}</b> (${i.ids.join(', ')})</div>`).join('') + `</div>`; }
-    document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block';
-}
-
-function journalIdx() {
-    let m = {}; recs.forEach(r => { if(r.journal && r.finalID) { let k = r.journal + (r.affiliation ? ` (${r.affiliation})` : ""); if(!m[k]) m[k]=[]; m[k].push(r.finalID); }});
-    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); });
-    let h = `<h3>قائمة المجلات والتبعية</h3><div class="column-wrapper">`;
-    for(let c in groups) { h += `<div class="idx-group"><span class="idx-letter">${c}</span>` + groups[c].map(i => `<div class="idx-item"><b>${i.key}</b> (${i.ids.join(', ')})</div>`).join('') + `</div>`; }
-    document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block';
 }
 
 function save() {
