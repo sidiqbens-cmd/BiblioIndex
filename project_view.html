@@ -11,14 +11,14 @@
         .field-label { font-size: 10px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
         input { width: 100%; height: 22px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         
-        /* تصغير الخانات المطلوبة */
         .w-xs { width: 60px !important; }
         .w-sm { width: 90px !important; }
         
+        .smart-row { display: flex; background: #bdc3c7; padding: 3px; gap: 5px; align-items: center; border-bottom: 1px solid #7f8c8d; }
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
         
-        .scroll-area { margin-top: 185px; height: calc(100vh - 190px); overflow-y: auto; padding: 5px; }
+        .scroll-area { margin-top: 215px; height: calc(100vh - 220px); overflow-y: auto; padding: 5px; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 5px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 4px; text-align: right; }
@@ -77,7 +77,11 @@
             </tr>
         </table>
         
-        <div style="background:#bdc3c7; padding:2px;"><input type="text" id="url" class="in" placeholder="الرابط (URL)"></div>
+        <div class="smart-row">
+            <input type="text" id="url" class="in" placeholder="الرابط (URL)" style="flex: 2;">
+            <input type="text" id="smartInput" placeholder="لصق ذكي هنا..." style="flex: 1; font-size: 11px;">
+            <button type="button" class="btn" style="background:#16a085" onclick="processSmart()">توزيع</button>
+        </div>
 
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
@@ -92,7 +96,7 @@
 </div>
 
 <div id="modalOverlay"><button onclick="closeM()" class="btn" style="background:#c0392b; margin:10px;">إغلاق</button><div class="modal-content" id="modalBody"></div></div>
-<div class="scroll-area"><table class="admin-table"><thead><tr><th style="width:40px;">رقم</th><th style="width:150px;">رأس الموضوع</th><th>البيانات</th><th style="width:100px;">إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
+<div class="scroll-area"><table class="admin-table"><thead><tr><th style="width:40px;">رقم</th><th style="width:150px;">رأس الموضوع</th><th>البيانات البيبليوغرافية</th><th style="width:100px;">إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
@@ -113,6 +117,14 @@ function draw() {
         <td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})">حذف</button></td></tr>`;
     }).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+}
+
+function processSmart() {
+    let v = document.getElementById('smartInput').value;
+    if(!v) return;
+    let parts = v.split(/[؛\.\|\-,]\s|؛/).map(x => x.trim());
+    const fields = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year'];
+    parts.forEach((val, i) => { if(fields[i]) document.getElementById(fields[i]).value = val; });
 }
 
 function runAuthorIdx() {
@@ -141,7 +153,7 @@ function journalIdx() {
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><style>body{font-family:serif;padding:30px;}.sub{background:#e0e0e0;text-align:center;padding:5px;margin:15px 0;font-weight:bold;}.ent{margin-bottom:12px;border-bottom:1px dashed #ccc;padding-bottom:5px;}.url-line{display:block;margin-top:5px;color:blue;font-size:11pt;}</style></head><body>`;
+    let content = `<html dir="rtl"><head><style>body{font-family:serif;padding:30px;}.sub{background:#e0e0e0;text-align:center;padding:5px;margin:15px 0;font-weight:bold;}.ent{margin-bottom:12px;border-bottom:1px dashed #ccc;padding-bottom:10px;}.url-line{display:block;margin-top:5px;color:blue;font-size:11pt;}</style></head><body>`;
     let lastSub = '';
     recs.forEach(r => {
         if (r.subject !== lastSub) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
