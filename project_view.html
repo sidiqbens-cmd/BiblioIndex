@@ -10,19 +10,15 @@
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 2px; table-layout: fixed; }
         .field-label { font-size: 10px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
         input { width: 100%; height: 22px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
-        
         .w-xs { width: 60px !important; }
         .w-sm { width: 90px !important; }
-        
         .smart-row { display: flex; background: #bdc3c7; padding: 3px; gap: 5px; align-items: center; border-bottom: 1px solid #7f8c8d; }
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        
         .scroll-area { margin-top: 215px; height: calc(100vh - 220px); overflow-y: auto; padding: 5px; }
-        .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; }
+        .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; table-layout: fixed; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 5px; border: 1px solid #2c3e50; }
-        .admin-table td { border: 1px solid #ccc; padding: 4px; text-align: right; }
-        
+        .admin-table td { border: 1px solid #ccc; padding: 4px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; }
         .column-wrapper { column-count: 2; column-gap: 30px; }
@@ -112,7 +108,6 @@ function draw() {
     localStorage.setItem('L_A', curP);
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
-        // الإحالات لا تأخذ رقماً تسلسلياً
         r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
         let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td>
@@ -121,101 +116,92 @@ function draw() {
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
-function delP() { if(confirm("حذف المشروع بالكامل؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; if(!projs.length) projs=['مشروع_1']; draw(); } }
-
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><style>
         body{font-family:'Times New Roman', serif;padding:30px;line-height:1.6;}
         .sub{background:#e0e0e0;text-align:center;padding:5px;margin:15px 0;font-weight:bold;border:1px solid #999;}
+        .see-also-line{margin:-10px 0 15px 0; font-weight:bold; font-size:12pt; text-align:right;}
         .ent{margin-bottom:15px;border-bottom:1px solid #eee;padding-bottom:10px;}
     </style></head><body>`;
     
+    // التحقق من الرؤوس المستخدمة فعلياً
+    const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
+
     let lastSub = '';
     recs.forEach(r => {
-        if (r.subject !== lastSub) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
-        
-        // معالجة الإحالات (انظر) و (انظر أيضاً)
-        if (!r.title) {
-            if (r.see) content += `<div class="ent">${r.subject} انظر: ${r.see}</div>`;
-            else if (r.see_also) content += `<div class="ent">${r.subject} انظر أيضاً: ${r.see_also}</div>`;
+        // حالة (انظر): تدمج مع الرأس في الصندوق الرمادي
+        if (!r.title && r.see) {
+            if (usedSubjects.has(r.see.trim())) {
+                content += `<div class="sub">${r.subject} انظر: ${r.see}</div>`;
+                lastSub = r.subject;
+            }
             return;
         }
 
-        // معالجة التسجيلات الكاملة
-        let respParts = [];
-        if(r.author_preview) respParts.push(r.author_preview);
-        if(r.collab) respParts.push(r.collab);
-        let respStr = respParts.join('، ');
-        if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
-        if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
-
-        let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
-        if(respStr) line += ` / ${respStr} . ـــ `; else line += ` . ـــ `;
-        
-        let biblioTail = "";
-        if(r.journal) {
-            biblioTail = `${r.journal}`;
-            if(r.issue) biblioTail += ` . ـــ ${r.issue}`;
-            if(r.year) biblioTail += ` . ـــ ${r.year}`;
-            if(r.pages) biblioTail += ` . ـــ ص ${r.pages}`;
-        } else {
-            let pub = [r.place, r.publisher, r.year].filter(x => x).join(': ');
-            if(pub) biblioTail = pub;
-            if(r.pages) biblioTail += (biblioTail ? " . ـــ " : "") + `${r.pages} ص`;
+        // حالة رأس الموضوع العادي
+        if (r.subject !== lastSub) {
+            content += `<div class="sub">${r.subject}</div>`;
+            lastSub = r.subject;
+            
+            // حالة (انظر أيضاً): توضع تحت الصندوق مباشرة إذا كان المحال إليه مستخدماً
+            let sameSubSeeAlso = recs.find(x => x.subject === r.subject && x.see_also);
+            if (sameSubSeeAlso && usedSubjects.has(sameSubSeeAlso.see_also.trim())) {
+                content += `<div class="see-also-line">${r.subject} انظر أيضاً: ${sameSubSeeAlso.see_also}</div>`;
+            }
         }
-        content += `<div class="ent">${line}${biblioTail}.</div>`;
+
+        if (r.title) {
+            let respParts = [];
+            if(r.author_preview) respParts.push(r.author_preview);
+            if(r.collab) respParts.push(r.collab);
+            let respStr = respParts.join('، ');
+            if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
+            if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
+
+            let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
+            if(respStr) line += ` / ${respStr} . ـــ `; else line += ` . ـــ `;
+            
+            let biblioTail = r.journal ? `${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}` : 
+                             `${[r.place, r.publisher, r.year].filter(x=>x).join(': ')} . ـــ ${r.pages || ''} ص`;
+            
+            content += `<div class="ent">${line}${biblioTail}.</div>`;
+        }
     });
     win.document.write(content + '</body></html>'); win.document.close();
 }
 
-function processSmart() {
-    let v = document.getElementById('smartInput').value;
-    if(!v) return;
-    let parts = v.split(/[؛\.\|\-,]\s|؛/).map(x => x.trim());
-    const fields = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year'];
-    parts.forEach((val, i) => { if(fields[i]) document.getElementById(fields[i]).value = val; });
-}
-function runAuthorIdx() {
-    let m = {}; recs.forEach(r => { if (r.author && r.finalID) { let name = r.author.trim(); if (!m[name]) m[name] = []; m[name].push(r.finalID); } });
-    renderIdx(m, "المؤلفين");
-}
 function runIdx(f, l) {
-    let m = {}; recs.forEach(r => { if(r[f] && r.finalID) { let v = r[f].trim(); if(!m[v]) m[v] = []; m[v].push(r.finalID); }});
+    let m = {}; 
+    const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
+    recs.forEach(r => { 
+        let v = r[f] ? r[f].trim() : '';
+        if (v) {
+            if (f === 'subject') {
+                if (r.see && usedSubjects.has(r.see.trim())) v = `${v} انظر: ${r.see}`;
+                else if (r.see_also && usedSubjects.has(r.see_also.trim())) v = `${v} انظر أيضاً: ${r.see_also}`;
+                else if (!r.title) return; // استبعاد الإحالات غير المستخدمة
+            }
+            if(!m[v]) m[v] = []; 
+            if(r.finalID) m[v].push(r.finalID); 
+        }
+    });
     renderIdx(m, l);
 }
-function renderIdx(m, title) {
-    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    let h = `<h3>كشاف ${title}</h3><div class="column-wrapper">`;
-    let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); });
-    for(let c in groups) { h += `<div><b>[${c}]</b><br>` + groups[c].map(i => `${i.key} (${i.ids.join(', ')})`).join('<br>') + `</div><br>`; }
-    document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block';
-}
-function journalIdx() {
-    let m = {}; let affs = {}; recs.forEach(r => { if(r.journal && r.affiliation) affs[r.journal.trim()] = r.affiliation.trim(); });
-    recs.forEach(r => { if(r.journal && r.finalID) { let j = r.journal.trim(); let k = j + (r.affiliation ? ` (${r.affiliation})` : (affs[j] ? ` (${affs[j]})` : "")); if(!m[k]) m[k]=[]; m[k].push(r.finalID); }});
-    renderIdx(m, "المجلات");
-}
-function save() {
-    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("الرأس مطلوب");
-    if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; } else { recs.push(d); }
-    draw(); document.getElementById('bForm').reset();
-}
+
+// ... بقية الوظائف (save, edit, deleteRec, journalIdx, runAuthorIdx) ثابتة كما في الإصدار السابق ...
+function save() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); if(!d.subject) return alert("الرأس مطلوب"); if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; } else { recs.push(d); } draw(); document.getElementById('bForm').reset(); }
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
+function delP() { if(confirm("حذف المشروع؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; if(!projs.length) projs=['مشروع_1']; draw(); } }
 function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-function importX(e) {
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-        const wb = XLSX.read(evt.target.result, {type:'binary'});
-        recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        draw();
-    };
-    reader.readAsBinaryString(e.target.files[0]);
-}
+function processSmart() { let v = document.getElementById('smartInput').value; if(!v) return; let parts = v.split(/[؛\.\|\-,]\s|؛/).map(x => x.trim()); const fields = ['author', 'author_preview', 'title', 'collab', 'translator', 'place', 'publisher', 'year']; parts.forEach((val, i) => { if(fields[i]) document.getElementById(fields[i]).value = val; }); }
+function runAuthorIdx() { let m = {}; recs.forEach(r => { if (r.author && r.finalID) { let name = r.author.trim(); if (!m[name]) m[name] = []; m[name].push(r.finalID); } }); renderIdx(m, "المؤلفين"); }
+function renderIdx(m, title) { let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar')); let h = `<h3>كشاف ${title}</h3><div class="column-wrapper">`; let groups = {}; k.forEach(x => { let c = cleanAL(x).charAt(0); if(!groups[c]) groups[c]=[]; groups[c].push({key:x, ids:m[x]}); }); for(let c in groups) { h += `<div><b>[${c}]</b><br>` + groups[c].map(i => `${i.key} (${i.ids.join(', ')})`).join('<br>') + `</div><br>`; } document.getElementById('modalBody').innerHTML = h + `</div>`; document.getElementById('modalOverlay').style.display='block'; }
+function journalIdx() { let m = {}; let affs = {}; recs.forEach(r => { if(r.journal && r.affiliation) affs[r.journal.trim()] = r.affiliation.trim(); }); recs.forEach(r => { if(r.journal && r.finalID) { let j = r.journal.trim(); let k = j + (r.affiliation ? ` (${r.affiliation})` : (affs[j] ? ` (${affs[j]})` : "")); if(!m[k]) m[k]=[]; m[k].push(r.finalID); }}); renderIdx(m, "المجلات"); }
+function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { const wb = XLSX.read(evt.target.result, {type:'binary'}); recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
 window.onload = draw;
 </script>
