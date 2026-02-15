@@ -12,13 +12,12 @@
         input, select { width: 100%; height: 22px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         .w-xs { width: 60px !important; }
         .w-sm { width: 90px !important; }
-        .smart-row { display: flex; background: #bdc3c7; padding: 3px; gap: 5px; align-items: center; border-bottom: 1px solid #7f8c8d; }
         .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
         .scroll-area { margin-top: 215px; height: calc(100vh - 220px); overflow-y: auto; padding: 5px; }
-        .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; table-layout: fixed; }
-        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 5px; border: 1px solid #2c3e50; }
-        .admin-table td { border: 1px solid #ccc; padding: 4px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; table-layout: fixed; }
+        .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 4px; border: 1px solid #2c3e50; }
+        .admin-table td { border: 1px solid #ccc; padding: 3px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; }
         .column-wrapper { column-count: 2; column-gap: 30px; }
@@ -33,8 +32,8 @@
             <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد</button>
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
             <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
-            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع</button>
-            <select id="pSel" style="width:120px" onchange="switchP(this.value)"></select>
+            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
+            <select id="pSel" style="width:150px" onchange="switchP(this.value)"></select>
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
@@ -89,7 +88,7 @@
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
-let curP = localStorage.getItem('L_A') || 'مشروع_1';
+let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIndex = -1;
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
@@ -99,8 +98,10 @@ function draw() {
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
+    
     const uniqueSubs = [...new Set(recs.map(r => r.subject))].filter(x=>x).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b), 'ar'));
     document.getElementById('subjectsList').innerHTML = uniqueSubs.map(s => `<option value="${s}">`).join('');
+    
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
         r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
@@ -132,14 +133,80 @@ function openBiblioWindow() {
             if (sa && usedSubjects.has(sa.see_also.trim())) content += `<div class="see-also-line">انظر أيضاً: ${sa.see_also}</div>`;
         }
         if (r.title) {
-            let respParts = [];
-            if(r.author_preview) respParts.push(r.author_preview);
-            if(r.collab) respParts.push(r.collab);
-            let respStr = respParts.join('، ');
+            let respStr = [r.author_preview, r.collab].filter(x=>x).join('، ');
             if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
             if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
             let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
-            if(respStr) line += ` / ${respStr} . ـــ `; else line += ` . ـــ `;
-            let biblioTail = r.journal ? `${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}` : 
-                             `${[r.place, r.publisher, r.year].filter(x=>x).join(': ')} . ـــ ${r.pages || ''} ص`;
-            let origTitleHtml = r.orig_title ? `<span class="orig
+            line += respStr ? ` / ${respStr} . ـــ ` : ` . ـــ `;
+            let bibTail = r.journal ? `${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}` : 
+                          `${[r.place, r.publisher, r.year].filter(x=>x).join(': ')} . ـــ ${r.pages || ''} ص`;
+            let orig = r.orig_title ? `<span class="orig-title">العنوان الأصلي: ${r.orig_title}</span>` : '';
+            content += `<div class="ent">${line}${bibTail}.${orig}</div>`;
+        }
+    });
+    win.document.write(content + '</body></html>'); win.document.close();
+}
+
+function splitSlash(str) { return str ? str.split('/').map(s => s.trim()).filter(s => s) : []; }
+
+function runIdx(f, l) {
+    let m = {}; const used = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
+    recs.forEach(r => { 
+        let rawV = r[f] ? r[f].trim() : '';
+        if (rawV) {
+            let values = (f === 'subject') ? [rawV] : splitSlash(rawV);
+            values.forEach(v => {
+                if (f === 'subject') {
+                    if (r.see && used.has(r.see.trim())) v = `${v} انظر: ${r.see}`;
+                    else if (r.see_also && used.has(r.see_also.trim())) v = `${v} انظر أيضاً: ${r.see_also}`;
+                    else if (!r.title) return;
+                }
+                if(!m[v]) m[v] = []; if(r.finalID && !m[v].includes(r.finalID)) m[v].push(r.finalID);
+            });
+        }
+    });
+    renderIdx(m, l);
+}
+
+function runAuthorIdx() {
+    let m = {};
+    recs.forEach(r => {
+        if (r.finalID) {
+            [...new Set(splitSlash(r.author).concat(splitSlash(r.collab_idx)))].forEach(n => {
+                if(!m[n]) m[n]=[]; if(!m[n].includes(r.finalID)) m[n].push(r.finalID);
+            });
+        }
+    });
+    renderIdx(m, "المؤلفين");
+}
+
+function journalIdx() {
+    let m = {}; let affs = {};
+    recs.forEach(r => { if(r.journal && r.affiliation) affs[r.journal.trim()] = r.affiliation.trim(); });
+    recs.forEach(r => { if(r.journal && r.finalID) { 
+        let j = r.journal.trim(); let k = j + (r.affiliation ? ` (${r.affiliation})` : (affs[j] ? ` (${affs[j]})` : ""));
+        if(!m[k]) m[k]=[]; if(!m[k].includes(r.finalID)) m[k].push(r.finalID);
+    }});
+    renderIdx(m, "المجلات");
+}
+
+function save() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); if(!d.subject) return; if (editIndex > -1) recs[editIndex] = d; else recs.push(d); editIndex = -1; draw(); document.getElementById('bForm').reset(); }
+function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
+function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
+function closeM() { document.getElementById('modalOverlay').style.display='none'; }
+function renderIdx(m, title) {
+    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    let h = `<h3>كشاف ${title}</h3><div class="column-wrapper">`;
+    k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
+    document.getElementById('modalBody').innerHTML = h + `</div>`;
+    document.getElementById('modalOverlay').style.display='block';
+}
+function newP() { let n = prompt("اسم المشروع:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
+function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function delP() { if(confirm("حذف؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); } }
+function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { recs = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
+function exportX() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(recs), "Data"), `${curP}.xlsx`); }
+window.onload = draw;
+</script>
+</body>
+</html>
