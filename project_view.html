@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>الفهرس الليبي الموحد</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
@@ -112,7 +112,6 @@ let editIndex = -1;
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 
 function draw() {
-    // الترتيب حسب الموضوع ثم المؤلف
     recs.sort((a, b) => {
         let subA = cleanAL(a.subject);
         let subB = cleanAL(b.subject);
@@ -121,7 +120,6 @@ function draw() {
         let authB = cleanAL(b.author || '');
         return authA.localeCompare(authB, 'ar');
     });
-
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
@@ -134,6 +132,16 @@ function draw() {
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
     }).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+}
+
+function exportX() {
+    if (recs.length === 0) { alert("لا توجد بيانات لتصديرها"); return; }
+    try {
+        const ws = XLSX.utils.json_to_sheet(recs);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+        XLSX.writeFile(wb, `${curP}.xlsx`);
+    } catch (e) { alert("حدث خطأ في التصدير."); }
 }
 
 function openBiblioWindow() {
@@ -173,7 +181,6 @@ function openBiblioWindow() {
 }
 
 function splitSlash(str) { return str ? str.split('/').map(s => s.trim()).filter(s => s) : []; }
-
 function runIdx(f, l) {
     let m = {}; const used = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
     recs.forEach(r => { 
@@ -192,20 +199,16 @@ function runIdx(f, l) {
     });
     renderIdx(m, l);
 }
-
 function runAuthorIdx() {
     let m = {};
     recs.forEach(r => {
         if (r.finalID) {
             let names = [...new Set(splitSlash(r.author).concat(splitSlash(r.collab_idx)))];
-            names.forEach(n => {
-                if(!m[n]) m[n]=[]; if(!m[n].includes(r.finalID)) m[n].push(r.finalID);
-            });
+            names.forEach(n => { if(!m[n]) m[n]=[]; if(!m[n].includes(r.finalID)) m[n].push(r.finalID); });
         }
     });
     renderIdx(m, "المؤلفين");
 }
-
 function journalIdx() {
     let m = {}; let affs = {};
     recs.forEach(r => { if(r.journal && r.affiliation) affs[r.journal.trim()] = r.affiliation.trim(); });
@@ -216,19 +219,15 @@ function journalIdx() {
     }});
     renderIdx(m, "المجلات");
 }
-
 function save() { 
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; } 
     if (editIndex > -1) recs[editIndex] = d; else recs.push(d); 
     editIndex = -1; draw(); document.getElementById('bForm').reset(); 
 }
-
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-
 function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
     let h = `<h2 style="text-align:center;">كشاف ${title}</h2><div class="column-wrapper">`;
@@ -236,12 +235,20 @@ function renderIdx(m, title) {
     document.getElementById('modalBody').innerHTML = h + `</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
-
 function newP() { let n = prompt("المشروع الجديد:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function delP() { if(confirm("حذف؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); } }
-function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { recs = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
-function exportX() { XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(recs), "Data"), `${curP}.xlsx`); }
+function importX(e) { 
+    const reader = new FileReader(); 
+    reader.onload = (evt) => { 
+        try {
+            const workbook = XLSX.read(evt.target.result, {type:'binary'});
+            recs = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            draw(); 
+        } catch (err) { alert("خطأ في قراءة ملف الإكسل"); }
+    }; 
+    reader.readAsBinaryString(e.target.files[0]); 
+}
 
 window.onload = draw;
 </script>
