@@ -112,7 +112,16 @@ let editIndex = -1;
 const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 
 function draw() {
-    recs.sort((a, b) => cleanAL(a.subject).localeCompare(cleanAL(b.subject), 'ar'));
+    // الترتيب حسب الموضوع ثم المؤلف
+    recs.sort((a, b) => {
+        let subA = cleanAL(a.subject);
+        let subB = cleanAL(b.subject);
+        if (subA !== subB) return subA.localeCompare(subB, 'ar');
+        let authA = cleanAL(a.author || '');
+        let authB = cleanAL(b.author || '');
+        return authA.localeCompare(authB, 'ar');
+    });
+
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
@@ -121,7 +130,7 @@ function draw() {
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
         r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
-        let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `(إحالة) انظر: ${r.see}` : `(إحالة) انظر أيضاً: ${r.see_also}`);
+        let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
     }).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
@@ -213,9 +222,7 @@ function save() {
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; } 
     if (editIndex > -1) recs[editIndex] = d; else recs.push(d); 
-    editIndex = -1; 
-    draw(); 
-    document.getElementById('bForm').reset(); 
+    editIndex = -1; draw(); document.getElementById('bForm').reset(); 
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
@@ -224,8 +231,8 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 
 function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    let h = `<h2 style="text-align:center; border-bottom:2px solid #333;">كشاف ${title}</h2><div class="column-wrapper">`;
-    k.forEach(x => h += `<div style="margin-bottom:5px;">${x} (${m[x].join(', ')})</div>`);
+    let h = `<h2 style="text-align:center;">كشاف ${title}</h2><div class="column-wrapper">`;
+    k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
     document.getElementById('modalBody').innerHTML = h + `</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
