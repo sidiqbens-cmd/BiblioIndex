@@ -172,7 +172,7 @@ function openBiblioWindow() {
             let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
             line += respStr ? ` / ${respStr} . ـــ ` : ` . ـــ `;
             let bibTail = r.journal ? `${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}` : 
-                          `${[r.place, r.publisher, r.year].filter(x=>x).join(': ')} . ـــ ${r.pages || ''} ص`;
+                          `${[r.place, r.publisher].filter(x=>x).join(' : ')}${r.year ? ' ، ' + r.year : ''} . ـــ ${r.pages || ''} ص`;
             let orig = r.orig_title ? `<span class="orig-title">العنوان الأصلي: ${r.orig_title}</span>` : '';
             content += `<div class="ent">${line}${bibTail}.${orig}</div>`;
         }
