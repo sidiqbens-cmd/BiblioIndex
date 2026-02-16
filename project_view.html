@@ -173,10 +173,12 @@ function openBiblioWindow() {
             line += respStr ? ` / ${respStr} . ـــ ` : ` . ـــ `;
     let bibTail = "";
         if (r.journal) {
+            // تنسيق المجلة: دمج العدد والسنة بفاصلة ثم الباقي بشرطة نقطية
             let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
             bibTail = [r.journal, issueYear, r.pages ? "ص " + r.pages : ""]
                        .filter(x => x).join(" . ـــ ");
         } else {
+            // تنسيق الكتاب: يضع (:) بين المكان والناشر و (،) قبل السنة
             let pubInfo = [r.place, r.publisher].filter(x => x).join(" : ");
             let yearInfo = r.year ? " ، " + r.year : "";
             let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
