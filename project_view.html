@@ -171,8 +171,23 @@ function openBiblioWindow() {
             if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
             let line = `<b>${r.author || ''} (${r.finalID})</b><br>${r.title}`;
             line += respStr ? ` / ${respStr} . ـــ ` : ` . ـــ `;
-            let bibTail = r.journal ? `${r.journal} . ـــ ${r.issue || ''} . ـــ ${r.year || ''} . ـــ ص ${r.pages || ''}` : 
-                          `${[r.place, r.publisher].filter(x=>x).join(' : ')}${r.year ? ' ، ' + r.year : ''} . ـــ ${r.pages || ''} ص`;
+    let bibTail = "";
+    if (r.journal) {
+        // تنسيق المجلة: يضيف الفاصلة فقط إذا كانت الخانة ممتلئة لمنع التكرار
+        let parts = [
+            r.journal,
+            r.issue,
+            r.year,
+            r.pages ? "ص " + r.pages : ""
+        ].filter(x => x).join(" . ـــ ");
+        bibTail = parts;
+    } else {
+        // تنسيق الكتاب: يضع (:) بين المكان والناشر و (،) قبل السنة
+        let pubInfo = [r.place, r.publisher].filter(x => x).join(" : ");
+        let yearInfo = r.year ? " ، " + r.year : "";
+        let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
+        bibTail = pubInfo + yearInfo + pagesInfo;
+    }
             let orig = r.orig_title ? `<span class="orig-title">العنوان الأصلي: ${r.orig_title}</span>` : '';
             content += `<div class="ent">${line}${bibTail}.${orig}</div>`;
         }
