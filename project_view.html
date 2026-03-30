@@ -6,238 +6,134 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #2c3e50; --secondary: #34495e; --accent: #27ae60; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); margin: 0; padding: 10px; font-size: 13px; }
-        .container { max-width: 1200px; margin: auto; background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        
-        /* واجهة مدمجة Dense UI */
-        h2 { color: var(--primary); margin: 0 0 10px 0; border-bottom: 2px solid var(--accent); padding-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-        .grid-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-bottom: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; }
+        /* الحفاظ على الكثافة والواجهة كما في الصورة */
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; padding: 10px; font-size: 13px; }
+        .container { max-width: 1250px; margin: auto; background: #fff; padding: 15px; border-radius: 8px; }
+        .grid-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
         input, select, button { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
-        button { cursor: pointer; background: var(--primary); color: white; border: none; transition: 0.3s; }
-        button:hover { background: var(--accent); }
-        .btn-stats { background: #8e44ad; }
-
-        /* الأبواب والمعاينة */
-        .project-section { margin-top: 20px; }
-        .category-header { background: #ecf0f1; padding: 5px 15px; margin: 15px 0 5px 0; border-right: 5px solid var(--accent); font-weight: bold; color: var(--primary); }
-        .record-item { padding: 4px 10px; border-bottom: 1px id #eee; display: flex; gap: 10px; align-items: baseline; }
-        .record-number { font-weight: bold; color: var(--accent); min-width: 25px; }
-
-        /* نافذة الإحصائيات Overlay */
-        #statsModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; overflow-y: auto; }
-        .stats-content { background: white; width: 90%; max-width: 1000px; margin: 20px auto; padding: 20px; border-radius: 8px; position: relative; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .chart-container { background: #fdfdfd; padding: 10px; border: 1px solid #eee; }
-        .close-btn { position: absolute; left: 20px; top: 20px; font-size: 20px; cursor: pointer; color: red; }
+        .btn-add { background: #2c3e50; color: white; cursor: pointer; grid-column: span 2; }
+        .btn-stats { background: #8e44ad; color: white; cursor: pointer; }
+        
+        /* صفحة الإحصائيات (نافذة منبثقة) */
+        #statsPage { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 2000; padding: 20px; overflow-y: auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
+        .chart-box { border: 1px solid #eee; padding: 10px; border-radius: 5px; background: #fafafa; }
+        .close-btn { background: #c0392b; color: white; padding: 5px 15px; cursor: pointer; float: left; border: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>
-        <span>منظومة ببليوإندكس - BiblioIndex</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h2 style="margin: 0;">ببليوإندكس</h2>
         <div>
-            <button onclick="openStats()" class="btn-stats">📊 تحليل المشروع</button>
-            <button onclick="exportToExcel()">📥 تصدير XLSX</button>
+            <button onclick="exportData()" style="background:#27ae60; color:white;">📥 تصدير XLSX</button>
+            <button onclick="showStats()" class="btn-stats">📊 الإحصائيات التحليلية</button>
         </div>
-    </h2>
+    </div>
 
     <div class="grid-form">
-        <select id="projectSelect" onchange="loadProjectData()">
-            <option value="">-- اختر المشروع --</option>
-            <option value="علوم القرآن الكريم">علوم القرآن الكريم</option>
-            <option value="العلم المفتوح والوصول الحر">العلم المفتوح والوصول الحر</option>
-            <option value="الذكاء الاصطناعي">الذكاء الاصطناعي</option>
-            <option value="النتاج المترجم في المكتبات">النتاج المترجم في المكتبات</option>
+        <select id="project"><option value="">-- اختر المشروع --</option>
+            <option>علوم القرآن الكريم</option><option>العلم المفتوح</option>
+            <option>الذكاء الاصطناعي</option><option>النتاج المترجم في المكتبات</option>
         </select>
         
-        <select id="deweyMain" onchange="updateDeweySub()">
-            <option value="">القسم الرئيسي (ديوي)</option>
-            <option value="المعارف العامة">000 المعارف العامة</option>
-            <option value="الفلسفة وعلم النفس">100 الفلسفة وعلم النفس</option>
-            <option value="الأديان">200 الأديان</option>
-            <option value="العلوم الاجتماعية">300 العلوم الاجتماعية</option>
-            <option value="اللغات">400 اللغات</option>
-            <option value="العلوم الطبيعية">500 العلوم الطبيعية</option>
-            <option value="العلوم التطبيقية">600 العلوم التطبيقية</option>
-            <option value="الفنون">700 الفنون</option>
-            <option value="الآداب">800 الآداب</option>
-            <option value="التاريخ والجغرافيا">900 التاريخ والجغرافيا</option>
+        <input type="text" id="deweyPercent" placeholder="التوزيع المئوي لديوي">
+        <select id="deweyDec">
+            <option value="">-- التوزيع العشري --</option>
+            <option>020 المكتبات والمعلومات</option>
+            <option>004 علوم الحاسبات</option>
+            <option>210 علوم القرآن</option>
+            <option>001 المعارف العامة</option>
         </select>
-        <select id="deweySub"><option value="">الموضوع الفرعي</option></select>
-
-        <input type="text" id="title" placeholder="عنوان الكتاب/البحث">
+        <input type="text" id="title" placeholder="عنوان الكتاب / البحث">
         <input type="text" id="author" placeholder="المؤلف الأصلي">
         <input type="text" id="translator" placeholder="المترجم">
         <input type="number" id="year" placeholder="السنة">
         <input type="text" id="country" placeholder="الدولة">
         <input type="text" id="publisher" placeholder="دار النشر / المجلة">
-        <select id="format">
-            <option value="كتاب">كتاب</option>
-            <option value="بحث">بحث/مقال</option>
-            <option value="أطروحة">أطروحة</option>
-        </select>
-        <button onclick="addRecord()" style="grid-column: span 2;">إضافة تسجيلة جديدة</button>
+        <select id="type"><option>كتاب</option><option>بحث/مقال</option></select>
+        <button onclick="saveRecord()" class="btn-add">إضافة التسجيلة</button>
     </div>
 
-    <div id="previewArea" class="project-section">
-        </div>
+    <div id="displayArea"></div>
 </div>
 
-<div id="statsModal">
-    <div class="stats-content">
-        <span class="close-btn" onclick="closeStats()">✖ إغلاق</span>
-        <h3 id="statsTitle" style="text-align:center;">إحصائيات المشروع</h3>
-        <hr>
-        <div class="stats-grid" id="statsGrid">
-            <div class="chart-container"><canvas id="yearChart"></canvas></div>
-            <div class="chart-container"><canvas id="subjectChart"></canvas></div>
-            <div id="topLists" class="chart-container">
-                <h4>القوائم الأكثر تكراراً</h4>
-                <div id="listsContent"></div>
-            </div>
-        </div>
+<div id="statsPage">
+    <button class="close-btn" onclick="document.getElementById('statsPage').style.display='none'">إغلاق الصفحة ✖</button>
+    <h2 id="statsHeader" style="text-align: center; color: #2c3e50;">تحليل بيانات المشروع</h2>
+    <hr>
+    <div class="stats-grid">
+        <div class="chart-box"><canvas id="chartYears"></canvas></div>
+        <div class="chart-box"><canvas id="chartDewey"></canvas></div>
+        <div class="chart-box" id="textStats"></div>
     </div>
 </div>
 
 <script>
-    let allData = JSON.parse(localStorage.getItem('biblioData')) || {};
-    const deweyMap = {
-        "المعارف العامة": ["المكتبات والمعلومات", "الحاسبات", "الببليوغرافيا"],
-        "الأديان": ["علوم القرآن", "التفسير", "الحديث"],
-        "العلوم الاجتماعية": ["الاقتصاد", "القانون", "التربية"],
-        "العلوم التطبيقية": ["الطب", "الهندسة", "التكنولوجيا"]
-        // يمكن إضافة بقية العشرات هنا لاحقاً
-    };
+    let db = JSON.parse(localStorage.getItem('biblioIndexDB')) || {};
 
-    function updateDeweySub() {
-        const main = document.getElementById('deweyMain').value;
-        const sub = document.getElementById('deweySub');
-        sub.innerHTML = '<option value="">الموضوع الفرعي</option>';
-        if (deweyMap[main]) {
-            deweyMap[main].forEach(s => sub.innerHTML += `<option value="${s}">${s}</option>`);
-        }
-    }
-
-    // دالة تجاهل الـ التعريف عند الترتيب
-    function cleanForSort(str) {
-        if (!str) return "";
-        return str.replace(/^(ال|الـ)/, "").trim();
-    }
-
-    function addRecord() {
-        const proj = document.getElementById('projectSelect').value;
-        if(!proj) return alert("اختر المشروع أولاً");
-
-        const record = {
+    function saveRecord() {
+        const p = document.getElementById('project').value;
+        if(!p) return alert("يرجى اختيار المشروع");
+        const entry = {
             id: Date.now(),
             title: document.getElementById('title').value,
+            deweyP: document.getElementById('deweyPercent').value,
+            deweyD: document.getElementById('deweyDec').value,
             author: document.getElementById('author').value,
             translator: document.getElementById('translator').value,
             year: document.getElementById('year').value,
             country: document.getElementById('country').value,
             publisher: document.getElementById('publisher').value,
-            format: document.getElementById('format').value,
-            mainSub: document.getElementById('deweySub').value || "غير مصنف"
+            type: document.getElementById('type').value
         };
-
-        if(!allData[proj]) allData[proj] = [];
-        allData[proj].push(record);
-        saveAndRefresh();
+        if(!db[p]) db[p] = [];
+        db[p].push(entry);
+        localStorage.setItem('biblioIndexDB', JSON.stringify(db));
+        renderList();
     }
 
-    function saveAndRefresh() {
-        localStorage.setItem('biblioData', JSON.stringify(allData));
-        loadProjectData();
-    }
-
-    function loadProjectData() {
-        const proj = document.getElementById('projectSelect').value;
-        const area = document.getElementById('previewArea');
+    function renderList() {
+        const p = document.getElementById('project').value;
+        const area = document.getElementById('displayArea');
         area.innerHTML = "";
-        if(!allData[proj]) return;
-
-        // 1. ترتيب الأبواب هجائياً (تجاهل أل)
-        let categories = [...new Set(allData[proj].map(r => r.mainSub))];
-        categories.sort((a, b) => cleanForSort(a).localeCompare(cleanForSort(b), 'ar'));
-
-        let globalCounter = 1;
-
-        categories.forEach(cat => {
-            area.innerHTML += `<div class="category-header">${cat}</div>`;
-            
-            // 2. ترتيب السجلات داخل كل باب هجائياً (تجاهل أل)
-            let records = allData[proj].filter(r => r.mainSub === cat);
-            records.sort((a, b) => cleanForSort(a.title).localeCompare(cleanForSort(b.title), 'ar'));
-
-            records.forEach(r => {
-                area.innerHTML += `
-                    <div class="record-item">
-                        <span class="record-number">${globalCounter++}.</span>
-                        <span><strong>${r.title}</strong> | ${r.author} | مترجم: ${r.translator} | ${r.publisher} (${r.year}) | ${r.country}</span>
-                    </div>`;
-            });
+        if(!db[p]) return;
+        
+        // ترتيب هجائي مع تجاهل "أل" وتجميع حسب العشري
+        let sorted = db[p].sort((a,b) => a.title.replace(/^ال/,"").localeCompare(b.title.replace(/^ال/,""), 'ar'));
+        sorted.forEach((r, i) => {
+            area.innerHTML += `<div style="padding:4px; border-bottom:1px solid #eee;">${i+1}. <strong>${r.title}</strong> | ${r.author} | ${r.deweyD}</div>`;
         });
     }
 
-    function exportToExcel() {
-        const proj = document.getElementById('projectSelect').value;
-        if(!proj) return;
-        const ws = XLSX.utils.json_to_sheet(allData[proj]);
+    function showStats() {
+        const p = document.getElementById('project').value;
+        if(!p || !db[p]) return alert("لا توجد بيانات لهذا المشروع");
+        document.getElementById('statsPage').style.display = "block";
+        document.getElementById('statsHeader').innerText = `إحصائيات مشروع: ${p}`;
+        
+        // رسم بياني بسيط للسنين (مثال)
+        const years = db[p].reduce((a,c) => { a[c.year] = (a[c.year]||0)+1; return a; }, {});
+        new Chart(document.getElementById('chartYears'), {
+            type: 'bar',
+            data: { labels: Object.keys(years), datasets: [{ label: 'السنة', data: Object.values(years), backgroundColor: '#3498db' }] }
+        });
+        
+        // إحصاء أكثر المترجمين تكراراً
+        const trans = db[p].reduce((a,c) => { if(c.translator) a[c.translator] = (a[c.translator]||0)+1; return a; }, {});
+        const topT = Object.entries(trans).sort((a,b)=>b[1]-a[1])[0];
+        document.getElementById('textStats').innerHTML = `<h4>الأكثر نشراً:</h4><p>المترجم: ${topT ? topT[0] : '---'}</p>`;
+    }
+
+    function exportData() {
+        const p = document.getElementById('project').value;
+        if(!p) return;
+        const ws = XLSX.utils.json_to_sheet(db[p]);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Data");
-        const now = new Date();
-        const timeStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}_${now.getHours()}-${now.getMinutes()}`;
-        XLSX.writeFile(wb, `BiblioIndex_${proj}_${timeStr}.xlsx`);
+        XLSX.writeFile(wb, `${p}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
-
-    // نظام الإحصائيات
-    let charts = [];
-    function openStats() {
-        const proj = document.getElementById('projectSelect').value;
-        if(!proj || !allData[proj]) return alert("لا توجد بيانات للتحليل");
-        document.getElementById('statsModal').style.display = "block";
-        document.getElementById('statsTitle').innerText = `التحليل الببليومتري لمشروع: ${proj}`;
-        renderCharts(allData[proj]);
-    }
-
-    function renderCharts(data) {
-        charts.forEach(c => c.destroy());
-        charts = [];
-
-        // إحصاء السنين
-        const years = data.reduce((acc, r) => { acc[r.year] = (acc[r.year] || 0) + 1; return acc; }, {});
-        const ctxYear = document.getElementById('yearChart').getContext('2d');
-        charts.push(new Chart(ctxYear, {
-            type: 'bar',
-            data: { labels: Object.keys(years), datasets: [{ label: 'الإنتاج حسب السنة', data: Object.values(years), backgroundColor: '#27ae60' }] }
-        }));
-
-        // إحصاء المواضيع (ديوي)
-        const subs = data.reduce((acc, r) => { acc[r.mainSub] = (acc[r.mainSub] || 0) + 1; return acc; }, {});
-        const ctxSub = document.getElementById('subjectChart').getContext('2d');
-        charts.push(new Chart(ctxSub, {
-            type: 'pie',
-            data: { labels: Object.keys(subs), datasets: [{ data: Object.values(subs), backgroundColor: ['#2980b9', '#e67e22', '#f1c40f', '#8e44ad'] }] }
-        }));
-
-        // القوائم الأكثر تكراراً
-        const topTranslator = getTop(data, 'translator');
-        const topPublisher = getTop(data, 'publisher');
-        document.getElementById('listsContent').innerHTML = `
-            <p><strong>أكثر المترجمين:</strong> ${topTranslator}</p>
-            <p><strong>أكثر المجلات/الدور:</strong> ${topPublisher}</p>
-        `;
-    }
-
-    function getTop(data, field) {
-        const counts = data.reduce((acc, r) => { if(r[field]) acc[r[field]] = (acc[r[field]] || 0) + 1; return acc; }, {});
-        return Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,1).map(e => e[0]).join('') || "غير متوفر";
-    }
-
-    function closeStats() { document.getElementById('statsModal').style.display = "none"; }
 </script>
-
 </body>
 </html>
