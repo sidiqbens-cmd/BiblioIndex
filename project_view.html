@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ببليوإندكس - الفهرس الليبي الموحد</title>
+    <title>ببليوإندكس</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
@@ -171,9 +171,12 @@ function viewPrint() {
         if (r.title) {
             let dir = isAr(r.author || r.title) ? 'rtl' : 'ltr';
             let n = counter++;
+            let authorFull = r.author || '';
+            if (r.editor) authorFull += (dir === 'rtl' ? '؛ ' : '; ') + r.editor;
+            
             h += `<div class="data-block ${dir}">
                     <div class="author-line">
-                        ${dir === 'rtl' ? `<span>${r.author || ''}${r.editor ? '؛ ' + r.editor : ''}</span><span>${n}</span>` : `<span>${n}</span><span>${r.author || ''}${r.editor ? '; ' + r.editor : ''}</span>`}
+                        ${dir === 'rtl' ? `<span>${authorFull}</span><span>${n}</span>` : `<span>${n}</span><span>${authorFull}</span>`}
                     </div>
                     <div><span class="title-bold">${r.title}.</span> ${r.journal ? r.journal + '.' : ''} ${r.issue ? 'ع ' + r.issue + '.' : ''} ${r.publisher ? r.publisher + '.' : ''} ${r.year ? r.year + '.' : ''} ${r.pages ? 'ص ' + r.pages + '.' : ''}</div>
                   </div>`;
@@ -190,7 +193,12 @@ function updateDatalists() {
     const fields = ['subject', 'see', 'see_also', 'original_author', 'author', 'editor', 'country', 'journal', 'year', 'affiliation', 'publisher', 'material_type', 'trans_idx'];
     fields.forEach(f => {
         let vals = [];
-        recs.forEach(r => { if(r[f]) { if(f==='author'||f==='editor') vals.push(...r[f].split('/')); else vals.push(r[f]); } });
+        // إضافة قيم ذكية لـ see_also من رؤوس الموضوعات الموجودة
+        if (f === 'see_also' || f === 'see') {
+             vals = recs.map(r => r.subject).filter(v => v);
+        } else {
+             recs.forEach(r => { if(r[f]) { if(f==='author'||f==='editor') vals.push(...r[f].split('/')); else vals.push(r[f]); } });
+        }
         let unique = [...new Set(vals.map(v=>v.trim()))].sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b), 'ar'));
         document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
     });
@@ -226,11 +234,19 @@ function edit(i) {
 
 function runAuthorIdx() {
     let m = {};
-    recs.forEach((r, idx) => {
+    let bibCounter = 1;
+    recs.forEach((r) => {
         if (r.title) {
-            let names = [...new Set([...(r.author||'').split('/'), ...(r.editor||'').split('/')])].map(n=>n.trim()).filter(n=>n);
-            let globalID = recs.slice(0, idx+1).filter(x=>x.title).length;
-            names.forEach(n => { if(!m[n]) m[n]=[]; if(!m[n].includes(globalID)) m[n].push(globalID); });
+            let names = [];
+            if(r.author) names.push(...r.author.split('/'));
+            if(r.editor) names.push(...r.editor.split('/'));
+            names = [...new Set(names.map(n=>n.trim()).filter(n=>n))];
+            
+            names.forEach(n => { 
+                if(!m[n]) m[n]=[]; 
+                if(!m[n].includes(bibCounter)) m[n].push(bibCounter); 
+            });
+            bibCounter++;
         }
     });
     renderIdx(m, "المؤلفين والمحققين");
@@ -238,10 +254,16 @@ function runAuthorIdx() {
 
 function runIdx(f, l) {
     let m = {};
-    recs.forEach((r, idx) => {
-        let val = r[f]; if(!val) return;
-        let globalID = recs.slice(0, idx+1).filter(x=>x.title).length;
-        if(!m[val]) m[val]=[]; if(globalID && !m[val].includes(globalID)) m[val].push(globalID);
+    let bibCounter = 1;
+    recs.forEach((r) => {
+        if (r.title) {
+            let val = r[f];
+            if(val) {
+                if(!m[val]) m[val]=[];
+                m[val].push(bibCounter);
+            }
+            bibCounter++;
+        }
     });
     renderIdx(m, l);
 }
@@ -255,7 +277,17 @@ function renderIdx(m, title) {
 }
 
 function journalIdx() {
-    let m = {}; recs.forEach((r, idx) => { if(r.journal) { let gID = recs.slice(0, idx+1).filter(x=>x.title).length; if(!m[r.journal]) m[r.journal]=[]; m[r.journal].push(gID); } });
+    let m = {}; 
+    let bibCounter = 1;
+    recs.forEach((r) => { 
+        if(r.title) {
+            if(r.journal) { 
+                if(!m[r.journal]) m[r.journal]=[]; 
+                m[r.journal].push(bibCounter); 
+            }
+            bibCounter++;
+        }
+    });
     renderIdx(m, "المجلات");
 }
 
