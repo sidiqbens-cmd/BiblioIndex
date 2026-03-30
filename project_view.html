@@ -17,9 +17,10 @@
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; border-radius: 8px; }
-        .column-wrapper { column-count: 2; column-gap: 30px; line-height: 1.6; }
-        .bib-entry { margin-bottom: 15px; padding: 10px; border-bottom: 1px dashed #ccc; text-align: justify; }
+        .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; border-radius: 8px; border: 2px solid #34495e; }
+        .column-wrapper { column-count: 2; column-gap: 30px; line-height: 1.4; text-align: justify; }
+        .bib-entry { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .subject-header { background: #f0f0f0; padding: 5px; margin-top: 15px; border-right: 5px solid #2c3e50; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -94,7 +95,7 @@
         <datalist id="subjectsList"></datalist>
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="viewFinal()">المعاينة النهائية</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
@@ -105,9 +106,9 @@
 </div>
 
 <div id="modalOverlay">
-    <div style="padding: 10px; background: #eee; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center;">
+    <div style="padding: 10px; background: #2c3e50; color:white; display: flex; justify-content: space-between; align-items: center;">
         <strong id="modalTitle">المعاينة</strong>
-        <button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button>
+        <button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق (X)</button>
     </div>
     <div class="modal-content" id="modalBody"></div>
 </div>
@@ -142,41 +143,34 @@ const deweyMap = {
 };
 
 function updateDeweyDecimal(val) {
-    const decSelect = document.getElementById('dewey_decimal');
-    decSelect.innerHTML = '<option value="">-- اختر القسم العشري --</option>';
-    if (deweyMap[val]) {
-        deweyMap[val].forEach(item => {
-            let opt = document.createElement('option');
-            opt.value = item; opt.innerText = item;
-            decSelect.appendChild(opt);
-        });
-    }
+    const d = document.getElementById('dewey_decimal');
+    d.innerHTML = '<option value="">-- اختر القسم العشري --</option>';
+    if (deweyMap[val]) deweyMap[val].forEach(v => { let o = document.createElement('option'); o.value = v; o.innerText = v; d.appendChild(o); });
 }
 
-// دالة المعاينة النهائية المصلحة
-function openBiblioWindow() {
-    if (recs.length === 0) { alert("لا توجد بيانات للعرض"); return; }
+// دالة المعاينة النهائية المصلحة والمؤمنة
+function viewFinal() {
+    if (recs.length === 0) { alert("لا توجد بيانات حالياً"); return; }
     let h = `<div class="column-wrapper">`;
-    let currentSubject = "";
+    let lastSub = "";
     recs.forEach(r => {
-        if (r.subject !== currentSubject) {
-            currentSubject = r.subject;
-            h += `<h3 style="color:#2c3e50; border-bottom:2px solid #2c3e50; margin-top:20px;">${currentSubject}</h3>`;
+        if (r.subject !== lastSub) {
+            lastSub = r.subject;
+            h += `<div class="subject-header">${lastSub}</div>`;
         }
         if (r.title) {
             h += `<div class="bib-entry">
-                <b>${r.finalID}. ${r.author || ''}.</b> ${r.title}. 
+                <b>${r.finalID || ''}. ${r.author || ''}.</b> ${r.title}. 
                 ${r.journal ? '<i>' + r.journal + '</i>. ' : ''} 
                 ${r.issue ? 'ع ' + r.issue + '. ' : ''}
                 ${r.publisher ? r.publisher + '. ' : ''}
                 ${r.year ? r.year + '. ' : ''}
                 ${r.pages ? 'ص ' + r.pages + '.' : ''}
-                ${r.note1 ? '<br><small>ملاحظة: ' + r.note1 + '</small>' : ''}
             </div>`;
         } else if (r.see) {
-            h += `<div class="bib-entry" style="margin-right:20px;"> انظر: ${r.see}</div>`;
+            h += `<div style="margin-right:15px; font-size:13px;"> انظر: ${r.see}</div>`;
         } else if (r.see_also) {
-            h += `<div class="bib-entry" style="margin-right:20px;"> انظر أيضاً: ${r.see_also}</div>`;
+            h += `<div style="margin-right:15px; font-size:13px;"> انظر أيضاً: ${r.see_also}</div>`;
         }
     });
     document.getElementById('modalTitle').innerText = "المعاينة الببليوغرافية النهائية";
@@ -184,7 +178,7 @@ function openBiblioWindow() {
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-// الدوال الأساسية المستقرة
+// بقية المنطق المستقر
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
@@ -210,7 +204,6 @@ function save() {
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; } 
     if (editIndex > -1) recs[editIndex] = d; else recs.push(d); 
     editIndex = -1; draw(); document.getElementById('bForm').reset(); 
-    document.getElementById('dewey_decimal').innerHTML = '<option value="">-- اختر القسم العشري --</option>';
 }
 
 function edit(i) { 
@@ -226,8 +219,8 @@ function runIdx(f, l) {
     recs.forEach(r => { 
         let rawV = r[f] ? r[f].trim() : '';
         if (rawV) {
-            let values = (f === 'subject') ? [rawV] : splitSlash(rawV);
-            values.forEach(v => {
+            let vArr = (f === 'subject') ? [rawV] : splitSlash(rawV);
+            vArr.forEach(v => {
                 if (f === 'subject') {
                     if (r.see && used.has(r.see.trim())) v = `${v} انظر: ${r.see}`;
                     else if (r.see_also && used.has(r.see_also.trim())) v = `${v} انظر أيضاً: ${r.see_also}`;
@@ -237,7 +230,6 @@ function runIdx(f, l) {
             });
         }
     });
-    document.getElementById('modalTitle').innerText = "كشاف " + l;
     renderIdx(m, l);
 }
 
@@ -249,7 +241,6 @@ function runAuthorIdx() {
             names.forEach(n => { if(!m[n]) m[n]=[]; if(!m[n].includes(r.finalID)) m[n].push(r.finalID); });
         }
     });
-    document.getElementById('modalTitle').innerText = "كشاف المؤلفين";
     renderIdx(m, "المؤلفين");
 }
 
@@ -261,7 +252,6 @@ function journalIdx() {
         let k = j + (r.affiliation ? ` (${r.affiliation})` : (affs[j] ? ` (${affs[j]})` : ""));
         if(!m[k]) m[k]=[]; if(!m[k].includes(r.finalID)) m[k].push(r.finalID);
     }});
-    document.getElementById('modalTitle').innerText = "قائمة المجلات";
     renderIdx(m, "المجلات");
 }
 
@@ -269,6 +259,7 @@ function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
     let h = `<div class="column-wrapper">`;
     k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
+    document.getElementById('modalTitle').innerText = "كشاف " + title;
     document.getElementById('modalBody').innerHTML = h + `</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
