@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ببليوإندكس</title>
+    <title>ببليوإندكس - الفهرس الليبي الموحد</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
@@ -23,9 +23,7 @@
         .dewey-header { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; display: block; width: 100%; }
         .subject-row { text-align: center; font-size: 14px; font-weight: bold; background: #f2f2f2; margin: 10px 0; padding: 4px; border: none; }
         .see-also-row { text-align: right; font-size: 13px; background: #f9f9f9; margin: -5px 0 10px 0; padding: 3px 10px; }
-        .author-line { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 2px; line-height: 1.1; }
-        .author-name { font-weight: bold; }
-        .rec-number { font-weight: normal; }
+        .author-line { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 2px; line-height: 1.1; font-weight: bold; }
         .data-block { font-size: 12px; line-height: 1.1; margin-bottom: 12px; }
         .title-bold { font-weight: bold; }
         .ltr { direction: ltr; text-align: left; }
@@ -38,21 +36,20 @@
     <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:6px 15px;">
         <strong style="font-size: 18px;">ببليوإندكس - الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:8px;">
-            <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد XLSX</button>
-            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX</button>
+            <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد</button>
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
             <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
-            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
-            <select id="pSel" style="width:160px" onchange="switchP(this.value)"></select>
-            <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
+            <select id="pSel" style="width:140px" onchange="switchP(this.value)"></select>
+            <button onclick="newP()" class="btn" style="background:#27ae60">+</button>
         </div>
     </div>
 
     <form id="bForm">
-        <div style="background:#bdc3c7; padding:4px; display:flex; gap:20px; justify-content:center; border-bottom:2px solid #7f8c8d;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span class="field-label" style="margin:0">تصنيف المئوي:</span>
-                <select id="dewey_hundred" class="in" style="width:200px" onchange="updateDeweyDecimal(this.value)">
-                    <option value="">-- اختر الأصل المئوي --</option>
+        <div style="background:#bdc3c7; padding:4px; display:flex; gap:10px; justify-content:center; border-bottom:2px solid #7f8c8d;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span class="field-label">المئوي:</span>
+                <select id="dewey_hundred" class="in" style="width:180px" onchange="fillDewey(this.value)">
+                    <option value="">-- اختر --</option>
                     <option value="000">000 الأعمال العامة</option>
                     <option value="100">100 الفلسفة</option>
                     <option value="200">200 الديانات</option>
@@ -65,9 +62,9 @@
                     <option value="900">900 الجغرافيا والتاريخ</option>
                 </select>
             </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span class="field-label" style="margin:0">تصنيف العشري:</span>
-                <select id="dewey_decimal" class="in" style="width:280px"></select>
+            <div style="display:flex; align-items:center; gap:5px;">
+                <span class="field-label">العشري:</span>
+                <select id="dewey_decimal" class="in" style="width:250px"></select>
             </div>
         </div>
 
@@ -94,10 +91,6 @@
                 <td><span class="field-label">مترجم كشاف</span><input type="text" id="trans_idx" list="list_trans_idx" class="in"></td>
                 <td><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
             </tr>
-            <tr>
-                <td colspan="3"><span class="field-label">ملاحظات 1</span><input type="text" id="note1" class="in"></td>
-                <td colspan="3"><span class="field-label">ملاحظات 2</span><input type="text" id="note2" class="in"></td>
-            </tr>
         </table>
 
         <div id="dynamicDatalists">
@@ -109,20 +102,19 @@
         </div>
 
         <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="viewPrint()">المعاينة النهائية</button>
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="viewPrint()">المعاينة</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
-            <button type="button" class="btn" style="background:#16a085" onclick="journalIdx()">قائمة المجلات</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">العناوين</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">المترجمين</button>
+            <button type="button" class="btn" style="background:#16a085" onclick="journalIdx()">المجلات</button>
         </div>
     </form>
 </div>
 
 <div id="modalOverlay">
     <div style="padding: 8px; background: #2c3e50; color:white; display: flex; justify-content: space-between; align-items: center;">
-        <strong>المعاينة الببليوغرافية</strong>
+        <strong>المعاينة النهائية</strong>
         <button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button>
     </div>
     <div class="modal-content" id="modalBody"></div>
@@ -130,26 +122,26 @@
 
 <div class="scroll-area">
     <table class="admin-table">
-        <thead><tr><th style="width:40px;">رقم</th><th style="width:180px;">رأس الموضوع</th><th>البيانات</th><th style="width:100px;">إجراءات</th></tr></thead>
+        <thead><tr><th style="width:40px;">#</th><th style="width:180px;">رأس الموضوع</th><th>البيانات</th><th style="width:100px;">إجراءات</th></tr></thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
 <script>
 const deweyMap = {
-    "000": ["000 الأعمال العامة", "010 الببليوجرافيات", "020 المكتبات والمعلومات", "030 الموسوعات", "050 الدوريات", "070 الصحافة", "090 المخطوطات"],
-    "100": ["100 الفلسفة", "150 علم النفس", "160 المنطق", "170 الأخلاق"],
-    "200": ["200 الديانات", "210 الإسلام", "220 القرآن", "230 الحديث", "250 الفقه"],
-    "300": ["300 العلوم الاجتماعية", "320 السياسة", "330 الاقتصاد", "340 القانون", "370 التربية"],
-    "400": ["400 اللغات", "410 اللغة العربية", "420 الانكليزية"],
-    "500": ["500 العلوم البحتة", "510 الرياضيات", "530 الفيزياء", "540 الكيمياء"],
-    "600": ["600 العلوم التطبيقية", "610 الطب", "620 الهندسة", "630 الزراعة"],
-    "700": ["700 الفنون", "720 العمارة", "750 الرسم"],
-    "800": ["800 الآداب", "810 الأدب العربي"],
-    "900": ["900 الجغرافيا والتاريخ", "920 التراجم"]
+    "000": ["010 الببليوجرافيات", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "070 الصحافة والنشر", "090 المخطوطات والكتب النادرة"],
+    "100": ["110 ما وراء الطبيعة", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الغربية"],
+    "200": ["210 الإسلام", "220 القرآن وعلومه", "230 الحديث الشريف", "240 التوحيد", "250 الفقه الإسلامي"],
+    "300": ["310 الإحصاء", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "370 التربية والتعليم"],
+    "400": ["410 اللغة العربية", "420 اللغة الإنجليزية"],
+    "500": ["510 الرياضيات", "530 الفيزياء", "540 الكيمياء"],
+    "600": ["610 الطب", "620 الهندسة", "630 الزراعة"],
+    "700": ["720 العمارة", "750 الرسم"],
+    "800": ["810 الأدب العربي", "820 الأدب الإنجليزي"],
+    "900": ["910 الجغرافيا", "920 التراجم", "950 تاريخ آسيا", "960 تاريخ أفريقيا"]
 };
 
-function updateDeweyDecimal(v) {
+function fillDewey(v) {
     const d = document.getElementById('dewey_decimal');
     d.innerHTML = '<option value="">-- اختر القسم العشري --</option>';
     if (deweyMap[v]) deweyMap[v].forEach(x => { let o = document.createElement('option'); o.value = x; o.innerText = x; d.appendChild(o); });
@@ -171,12 +163,12 @@ function viewPrint() {
         if (r.title) {
             let dir = isAr(r.author || r.title) ? 'rtl' : 'ltr';
             let n = counter++;
-            let authorFull = r.author || '';
-            if (r.editor) authorFull += (dir === 'rtl' ? '؛ ' : '; ') + r.editor;
+            let authorField = r.author || '';
+            let editorField = r.editor || '';
             
             h += `<div class="data-block ${dir}">
                     <div class="author-line">
-                        ${dir === 'rtl' ? `<span>${authorFull}</span><span>${n}</span>` : `<span>${n}</span><span>${authorFull}</span>`}
+                        ${dir === 'rtl' ? `<span>${authorField}${editorField ? '؛ ' + editorField : ''}</span><span>${n}</span>` : `<span>${n}</span><span>${authorField}${editorField ? '; ' + editorField : ''}</span>`}
                     </div>
                     <div><span class="title-bold">${r.title}.</span> ${r.journal ? r.journal + '.' : ''} ${r.issue ? 'ع ' + r.issue + '.' : ''} ${r.publisher ? r.publisher + '.' : ''} ${r.year ? r.year + '.' : ''} ${r.pages ? 'ص ' + r.pages + '.' : ''}</div>
                   </div>`;
@@ -186,30 +178,26 @@ function viewPrint() {
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'], curP = localStorage.getItem('L_A') || projs[0], recs = JSON.parse(localStorage.getItem('R_' + curP)) || [], editIndex = -1;
-const cleanAL = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'], curP = localStorage.getItem('L_A') || projs[0], recs = JSON.parse(localStorage.getItem('R_' + curP)) || [], editIdx = -1;
+const clean = (s) => s ? s.replace(/^(ال)/, '').trim() : '';
 
-function updateDatalists() {
+function updateLists() {
     const fields = ['subject', 'see', 'see_also', 'original_author', 'author', 'editor', 'country', 'journal', 'year', 'affiliation', 'publisher', 'material_type', 'trans_idx'];
     fields.forEach(f => {
         let vals = [];
-        // إضافة قيم ذكية لـ see_also من رؤوس الموضوعات الموجودة
-        if (f === 'see_also' || f === 'see') {
-             vals = recs.map(r => r.subject).filter(v => v);
-        } else {
-             recs.forEach(r => { if(r[f]) { if(f==='author'||f==='editor') vals.push(...r[f].split('/')); else vals.push(r[f]); } });
-        }
-        let unique = [...new Set(vals.map(v=>v.trim()))].sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b), 'ar'));
+        if (f === 'see_also' || f === 'see') vals = recs.map(r => r.subject).filter(v => v);
+        else recs.forEach(r => { if(r[f]) { if(f==='author'||f==='editor') vals.push(...r[f].split('/')); else vals.push(r[f]); } });
+        let unique = [...new Set(vals.map(v=>v.trim()))].sort((a,b)=>clean(a).localeCompare(clean(b), 'ar'));
         document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
     });
 }
 
 function draw() {
-    recs.sort((a,b) => cleanAL(a.subject||'').localeCompare(cleanAL(b.subject||''), 'ar'));
+    recs.sort((a,b) => clean(a.subject||'').localeCompare(clean(b.subject||''), 'ar'));
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
-    updateDatalists();
+    updateLists();
     let c = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
         let id = (r.see || r.see_also) && !r.title ? '-' : c++;
@@ -221,55 +209,40 @@ function draw() {
 function save() { 
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     if(!d.subject) return; 
-    if (editIndex > -1) recs[editIndex] = d; else recs.push(d); 
-    editIndex = -1; draw(); document.getElementById('bForm').reset(); 
+    if (editIdx > -1) recs[editIdx] = d; else recs.push(d); 
+    editIdx = -1; draw(); document.getElementById('bForm').reset(); 
 }
 
 function edit(i) { 
-    editIndex = i; let r = recs[i]; 
-    document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); 
-    if(r.dewey_hundred) { updateDeweyDecimal(r.dewey_hundred); document.getElementById('dewey_decimal').value = r.dewey_decimal || ''; }
+    editIdx = i; let r = recs[i]; 
+    document.querySelectorAll('.in').forEach(inp => {
+        if(inp.id === 'dewey_hundred') { inp.value = r.dewey_hundred || ''; fillDewey(r.dewey_hundred); }
+        else if(inp.id === 'dewey_decimal') { setTimeout(() => inp.value = r.dewey_decimal || '', 10); }
+        else inp.value = r[inp.id] || '';
+    });
     window.scrollTo(0,0); 
 }
 
 function runAuthorIdx() {
-    let m = {};
-    let bibCounter = 1;
-    recs.forEach((r) => {
+    let m = {}, bibC = 1;
+    recs.forEach(r => {
         if (r.title) {
-            let names = [];
-            if(r.author) names.push(...r.author.split('/'));
-            if(r.editor) names.push(...r.editor.split('/'));
-            names = [...new Set(names.map(n=>n.trim()).filter(n=>n))];
-            
-            names.forEach(n => { 
-                if(!m[n]) m[n]=[]; 
-                if(!m[n].includes(bibCounter)) m[n].push(bibCounter); 
-            });
-            bibCounter++;
+            let names = [...new Set([...(r.author||'').split('/'), ...(r.editor||'').split('/')])].map(n=>n.trim()).filter(n=>n);
+            names.forEach(n => { if(!m[n]) m[n]=[]; if(!m[n].includes(bibC)) m[n].push(bibC); });
+            bibC++;
         }
     });
     renderIdx(m, "المؤلفين والمحققين");
 }
 
 function runIdx(f, l) {
-    let m = {};
-    let bibCounter = 1;
-    recs.forEach((r) => {
-        if (r.title) {
-            let val = r[f];
-            if(val) {
-                if(!m[val]) m[val]=[];
-                m[val].push(bibCounter);
-            }
-            bibCounter++;
-        }
-    });
+    let m = {}, bibC = 1;
+    recs.forEach(r => { if (r.title) { let v = r[f]; if(v) { if(!m[v]) m[v]=[]; m[v].push(bibC); } bibC++; } });
     renderIdx(m, l);
 }
 
 function renderIdx(m, title) {
-    let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    let k = Object.keys(m).sort((a,b)=>clean(a).localeCompare(clean(b),'ar'));
     let h = `<div class="bib-container">`;
     k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
     document.getElementById('modalBody').innerHTML = h + `</div>`;
@@ -277,17 +250,8 @@ function renderIdx(m, title) {
 }
 
 function journalIdx() {
-    let m = {}; 
-    let bibCounter = 1;
-    recs.forEach((r) => { 
-        if(r.title) {
-            if(r.journal) { 
-                if(!m[r.journal]) m[r.journal]=[]; 
-                m[r.journal].push(bibCounter); 
-            }
-            bibCounter++;
-        }
-    });
+    let m = {}, bibC = 1;
+    recs.forEach(r => { if(r.title) { if(r.journal) { if(!m[r.journal]) m[r.journal]=[]; m[r.journal].push(bibC); } bibC++; } });
     renderIdx(m, "المجلات");
 }
 
@@ -295,9 +259,8 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function newP() { let n = prompt("مشروع جديد:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
-function delP() { if(confirm("حذف؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); } }
-function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { recs = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
+function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { recs = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
 window.onload = draw;
 </script>
 </body>
