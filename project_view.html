@@ -5,7 +5,6 @@
     <title>ببليوإندكس - الفهرس الليبي الموحد</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        /* التنسيق العام للواجهة - لم يتغير */
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; table-layout: fixed; }
@@ -17,29 +16,11 @@
         .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; table-layout: fixed; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        /* تنسيق نافذة المعاينة الطباعية الجديدة */
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:95%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; border: 1px solid #000; }
-        .bib-container { column-count: 2; column-gap: 30px; text-align: justify; }
-        
-        /* عناوين الأبواب والموضوعات */
-        .dewey-header { text-align: center; font-size: 16px; font-weight: bold; margin: 15px 0; display: block; width: 100%; }
-        .subject-row { text-align: center; font-size: 14px; font-weight: bold; background: #f2f2f2; margin: 10px 0; padding: 4px; border: none; }
-        .see-also-row { text-align: right; font-size: 13px; background: #f9f9f9; margin: -5px 0 10px 0; padding: 3px 10px; }
-        
-        /* سطر المؤلف والرقم */
-        .author-line { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; margin-bottom: 2px; line-height: 1.1; }
-        .author-name { font-weight: bold; }
-        .rec-number { font-weight: normal; }
-        
-        /* كتلة البيانات الكثيفة */
-        .data-block { font-size: 12px; line-height: 1.1; margin-bottom: 12px; }
-        .title-bold { font-weight: bold; }
-        
-        /* اتجاهات اللغة */
-        .ltr { direction: ltr; text-align: left; }
-        .rtl { direction: rtl; text-align: right; }
+        .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; border-radius: 8px; border: 2px solid #34495e; }
+        .column-wrapper { column-count: 2; column-gap: 30px; line-height: 1.4; text-align: justify; }
+        .bib-entry { margin-bottom: 10px; padding: 5px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .subject-header { background: #f0f0f0; padding: 5px; margin-top: 15px; border-right: 5px solid #2c3e50; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -114,7 +95,7 @@
         <datalist id="subjectsList"></datalist>
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="viewPrint()">المعاينة النهائية</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="viewFinal()">المعاينة النهائية</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
@@ -125,9 +106,9 @@
 </div>
 
 <div id="modalOverlay">
-    <div style="padding: 8px; background: #2c3e50; color:white; display: flex; justify-content: space-between; align-items: center;">
-        <strong>المعاينة الببليوغرافية النهائية</strong>
-        <button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق المعاينة</button>
+    <div style="padding: 10px; background: #2c3e50; color:white; display: flex; justify-content: space-between; align-items: center;">
+        <strong id="modalTitle">المعاينة</strong>
+        <button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق (X)</button>
     </div>
     <div class="modal-content" id="modalBody"></div>
 </div>
@@ -135,13 +116,19 @@
 <div class="scroll-area">
     <table class="admin-table">
         <thead>
-            <tr><th style="width:50px;">رقم</th><th style="width:200px;">رأس الموضوع</th><th>تفاصيل السجل</th><th style="width:120px;">إجراءات</th></tr>
+            <tr>
+                <th style="width:50px;">رقم</th>
+                <th style="width:200px;">رأس الموضوع</th>
+                <th>تفاصيل السجل</th>
+                <th style="width:120px;">إجراءات</th>
+            </tr>
         </thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
 <script>
+// مصفوفة ديوي
 const deweyMap = {
     "000": ["000 الأعمال العامة", "010 الببليوجرافيات والفهارس", "020 علوم المكتبات والمعلومات", "030 الموسوعات ودوائر المعارف", "050 الدوريات العامة", "060 الجمعيات العامة وعلم المتاحف", "070 الصحافة والنشر", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
     "100": ["100 الفلسفة والعلوم المتصلة بها", "110 ما وراء الطبيعة", "120 المعرفة_السببية_الغرض", "130 الظواهر غير الطبيعية", "140 المذاهب والمدارس الفلسفية", "150 علم النفس", "160 المنطق", "170 علم الأخلاق", "180 الفلسفات القديمة والشرقية", "190 الفلسفة الغربية الحديثة"],
@@ -161,57 +148,37 @@ function updateDeweyDecimal(val) {
     if (deweyMap[val]) deweyMap[val].forEach(v => { let o = document.createElement('option'); o.value = v; o.innerText = v; d.appendChild(o); });
 }
 
-// محرك المعاينة الطباعي الجديد
-function isAr(text) { return /[\u0600-\u06FF]/.test(text); }
-
-function viewPrint() {
-    if (recs.length === 0) { alert("لا توجد بيانات"); return; }
-    let h = `<div class="bib-container">`;
-    let lastDewey = "", lastSub = "", globalCounter = 1;
-
+// دالة المعاينة النهائية المصلحة والمؤمنة
+function viewFinal() {
+    if (recs.length === 0) { alert("لا توجد بيانات حالياً"); return; }
+    let h = `<div class="column-wrapper">`;
+    let lastSub = "";
     recs.forEach(r => {
-        // عنوان الباب (ديوي) - يظهر مرة واحدة
-        if (r.dewey_decimal && r.dewey_decimal !== lastDewey) {
-            lastDewey = r.dewey_decimal;
-            h += `<div class="dewey-header">${lastDewey}</div>`;
+        if (r.subject !== lastSub) {
+            lastSub = r.subject;
+            h += `<div class="subject-header">${lastSub}</div>`;
         }
-
-        // رأس الموضوع أو إحالة "انظر"
-        let currentHeader = r.see || r.subject;
-        if (currentHeader !== lastSub) {
-            lastSub = currentHeader;
-            h += `<div class="subject-row">${lastSub}${r.see ? ' (انظر)' : ''}</div>`;
-            if (r.see_also) h += `<div class="see-also-row">انظر أيضاً: ${r.see_also}</div>`;
-        }
-
-        // عرض السجلات فقط إذا كان هناك عنوان (تجنب عرض الإحالات كفراغات)
         if (r.title) {
-            let dirClass = isAr(r.author || r.title) ? 'rtl' : 'ltr';
-            let recNo = globalCounter++;
-
-            h += `<div class="data-block ${dirClass}">
-                    <div class="author-line">
-                        ${dirClass === 'rtl' ? 
-                            `<span class="author-name">${r.author || ''}</span><span class="rec-number">${recNo}</span>` : 
-                            `<span class="rec-number">${recNo}</span><span class="author-name">${r.author || ''}</span>`}
-                    </div>
-                    <div class="content-line">
-                        <span class="title-bold">${r.title}.</span> 
-                        ${r.journal ? ' ' + r.journal + '.' : ''} 
-                        ${r.issue ? ' ع ' + r.issue + '.' : ''} 
-                        ${r.publisher ? ' ' + r.publisher + '.' : ''} 
-                        ${r.year ? ' ' + r.year + '.' : ''} 
-                        ${r.pages ? ' ص ' + r.pages + '.' : ''}
-                        ${r.note1 ? ' [' + r.note1 + ']' : ''}
-                    </div>
-                  </div>`;
+            h += `<div class="bib-entry">
+                <b>${r.finalID || ''}. ${r.author || ''}.</b> ${r.title}. 
+                ${r.journal ? '<i>' + r.journal + '</i>. ' : ''} 
+                ${r.issue ? 'ع ' + r.issue + '. ' : ''}
+                ${r.publisher ? r.publisher + '. ' : ''}
+                ${r.year ? r.year + '. ' : ''}
+                ${r.pages ? 'ص ' + r.pages + '.' : ''}
+            </div>`;
+        } else if (r.see) {
+            h += `<div style="margin-right:15px; font-size:13px;"> انظر: ${r.see}</div>`;
+        } else if (r.see_also) {
+            h += `<div style="margin-right:15px; font-size:13px;"> انظر أيضاً: ${r.see_also}</div>`;
         }
     });
+    document.getElementById('modalTitle').innerText = "المعاينة الببليوغرافية النهائية";
     document.getElementById('modalBody').innerHTML = h + `</div>`;
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
-// الدوال الأساسية (لم تتغير)
+// بقية المنطق المستقر
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
@@ -290,8 +257,9 @@ function journalIdx() {
 
 function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    let h = `<div class="bib-container" style="column-count:2">`;
+    let h = `<div class="column-wrapper">`;
     k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
+    document.getElementById('modalTitle').innerText = "كشاف " + title;
     document.getElementById('modalBody').innerHTML = h + `</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
@@ -302,7 +270,6 @@ function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[];
 function newP() { let n = prompt("المشروع الجديد:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
 function delP() { if(confirm("حذف؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); } }
 function importX(e) { const reader = new FileReader(); reader.onload = (evt) => { recs = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]); draw(); }; reader.readAsBinaryString(e.target.files[0]); }
-function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
 window.onload = draw;
 </script>
 </body>
