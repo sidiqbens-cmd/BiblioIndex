@@ -127,7 +127,11 @@ let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIndex = -1;
 
 // دالة التنظيف المحدثة لتجاهل الشرطة والرموز في بداية الترتيب
-const cleanSort = (s) => s ? s.replace(/^[ـ\-\s.،]+/, '').replace(/^(ال)/, '').trim() : '';
+const cleanSort = (s) => {
+    if (!s) return '';
+    // إزالة الشرطة الطويلة (ـ)، الشرطة القصيرة (-)، والنقاط، وال التعريف من بداية النص فقط للمقارنة
+    return s.replace(/^[ـ\-\.\s]+/, '').replace(/^(ال)/, '').trim();
+};
 
 function draw() {
     recs.sort((a, b) => {
@@ -192,7 +196,16 @@ function openBiblioWindow() {
             if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
             
             let bibTail = "";
-            let separator = `<span class="punc-block"> . ــــ </span>`;
+            // داخل دالة المعاينة النهائية (openBiblioWindow)
+            // تعديل بناء السطر لضمان التدفق المستمر
+            let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
+
+            let mainLine = `<div class="ent">
+                <div style="overflow:hidden;">${authorPart} ${idPart}</div>
+                <span class="title-bold" style="display:inline;">${r.title}</span>
+                <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
+                ${r.orig_title ? `<br><i>العنوان الأصلي: ${r.orig_title}</i>` : ''}
+            </div>`;
             
             if (r.journal) {
                 let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
@@ -204,11 +217,11 @@ function openBiblioWindow() {
                 bibTail = pubInfo + yearInfo + pagesInfo;
             }
 
-            let mainLine = `<div class="ent">
-                <div style="overflow:hidden;">${authorPart} ${idPart}</div>
-                <span class="title-bold">${r.title}</span>
-                ${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.
-                ${r.orig_title ? `<br><i>العنوان الأصلي: ${r.orig_title}</i>` : ''}
+            let mainLine = `<div class="ent" style="text-align: justify;">
+                <div style="overflow:hidden; margin-bottom: 2px;">${authorPart} ${idPart}</div>
+                <span class="title-bold" style="display:inline;">${r.title}</span>
+                <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
+                ${r.orig_title ? `<div style="font-size: 12pt; margin-top:4px;"><i>العنوان الأصلي: ${r.orig_title}</i></div>` : ''}
             </div>`;
             content += mainLine;
         }
