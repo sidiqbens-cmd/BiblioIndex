@@ -91,10 +91,9 @@
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#16a085" onclick="journalIdx()">قائمة المجلات</button>
             <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
-            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('orig_title', 'العناوين الأجنبية')">كشاف العناوين الأجنبية</button>
-            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
         </div>
     </form>
 </div>
@@ -145,6 +144,8 @@ function draw() {
     localStorage.setItem('L_A', curP);
     
     document.getElementById('recCounter').innerText = `[ إجمالي: ${recs.length} ]`;
+    
+    // توليد القوائم المنسدلة لكل الخانات تلقائياً
     updateAllDatalists();
     
     let counter = 1;
@@ -160,6 +161,8 @@ function draw() {
 function updateAllDatalists() {
     const container = document.getElementById('datalistsContainer');
     let html = '';
+    
+    // قائمة الحقول التي نريد لها قوائم منسدلة (كل الحقول تقريباً)
     const fields = [
         'subject', 'see', 'see_also', 'author_preview', 'original_author', 'author', 
         'title', 'collab', 'collab_idx', 'edition', 'journal', 'issue', 'affiliation', 
@@ -168,15 +171,20 @@ function updateAllDatalists() {
     ];
 
     fields.forEach(field => {
+        // جمع القيم الفريدة لكل حقل، وتصفية الفارغ، وترتيبها
         let values = [...new Set(recs.map(r => r[field]))].filter(x => x).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+        
+        // إذا كان الحقل هو أحد حقول رؤوس الموضوعات، ندمج كل قيم الموضوعات لضمان شمولية القائمة
         if (['subject', 'see', 'see_also'].includes(field)) {
-            let allSubs = [...new Set(recs.flatMap(r => [r.subject, r.see, (r.see_also||'').split('/').map(s=>s.trim())].flat()))].filter(x => x).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+            let allSubs = [...new Set(recs.flatMap(r => [r.subject, r.see, r.see_also]))].filter(x => x).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
             values = allSubs;
         }
+
         html += `<datalist id="list_${field}">`;
         values.forEach(v => { html += `<option value="${v}">`; });
         html += `</datalist>`;
     });
+    
     container.innerHTML = html;
 }
 
@@ -210,11 +218,7 @@ function openBiblioWindow() {
         }
         if (r.subject !== lastSub) {
             content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
-            // معالجة تعدد الرؤوس في "انظر أيضاً" باستخدام الفاصلة المنقوطة
-            let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also)
-                                 .flatMap(x => x.see_also.split('/').map(s=>s.trim()))
-                                 .filter(s=>s)
-                                 .join(' ؛ ');
+            let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also).map(x => x.see_also).join(' ؛ ');
             if (allSeeAlso) {
                 content += `<span class="see-also-preview">انظر أيضاً: ${allSeeAlso}</span>`;
             }
@@ -222,9 +226,11 @@ function openBiblioWindow() {
         if (r.title) {
             let authorPart = r.author ? `<b>${r.author}</b>` : "";
             let idPart = `<span class="id-num">(${r.finalID})</span>`;
+            
             let respStr = [r.author_preview, r.collab].filter(x=>x).join('، ');
             if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
             if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
+            
             let bibTail = "";
             if (r.journal) {
                 let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
@@ -235,7 +241,9 @@ function openBiblioWindow() {
                 let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
                 bibTail = pubInfo + yearInfo + pagesInfo;
             }
+
             let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
+
             let mainLine = `<div class="ent" style="text-align: justify;">
                 <div style="overflow:hidden; margin-bottom: 2px;">${authorPart} ${idPart}</div>
                 <span class="title-bold" style="display:inline;">${r.title}</span>
