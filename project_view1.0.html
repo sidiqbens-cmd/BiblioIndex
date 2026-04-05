@@ -138,21 +138,27 @@ function draw() {
         let authB = cleanSort(b.author || '');
         return authA.localeCompare(authB, 'ar');
     });
+
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
     
     document.getElementById('recCounter').innerText = `[ إجمالي: ${recs.length} ]`;
     
+    // إصلاح القائمة المنسدلة لتظهر في جميع الخانات
     const uniqueSubs = [...new Set(recs.map(r => r.subject))].filter(x=>x).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), 'ar'));
     document.getElementById('subjectsList').innerHTML = uniqueSubs.map(s => `<option value="${s}">`).join('');
     
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
         r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
+        
+        // دعم ظهور "انظر أيضاً" حتى لو كانت تحتوي على أكثر من رأس (مفصولة بشرطة أو فاصلة)
         let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
+        
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
     }).join('');
+    
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
@@ -161,7 +167,16 @@ function openBiblioWindow() {
     let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
         body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
         .sub-header{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
-        .see-also-preview {display: block;text-align: center;font-weight: bold;margin: 10px 0 20px 0;font-size: 13pt;color: #444;}
+        .see-also-preview { 
+        display: block; 
+        text-align: center; 
+        font-weight: bold; 
+        margin: 10px 0 20px 0; 
+        font-size: 13pt; 
+        color: #444;
+        border-top: 1px dashed #ccc;
+        padding-top: 5px;
+}
         .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
         .id-num{float:left; color:#666;}
         .title-bold{font-weight:bold;}
