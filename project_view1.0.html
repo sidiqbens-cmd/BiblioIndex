@@ -42,48 +42,50 @@
     </div>
 
     <form id="bForm">
-        <table class="input-table">
+        <table class="input-table" id="inputTable">
             <tr>
-                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="subjectsList" class="in"></td>
-                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="subjectsList" class="in"></td>
-                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="subjectsList" class="in"></td>
-                <td><span class="field-label">مؤلف معاينة</span><input type="text" id="author_preview" class="in"></td>
-                <td><span class="field-label">المؤلف الأصلي</span><input type="text" id="original_author" class="in"></td>
-                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
+                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
+                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_see" class="in"></td>
+                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_see_also" class="in"></td>
+                <td><span class="field-label">مؤلف معاينة</span><input type="text" id="author_preview" list="list_author_preview" class="in"></td>
+                <td><span class="field-label">المؤلف الأصلي</span><input type="text" id="original_author" list="list_original_author" class="in"></td>
+                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" list="list_author" class="in"></td>
             </tr>
             <tr>
-                <td colspan="4"><span class="field-label">العنوان <span id="recCounter" style="color:red; font-size:10px;"></span></span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">مشارك معاينة</span><input type="text" id="collab" class="in"></td>
-                <td><span class="field-label">مشارك كشاف</span><input type="text" id="collab_idx" class="in"></td>
+                <td colspan="4"><span class="field-label">العنوان <span id="recCounter" style="color:red; font-size:10px;"></span></span><input type="text" id="title" list="list_title" class="in"></td>
+                <td><span class="field-label">مشارك معاينة</span><input type="text" id="collab" list="list_collab" class="in"></td>
+                <td><span class="field-label">مشارك كشاف</span><input type="text" id="collab_idx" list="list_collab_idx" class="in"></td>
             </tr>
             <tr>
-                <td class="w-xs"><span class="field-label">طبعة</span><input type="text" id="edition" class="in"></td>
-                <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in"></td>
-                <td class="w-xs"><span class="field-label">العدد</span><input type="text" id="issue" class="in"></td>
-                <td><span class="field-label">التبعية</span><input type="text" id="affiliation" class="in"></td>
-                <td class="w-sm"><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-                <td class="w-sm"><span class="field-label">نوع الوعاء</span><input type="text" id="material_type" class="in"></td>
-                <td class="w-xs"><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
+                <td class="w-xs"><span class="field-label">طبعة</span><input type="text" id="edition" list="list_edition" class="in"></td>
+                <td><span class="field-label">المجلة</span><input type="text" id="journal" list="list_journal" class="in"></td>
+                <td class="w-xs"><span class="field-label">العدد</span><input type="text" id="issue" list="list_issue" class="in"></td>
+                <td><span class="field-label">التبعية</span><input type="text" id="affiliation" list="list_affiliation" class="in"></td>
+                <td class="w-sm"><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"></td>
+                <td class="w-sm"><span class="field-label">نوع الوعاء</span><input type="text" id="material_type" list="list_material_type" class="in"></td>
+                <td class="w-xs"><span class="field-label">الصفحات</span><input type="text" id="pages" list="list_pages" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">مكان النشر</span><input type="text" id="place" class="in"></td>
-                <td><span class="field-label">الناشر</span><input type="text" id="publisher" class="in"></td>
-                <td><span class="field-label">السلسلة</span><input type="text" id="series" class="in"></td>
-                <td><span class="field-label">العنوان الأصلي</span><input type="text" id="orig_title" class="in"></td>
-                <td><span class="field-label">محقق/مراجعة</span><input type="text" id="editor" class="in"></td>
-                <td><span class="field-label">مترجم معاينة</span><input type="text" id="translator" class="in"></td>
-                <td><span class="field-label">مترجم كشاف</span><input type="text" id="trans_idx" class="in"></td>
+                <td><span class="field-label">مكان النشر</span><input type="text" id="place" list="list_place" class="in"></td>
+                <td><span class="field-label">الناشر</span><input type="text" id="publisher" list="list_publisher" class="in"></td>
+                <td><span class="field-label">السلسلة</span><input type="text" id="series" list="list_series" class="in"></td>
+                <td><span class="field-label">العنوان الأصلي</span><input type="text" id="orig_title" list="list_orig_title" class="in"></td>
+                <td><span class="field-label">محقق/مراجعة</span><input type="text" id="editor" list="list_editor" class="in"></td>
+                <td><span class="field-label">مترجم معاينة</span><input type="text" id="translator" list="list_translator" class="in"></td>
+                <td><span class="field-label">مترجم كشاف</span><input type="text" id="trans_idx" list="list_trans_idx" class="in"></td>
             </tr>
             <tr class="stats-row">
-                <td><span class="field-label">الدولة</span><input type="text" id="st_country" class="in"></td>
+                <td><span class="field-label">الدولة</span><input type="text" id="st_country" list="list_st_country" class="in"></td>
                 <td><span class="field-label">عدد المؤلفين</span><input type="number" id="st_auth_count" class="in"></td>
                 <td><span class="field-label">الجنس</span><select id="st_gender" class="in"><option value=""></option><option>ذكر</option><option>أنثى</option><option>مختلط</option></select></td>
-                <td><span class="field-label">تبعية المؤلفين</span><input type="text" id="st_aff" class="in"></td>
-                <td><span class="field-label">جنسية المؤلفين</span><input type="text" id="st_nat" class="in"></td>
-                <td colspan="2"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
+                <td><span class="field-label">تبعية المؤلفين</span><input type="text" id="st_aff" list="list_st_aff" class="in"></td>
+                <td><span class="field-label">جنسية المؤلفين</span><input type="text" id="st_nat" list="list_st_nat" class="in"></td>
+                <td colspan="2"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" list="list_st_notes" class="in"></td>
             </tr>
         </table>
-        <datalist id="subjectsList"></datalist>
+        
+        <div id="datalistsContainer"></div>
+
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
@@ -123,7 +125,6 @@ let editIndex = -1;
 
 const cleanSort = (s) => {
     if (!s) return '';
-    // تم حذف كود الشرطة والنقطة والكشيدة كما طلبت. الترتيب الآن طبيعي مع حذف ال التعريف فقط.
     let cleaned = s.toString().replace(/^(ال)/, '');
     return cleaned.trim();
 };
@@ -144,9 +145,8 @@ function draw() {
     
     document.getElementById('recCounter').innerText = `[ إجمالي: ${recs.length} ]`;
     
-    // القائمة المنسدلة تعمل الآن في كل الخانات (الموضوع، انظر، انظر أيضاً)
-    const uniqueSubs = [...new Set(recs.map(r => r.subject))].filter(x=>x).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), 'ar'));
-    document.getElementById('subjectsList').innerHTML = uniqueSubs.map(s => `<option value="${s}">`).join('');
+    // توليد القوائم المنسدلة لكل الخانات تلقائياً
+    updateAllDatalists();
     
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
@@ -158,6 +158,36 @@ function draw() {
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
+function updateAllDatalists() {
+    const container = document.getElementById('datalistsContainer');
+    let html = '';
+    
+    // قائمة الحقول التي نريد لها قوائم منسدلة (كل الحقول تقريباً)
+    const fields = [
+        'subject', 'see', 'see_also', 'author_preview', 'original_author', 'author', 
+        'title', 'collab', 'collab_idx', 'edition', 'journal', 'issue', 'affiliation', 
+        'year', 'material_type', 'pages', 'place', 'publisher', 'series', 'orig_title', 
+        'editor', 'translator', 'trans_idx', 'st_country', 'st_aff', 'st_nat', 'st_notes'
+    ];
+
+    fields.forEach(field => {
+        // جمع القيم الفريدة لكل حقل، وتصفية الفارغ، وترتيبها
+        let values = [...new Set(recs.map(r => r[field]))].filter(x => x).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+        
+        // إذا كان الحقل هو أحد حقول رؤوس الموضوعات، ندمج كل قيم الموضوعات لضمان شمولية القائمة
+        if (['subject', 'see', 'see_also'].includes(field)) {
+            let allSubs = [...new Set(recs.flatMap(r => [r.subject, r.see, r.see_also]))].filter(x => x).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+            values = allSubs;
+        }
+
+        html += `<datalist id="list_${field}">`;
+        values.forEach(v => { html += `<option value="${v}">`; });
+        html += `</datalist>`;
+    });
+    
+    container.innerHTML = html;
+}
+
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
@@ -167,12 +197,11 @@ function openBiblioWindow() {
             display: block; 
             text-align: center; 
             font-weight: bold; 
-            margin: 6px auto; /* مسافة 6 كما طلبت */
+            margin: 6px 0; 
             font-size: 13pt; 
-            background: #f2f2f2; /* خلفية رمادية أخف */
-            padding: 5px;
-            width: fit-content;
-            border-radius: 4px;
+            background: #f2f2f2; 
+            padding: 5px 0; 
+            width: 100%; 
         }
         .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
         .id-num{float:left; color:#666;}
@@ -189,7 +218,6 @@ function openBiblioWindow() {
         }
         if (r.subject !== lastSub) {
             content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
-            // دمج كل إحالات "انظر أيضاً" لهذا الموضوع
             let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also).map(x => x.see_also).join(' ؛ ');
             if (allSeeAlso) {
                 content += `<span class="see-also-preview">انظر أيضاً: ${allSeeAlso}</span>`;
