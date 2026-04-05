@@ -123,9 +123,8 @@ let editIndex = -1;
 
 const cleanSort = (s) => {
     if (!s) return '';
-    // تنظيف مؤقت للترتيب فقط: حذف الكشيدة، الشرطة، النقطة، وال التعريف
-    let cleaned = s.toString().replace(/[\u0640\-\.]/g, '');
-    cleaned = cleaned.replace(/^(ال)/, '');
+    // تم حذف كود الشرطة والنقطة والكشيدة كما طلبت. الترتيب الآن طبيعي مع حذف ال التعريف فقط.
+    let cleaned = s.toString().replace(/^(ال)/, '');
     return cleaned.trim();
 };
 
@@ -145,17 +144,14 @@ function draw() {
     
     document.getElementById('recCounter').innerText = `[ إجمالي: ${recs.length} ]`;
     
-    // إصلاح القائمة المنسدلة لتظهر في جميع الخانات
+    // القائمة المنسدلة تعمل الآن في كل الخانات (الموضوع، انظر، انظر أيضاً)
     const uniqueSubs = [...new Set(recs.map(r => r.subject))].filter(x=>x).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), 'ar'));
     document.getElementById('subjectsList').innerHTML = uniqueSubs.map(s => `<option value="${s}">`).join('');
     
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
         r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
-        
-        // دعم ظهور "انظر أيضاً" حتى لو كانت تحتوي على أكثر من رأس (مفصولة بشرطة أو فاصلة)
         let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
-        
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
     }).join('');
     
@@ -168,15 +164,16 @@ function openBiblioWindow() {
         body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
         .sub-header{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
         .see-also-preview { 
-        display: block; 
-        text-align: center; 
-        font-weight: bold; 
-        margin: 10px 0 20px 0; 
-        font-size: 13pt; 
-        color: #444;
-        border-top: 1px dashed #ccc;
-        padding-top: 5px;
-}
+            display: block; 
+            text-align: center; 
+            font-weight: bold; 
+            margin: 6px auto; /* مسافة 6 كما طلبت */
+            font-size: 13pt; 
+            background: #f2f2f2; /* خلفية رمادية أخف */
+            padding: 5px;
+            width: fit-content;
+            border-radius: 4px;
+        }
         .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
         .id-num{float:left; color:#666;}
         .title-bold{font-weight:bold;}
@@ -192,9 +189,10 @@ function openBiblioWindow() {
         }
         if (r.subject !== lastSub) {
             content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
-            let sa = recs.find(x => x.subject === r.subject && x.see_also);
-            if (sa && usedSubjects.has(sa.see_also.trim())) {
-                content += `<span class="see-also-preview">انظر أيضاً: ${sa.see_also}</span>`;
+            // دمج كل إحالات "انظر أيضاً" لهذا الموضوع
+            let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also).map(x => x.see_also).join(' ؛ ');
+            if (allSeeAlso) {
+                content += `<span class="see-also-preview">انظر أيضاً: ${allSeeAlso}</span>`;
             }
         }
         if (r.title) {
