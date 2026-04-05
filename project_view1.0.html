@@ -133,9 +133,9 @@ function draw() {
     
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
-        r.finalID = (r.see || r.see_also) && !r.title ? null : counter++;
+        let currentID = i + 1; // استخدام الفهرس i لإنشاء ترقيم تلقائي يبدأ من 1
         let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
-        return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
+       return `<tr><td>${currentID}</td><td>${r.subject}</td><td>${info}</td>...`;
     }).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
