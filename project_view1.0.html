@@ -123,7 +123,10 @@ let editIndex = -1;
 
 const cleanSort = (s) => {
     if (!s) return '';
-    return s.replace(/^[ـ\-\.\s]+/, '').replace(/^(ال)/, '').trim();
+    // تنظيف مؤقت للترتيب فقط: حذف الكشيدة، الشرطة، النقطة، وال التعريف
+    let cleaned = s.toString().replace(/[\u0640\-\.]/g, '');
+    cleaned = cleaned.replace(/^(ال)/, '');
+    return cleaned.trim();
 };
 
 function draw() {
@@ -158,7 +161,7 @@ function openBiblioWindow() {
     let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
         body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
         .sub-header{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
-        .see-also-preview{color:#888; font-weight:bold; text-align:right; margin-top:-15px; margin-bottom:15px; display:block;}
+        .see-also-preview {display: block;text-align: center;font-weight: bold;margin: 10px 0 20px 0;font-size: 13pt;color: #444;}
         .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
         .id-num{float:left; color:#666;}
         .title-bold{font-weight:bold;}
