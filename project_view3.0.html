@@ -154,18 +154,24 @@ function pasteRec() { let data = JSON.parse(localStorage.getItem('BIB_CLIP')); i
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 
 // دوال الكشافات - تعمل الآن بشكل صحيح مع البيانات المستعادة
-function runIdx(f, label) {
+function runSubjectIdx() {
     let m = {};
     recs.forEach(r => {
-        let val = g(r[f]);
+        let val = g(r.subject);
         if (val && r.finalID) {
-            val.split('/').forEach(p => { 
-                p = p.trim(); if(!m[p]) m[p] = []; 
-                if(!m[p].includes(r.finalID)) m[p].push(r.finalID);
-            });
+            if(!m[val]) m[val] = [];
+            m[val].push(r.finalID);
         }
     });
-    renderIdx(m, label);
+    let keys = Object.keys(m).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+    let out = `<h2>كشاف رؤوس الموضوعات</h2><div class="column-wrapper">` + keys.map(k => {
+        let nums = m[k].sort((a,b)=>a-b);
+        // عرض أول رقم وأخر رقم فقط كـ نطاق
+        let range = nums.length > 1 ? `${nums[0]} - ${nums[nums.length-1]}` : nums[0];
+        return `<div>${k} (${range})</div>`;
+    }).join('') + `</div>`;
+    document.getElementById('modalBody').innerHTML = out;
+    document.getElementById('modalOverlay').style.display = 'block';
 }
 
 function runAuthorIdx() {
@@ -181,7 +187,12 @@ function runAuthorIdx() {
 
 function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b),'ar'));
-    let h = `<h2 style="text-align:center;">كشاف ${title}</h2><div class="column-wrapper">` + k.map(x => `<div>${x} (${m[x].join(', ')})</div>`).join('') + `</div>`;
+    
+    // التعديل هنا: إضافة التنسيق الأجنبي فقط لمحتوى الكشاف
+    let h = `<h2 style="text-align:center;">كشاف ${title}</h2>
+             <div class="column-wrapper" dir="ltr" style="text-align:left; font-family:Arial;">` 
+             + k.map(x => `<div>${x} (${m[x].join(', ')})</div>`).join('') + `</div>`;
+             
     document.getElementById('modalBody').innerHTML = h;
     document.getElementById('modalOverlay').style.display='block';
 }
