@@ -156,9 +156,12 @@ function draw() {
     
     let counter = 1;
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
-        // تجاهل الترقيم إذا كان العنوان فارغاً
-        r.finalID = (r.title || r.orig_title) ? counter++ : null;
-        let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
+        // تجاهل الترقيم إذا كان العنوان بنوعيه فارغاً
+        const hasTitle = (r.title && r.title.trim() !== "") || (r.orig_title && r.orig_title.trim() !== "");
+        r.finalID = hasTitle ? counter++ : null;
+        
+        let displayTitle = r.title || r.orig_title || "";
+        let info = displayTitle ? `<b>${r.author || ''}</b> - ${displayTitle}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
         return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
     }).join('');
     
@@ -169,7 +172,7 @@ function updateAllDatalists() {
     const fields = ['subject', 'author', 'title', 'journal', 'orig_title', 'author_preview', 'original_author', 'collab', 'collab_idx', 'translator', 'trans_idx', 'place', 'publisher', 'affiliation', 'year', 'st_country', 'st_aff', 'st_nat', 'st_notes'];
     let html = '';
     fields.forEach(f => {
-        let vals = [...new Set(recs.map(r => r[f]))].filter(x => x && x !== 'undefined').sort();
+        let vals = [...new Set(recs.map(r => r[f]))].filter(x => x && x !== 'undefined' && x.trim() !== '').sort();
         html += `<datalist id="list_${f}">${vals.map(v => `<option value="${v}">`).join('')}</datalist>`;
     });
     html += `<datalist id="list_see">${[...new Set(recs.map(r=>r.subject))].map(s=>`<option value="${s}">`).join('')}</datalist>`;
@@ -192,23 +195,24 @@ function openBiblioWindow() {
                 html += `<div style="text-align:center; font-weight:bold; background:#f9f9f9;">انظر أيضاً: ${fmt}</div>`;
             }
         }
-        // المعاينة فقط لما له عنوان (تجاهل الإحالات المجردة من الترقيم)
-        if (r.title || r.orig_title) {
-            const g = (v) => (v && v !== 'undefined' ? v : '');
+        
+        const hasTitle = (r.title && r.title.trim() !== "") || (r.orig_title && r.orig_title.trim() !== "");
+        if (hasTitle) {
+            const g = (v) => (v && v !== 'undefined' ? v.trim() : '');
             
-            // تنسيق الصفحات المطلوب
             let pVal = g(r.pages);
             let pFormatted = "";
             if (pVal) {
                 if (g(r.journal)) {
-                    pFormatted = `ص ${pVal}`; // للمجلات: ص 00-00
+                    pFormatted = `ص ${pVal}`;
                 } else {
-                    pFormatted = `${pVal}ص`; // للكتب: 000ص
+                    pFormatted = `${pVal}ص`;
                 }
             }
 
             let bibTail = g(r.journal) ? `${g(r.journal)} ${g(r.year)} ${pFormatted}` : `${g(r.place)} : ${g(r.publisher)} ، ${g(r.year)} . ـــ ${pFormatted}`;
-            html += `<div style="margin-bottom:12px; text-align:justify;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title || r.orig_title)} . ـــ ${bibTail}.</div>`;
+            let finalTitle = r.title || r.orig_title;
+            html += `<div style="margin-bottom:12px; text-align:justify;"><b>${g(r.author)}</b> (${r.finalID}) ${finalTitle} . ـــ ${bibTail}.</div>`;
         }
     });
     win.document.write(html + `</body></html>`); win.document.close();
@@ -244,7 +248,6 @@ function runSubjectIdx() {
     let keys = Object.keys(m).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
     let out = `<h2>كشاف رؤوس الموضوعات</h2><div class="column-wrapper">` + keys.map(k => {
         let nums = m[k].sort((a,b)=>a-b);
-        // تنسيق الرقم الأول شرطة الرقم الأخير
         let range = nums.length > 1 ? `${nums[0]} - ${nums[nums.length-1]}` : nums[0];
         return `<div>${k} (${range})</div>`;
     }).join('') + `</div>`;
