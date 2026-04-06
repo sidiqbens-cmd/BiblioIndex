@@ -233,9 +233,9 @@ function renderIdx(m, title, direction) {
              <div class="column-wrapper" ${direction}>` 
              + k.map(x => `<div>${x} (${m[x].sort((a,b)=>a-b).join(', ')})</div>`).join('') + `</div>`;
              
-    // التأكد من العرض داخل النافذة الأصلية modalBody
+    // التعديل الجوهري هنا:
     document.getElementById('modalBody').innerHTML = h;
-    document.getElementById('modalOverlay').style.display='block';
+    document.getElementById('modalOverlay').style.display = 'block';
 }
 
 function openBiblioWindow() {
@@ -253,16 +253,18 @@ function openBiblioWindow() {
         }
         if (g(r.title) || g(r.orig_title)) {
             let pubInfo = [];
-            // تجميع البيانات المتوفرة فقط
             if (g(r.place)) pubInfo.push(g(r.place));
             if (g(r.publisher)) pubInfo.push(g(r.publisher));
             if (g(r.year)) pubInfo.push(g(r.year));
             
-            let pStr = g(r.pages) ? (g(r.journal) ? `ص ${g(r.pages)}` : `${g(r.pages)}ص`) : "";
-            if (pStr) pubInfo.push(pStr);
+            // الحل النهائي للصاد: لا تظهر إلا إذا كان هناك رقم حقيقي
+            let pVal = g(r.pages);
+            if (pVal !== "") {
+                let pStr = g(r.journal) ? `ص ${pVal}` : `${pVal}ص`;
+                pubInfo.push(pStr);
+            }
 
-            // دمج البيانات بعلامة ( ، ) فقط إذا وجدت
-            let bibTail = pubInfo.filter(x => x).join(' ، ');
+            let bibTail = pubInfo.filter(x => x !== "").join(' ، ');
             html += `<div style="margin-bottom:12px;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title) || g(r.orig_title)} . ـــ ${bibTail}.</div>`;
         }
     });
