@@ -233,6 +233,7 @@ function renderIdx(m, title, direction) {
              <div class="column-wrapper" ${direction}>` 
              + k.map(x => `<div>${x} (${m[x].sort((a,b)=>a-b).join(', ')})</div>`).join('') + `</div>`;
              
+    // التأكد من العرض داخل النافذة الأصلية modalBody
     document.getElementById('modalBody').innerHTML = h;
     document.getElementById('modalOverlay').style.display='block';
 }
@@ -243,47 +244,29 @@ function openBiblioWindow() {
     let html = `<html dir="rtl"><head><style>
         body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; font-size: 14pt; }
         .sub-header { background: #eee; text-align: center; padding: 5px; border: 1px solid #000; margin: 20px 0 10px 0; font-weight: bold; }
-        .entry { margin-bottom: 12px; text-align: justify; }
     </style></head><body>`;
     
     recs.forEach(r => {
-        // طباعة رأس الموضوع لمرة واحدة
         if (g(r.subject) !== lastSub) {
             html += `<div class="sub-header">${g(r.subject)}</div>`;
             lastSub = g(r.subject);
         }
-
-        // معالجة بيانات السجل
         if (g(r.title) || g(r.orig_title)) {
-            let author = g(r.author);
-            let title = g(r.title) || g(r.orig_title);
-            let id = r.finalID ? `(${r.finalID}) ` : "";
-            
-            // بناء بيانات النشر بذكاء (لا تظهر العلامات إلا مع البيانات)
             let pubInfo = [];
-            if (g(r.journal)) {
-                pubInfo.push(g(r.journal));
-                if (g(r.year)) pubInfo.push(g(r.year));
-                if (g(r.pages)) pubInfo.push(`ص ${g(r.pages)}`);
-            } else {
-                let placePub = [g(r.place), g(r.publisher)].filter(x => x).join(' : ');
-                if (placePub) pubInfo.push(placePub);
-                if (g(r.year)) pubInfo.push(g(r.year));
-                if (g(r.pages)) pubInfo.push(`${g(r.pages)}ص`);
-            }
+            // تجميع البيانات المتوفرة فقط
+            if (g(r.place)) pubInfo.push(g(r.place));
+            if (g(r.publisher)) pubInfo.push(g(r.publisher));
+            if (g(r.year)) pubInfo.push(g(r.year));
+            
+            let pStr = g(r.pages) ? (g(r.journal) ? `ص ${g(r.pages)}` : `${g(r.pages)}ص`) : "";
+            if (pStr) pubInfo.push(pStr);
 
-            // تجميع السطر النهائي بدون علامات ترقيم يتيمة
-            let bibTail = pubInfo.join(' ، ');
-            html += `<div class="entry"><b>${author}</b> ${id}${title} . ـــ ${bibTail}${bibTail ? '.' : ''}</div>`;
-        } 
-        // معالجة الإحالات
-        else if (g(r.see)) {
-            html += `<div class="entry">${g(r.subject)} <br> &nbsp;&nbsp;&nbsp; انظر: ${g(r.see)}</div>`;
+            // دمج البيانات بعلامة ( ، ) فقط إذا وجدت
+            let bibTail = pubInfo.filter(x => x).join(' ، ');
+            html += `<div style="margin-bottom:12px;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title) || g(r.orig_title)} . ـــ ${bibTail}.</div>`;
         }
     });
-    
-    win.document.write(html + `</body></html>`);
-    win.document.close();
+    win.document.write(html + `</body></html>`); win.document.close();
 }
 window.onload = draw;
 </script>
