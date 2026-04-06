@@ -54,7 +54,12 @@
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
-
+    <div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000;">
+        <div style="padding: 10px; text-align: left;">
+            <button onclick="document.getElementById('modalOverlay').style.display='none'" class="btn" style="background:#c0392b;">إغلاق (X)</button>
+        </div>
+        <div class="modal-content" id="modalBody" style="background:white; width:90%; margin:1% auto; padding:20px; height: 80vh; overflow-y: auto;"></div>
+    </div>
     <form id="bForm">
         <table class="input-table">
             <tr>
@@ -103,7 +108,7 @@
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين العربية')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('orig_title', 'العناوين الأجنبية')">كشاف العناوين الأجنبية</button>
+            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('orig_title', 'العناوين الأصلية')">كشاف العناوين الأصلية</button>
             <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('trans_idx', 'المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#16a085" onclick="journalIdx()">قائمة المجلات</button>
             <button type="button" class="btn" style="background:#2980b9" onclick="runSubjectIdx()">رؤوس الموضوعات</button>
@@ -259,12 +264,11 @@ function openBiblioWindow() {
             
             // الحل النهائي للصاد: لا تظهر إلا إذا كان هناك رقم حقيقي
             let pVal = g(r.pages);
-            if (pVal !== "") {
+            if (pVal && pVal.trim() !== "") {
                 let pStr = g(r.journal) ? `ص ${pVal}` : `${pVal}ص`;
                 pubInfo.push(pStr);
             }
-
-            let bibTail = pubInfo.filter(x => x !== "").join(' ، ');
+            let bibTail = pubInfo.filter(x => x).join(' ، ');
             html += `<div style="margin-bottom:12px;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title) || g(r.orig_title)} . ـــ ${bibTail}.</div>`;
         }
     });
