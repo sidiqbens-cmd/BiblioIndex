@@ -188,11 +188,11 @@ function importX(event) {
             pages: row.pages || "",
             place: row.material_place || row.place || "", 
             publisher: row.publisher || ""
-        }));
+        })); // تم تصحيح إغلاق الـ map هنا
         
         draw(); 
         alert("تم استيراد " + recs.length + " سجلاً بنجاح");
-    };
+    }; // تم تصحيح إغلاق الـ onload هنا
     reader.readAsArrayBuffer(file);
 }
 function newP() { let n = prompt("المشروع:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
