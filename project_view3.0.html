@@ -167,7 +167,34 @@ function save() {
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => { if(document.getElementById(inp.id)) inp.value = g(r[inp.id]); }); window.scrollTo(0,0); }
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
-function importX(e) { const r = new FileReader(); r.onload = (evt) => { const wb = XLSX.read(evt.target.result, {type:'binary'}); recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; r.readAsBinaryString(e.target.files[0]); }
+function importX(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {type: 'array'});
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+        
+        recs = jsonData.map((row, index) => ({
+            id: index + 1,
+            finalID: row.finalID || (index + 1),
+            subject: row.subject || "",
+            author: row.author || "",
+            title: row.title || "",
+            orig_title: row.original_title || row.orig_title || "", 
+            journal: row.journal || "",
+            year: row.year || "",
+            pages: row.pages || "",
+            place: row.material_place || row.place || "", 
+            publisher: row.publisher || ""
+        }));
+        
+        draw(); 
+        alert("تم استيراد " + recs.length + " سجلاً بنجاح");
+    };
+    reader.readAsArrayBuffer(file);
+}
 function newP() { let n = prompt("المشروع:"); if(n) { if(!projs.includes(n)) projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function delP() { if(confirm("حذف؟")) { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; draw(); } }
