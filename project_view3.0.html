@@ -2,33 +2,29 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ببليواندكس</title>
+    <title>ببليواندكس - استعادة البيانات</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; table-layout: fixed; }
         .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 2px; }
-        input, select { width: 100%; height: 26px; font-size: 13px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        input { width: 100%; height: 26px; font-size: 13px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         .actions { background: #cfcfcf; text-align: center; padding: 8px; display: flex; justify-content: center; gap: 6px; border-bottom: 2px solid #2c3e50; }
         .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 12px; font-weight: bold; }
         .scroll-area { margin-top: 275px; height: calc(100vh - 285px); overflow-y: auto; padding: 10px; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; table-layout: fixed; }
         .admin-table th { position: sticky; top: 0; background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; }
-        .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; }
-        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:90%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; }
+        .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
     <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:6px 15px;">
-        <strong style="font-size: 18px;">ببليواندكس</strong>
+        <strong style="font-size: 18px;">الفهرس الليبي الموحد - وضع استعادة البيانات</strong>
         <div style="display:flex; gap:8px;">
-            <button onclick="copyRec()" class="btn" style="background:#7f8c8d">نسخ</button>
-            <button onclick="pasteRec()" class="btn" style="background:#95a5a6">لصق</button>
-            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX</button>
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX (للأمان)</button>
             <select id="pSel" style="width:160px" onchange="switchP(this.value)"></select>
         </div>
     </div>
@@ -38,51 +34,54 @@
             <tr>
                 <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
                 <td><span class="field-label">إحالة انظر</span><input type="text" id="see" class="in"></td>
-                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" class="in"></td>
-                <td><span class="field-label">مؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
-                <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-            </tr>
-            <tr>
-                <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in"></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-                <td><span class="field-label">مكان النشر</span><input type="text" id="place" class="in"></td>
-                <td><span class="field-label">الناشر</span><input type="text" id="publisher" class="in"></td>
-                <td><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
+                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
+                <td colspan="2"><span class="field-label">العنوان <span id="recCounter" style="color:red;"></span></span><input type="text" id="title" class="in"></td>
             </tr>
         </table>
         <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة</button>
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ التعديل</button>
         </div>
     </form>
 </div>
 
 <div class="scroll-area">
     <table class="admin-table">
-        <thead><tr><th>رقم</th><th>الموضوع</th><th>التسجيلة</th><th>إجراء</th></tr></thead>
+        <thead>
+            <tr>
+                <th style="width:50px;">رقم</th>
+                <th style="width:200px;">رأس الموضوع</th>
+                <th>تفاصيل السجل (البيانات المستعادة)</th>
+                <th style="width:100px;">إجراء</th>
+            </tr>
+        </thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
 <script>
-// دالة استرجاع البيانات المفقودة
-function recoverData() {
+// جلب البيانات مع ضمان قراءة الصيغ القديمة والجديدة
+function loadData() {
     let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
     let curP = localStorage.getItem('L_A') || projs[0];
-    let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+    let rawData = JSON.parse(localStorage.getItem('R_' + curP)) || [];
     
-    // إذا كانت القائمة فارغة، نحاول البحث في الأسماء القديمة المحتملة
-    if (recs.length === 0) {
-        let oldKeys = Object.keys(localStorage).filter(k => k.startsWith('R_'));
-        if (oldKeys.length > 0) {
-            curP = oldKeys[0].replace('R_', '');
-            recs = JSON.parse(localStorage.getItem(oldKeys[0]));
-        }
-    }
-    return { projs, curP, recs };
+    // تصحيح البيانات "الخفية" لتعود للظهور
+    let sanitized = rawData.map(r => {
+        return {
+            subject: r.subject || r.sub || "",
+            author: r.author || r.auth || "",
+            title: r.title || r.tit || r.orig_title || "",
+            see: r.see || "",
+            see_also: r.see_also || "",
+            journal: r.journal || "",
+            year: r.year || "",
+            pages: r.pages || ""
+        };
+    });
+    return { projs, curP, sanitized };
 }
 
-let { projs, curP, recs } = recoverData();
+let { projs, curP, sanitized: recs } = loadData();
 let editIndex = -1;
 
 function draw() {
@@ -90,25 +89,51 @@ function draw() {
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
     
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `
-        <tr>
-            <td>${i+1}</td>
-            <td>${r.subject || ''}</td>
-            <td>${r.author || ''} - ${r.title || ''}</td>
-            <td><button onclick="edit(${i})">تعديل</button></td>
-        </tr>`).join('');
+    document.getElementById('recCounter').innerText = `[ إجمالي: ${recs.length} ]`;
     
-    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+    document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
+        let content = r.title ? `<b>${r.author}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : "سجل فارغ");
+        return `<tr>
+            <td>${i + 1}</td>
+            <td>${r.subject}</td>
+            <td>${content}</td>
+            <td><button onclick="edit(${i})">تعديل</button></td>
+        </tr>`;
+    }).join('');
+    
+    document.getElementById('pSel').innerHTML = projs.map(p => `<option ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
 }
 
 function save() { 
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     if (editIndex > -1) recs[editIndex] = d; else recs.push(d); 
-    editIndex = -1; draw(); 
+    editIndex = -1; draw(); document.getElementById('bForm').reset();
 }
 
-function edit(i) { editIndex = i; let r = recs[i]; Object.keys(r).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = r[k]; }); }
-function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function edit(i) { 
+    editIndex = i; 
+    let r = recs[i]; 
+    document.getElementById('subject').value = r.subject;
+    document.getElementById('author').value = r.author;
+    document.getElementById('title').value = r.title;
+    document.getElementById('see').value = r.see;
+    window.scrollTo(0,0); 
+}
+
+function exportX() { 
+    const ws = XLSX.utils.json_to_sheet(recs); 
+    const wb = XLSX.utils.book_new(); 
+    XLSX.utils.book_append_sheet(wb, ws, "Data"); 
+    XLSX.writeFile(wb, `نسخة_احتياطية_${curP}.xlsx`); 
+}
+
+function switchP(v) { 
+    curP = v; 
+    let d = loadData();
+    recs = d.sanitized;
+    draw(); 
+}
+
 window.onload = draw;
 </script>
 </body>
