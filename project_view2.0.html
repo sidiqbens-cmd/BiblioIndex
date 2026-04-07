@@ -179,23 +179,32 @@ function updateAllDatalists() {
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let lastSub = '';
-    let html = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:40px; line-height:1.6; font-size:14pt;}.sub-header{background:#eee; text-align:center; padding:5px; border:1px solid #000; margin:15px 0; font-weight:bold;}</style></head><body>`;
+    let html = `<html dir="rtl"><head><style>
+        body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; font-size: 14pt; }
+        .sub-header { background: #eee; text-align: center; padding: 5px; border: 1px solid #000; margin: 20px 0 10px 0; font-weight: bold; }
+    </style></head><body>`;
     
     recs.forEach(r => {
-        if (r.subject !== lastSub) {
-            html += `<div class="sub-header">${r.subject}</div>`;
-            lastSub = r.subject;
-            let seeAlso = recs.filter(x => x.subject === r.subject && x.see_also).map(x => x.see_also).join(' / ');
-            if (seeAlso) {
-                let fmt = seeAlso.split(' / ').filter((v,i,a)=>v && a.indexOf(v)===i).join(' ؛ ');
-                html += `<div style="text-align:center; font-weight:bold; background:#f9f9f9;">انظر أيضاً: ${fmt}</div>`;
+        if (g(r.subject) !== lastSub) {
+            html += `<div class="sub-header">${g(r.subject)}</div>`;
+            lastSub = g(r.subject);
+        }
+        if (g(r.title) || g(r.orig_title)) {
+            let pubInfo = [];
+            if (g(r.place)) pubInfo.push(g(r.place));
+            if (g(r.publisher)) pubInfo.push(g(r.publisher));
+            if (g(r.year)) pubInfo.push(g(r.year));
+            
+            // الحل النهائي للصاد: لا تظهر إلا إذا كان هناك رقم حقيقي
+            let pVal = g(r.pages);
+            if (pVal && pVal.trim() !== "") {
+                let pStr = g(r.journal) ? `ص ${pVal}` : `${pVal}ص`;
+                pubInfo.push(pStr);
             }
+            let bibTail = pubInfo.filter(x => x).join(' ، ');
+            html += `<div style="margin-bottom:12px;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title) || g(r.orig_title)} . ـــ ${bibTail}.</div>`;
         }
-        if (r.title) {
-            const g = (v) => (v && v !== 'undefined' ? v : '');
-            let bibTail = g(r.journal) ? `${g(r.journal)} ${g(r.year)} ص ${g(r.pages)}` : `${g(r.place)} : ${g(r.publisher)} ، ${g(r.year)} . ـــ ص ${g(r.pages)}`;
-            html += `<div style="margin-bottom:12px; text-align:justify;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title)} . ـــ ${bibTail}.</div>`;
-        }
+ 
     });
     win.document.write(html + `</body></html>`); win.document.close();
 }
