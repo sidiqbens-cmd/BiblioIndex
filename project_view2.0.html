@@ -323,19 +323,12 @@ function journalIdx() {
     }});
     renderIdx(m, "المجلات");
 }
-function renderIdx(m, title, direction) {
-    // 1. هذا هو السطر الجديد الوحيد لتحديد الفاصلة
-    let sep = (direction.indexOf('ltr') !== -1) ? ', ' : ' ، ';
-
-    let k = Object.keys(m).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
-    
-    let h = `<h2 style="text-align:center;">كشاف ${title}</h2>
-             <div class="column-wrapper" ${direction}>` 
-             // 2. قمنا فقط بتغيير ما بداخل القوسين إلى sep
-             + k.map(x => `<div>${x} (${m[x].sort((a,b)=>a-b).join(sep)})</div>`).join('') + `</div>`;
-             
-    document.getElementById('modalBody').innerHTML = h;
-    document.getElementById('modalOverlay').style.display = 'block';
+function renderIdx(m, title) {
+    let k = Object.keys(m).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b),'ar'));
+    let h = `<h2 style="text-align:center;">كشاف ${title}</h2><div class="column-wrapper">`;
+    k.forEach(x => h += `<div>${x} (${m[x].join(', ')})</div>`);
+    document.getElementById('modalBody').innerHTML = h + `</div>`;
+    document.getElementById('modalOverlay').style.display='block';
 }
 window.onload = draw;
 </script>
