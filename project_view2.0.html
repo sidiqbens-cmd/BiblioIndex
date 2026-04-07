@@ -40,7 +40,33 @@
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
-
+    // دالة استرجاع البيانات للتعديل - توضع في السطر 197
+function loadRec() {
+    let targetID = document.getElementById('searchID').value;
+    if (!targetID) { alert("من فضلك أدخل رقم التسجيلة"); return; }
+    
+    // البحث في السجلات بناءً على المعرف النهائي أو التسلسلي
+    let r = recs.find(x => x.finalID == targetID || x.id == targetID);
+    
+    if (r) {
+        // تعبئة حقول الإدخال بالبيانات المسترجعة
+        document.getElementById('subject').value = r.subject || "";
+        document.getElementById('author').value = r.author || "";
+        document.getElementById('title').value = r.title || "";
+        document.getElementById('journal').value = r.journal || "";
+        document.getElementById('year').value = r.year || "";
+        document.getElementById('pages').value = r.pages || "";
+        document.getElementById('material_place').value = r.place || "";
+        document.getElementById('publisher').value = r.publisher || "";
+        if(document.getElementById('orig_title')) document.getElementById('orig_title').value = r.orig_title || "";
+        
+        // تنبيه بسيط لنجاح العملية
+        console.log("تم استرجاع التسجيلة: " + targetID);
+        alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح. يمكنك التعديل الآن.");
+    } else {
+        alert("لم يتم العثور على تسجيلة تحمل الرقم: " + targetID);
+    }
+}
     <form id="bForm">
         <table class="input-table" id="inputTable">
             <tr>
