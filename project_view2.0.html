@@ -40,33 +40,11 @@
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
-    // دالة استرجاع البيانات للتعديل - توضع في السطر 197
-function loadRec() {
-    let targetID = document.getElementById('searchID').value;
-    if (!targetID) { alert("من فضلك أدخل رقم التسجيلة"); return; }
-    
-    // البحث في السجلات بناءً على المعرف النهائي أو التسلسلي
-    let r = recs.find(x => x.finalID == targetID || x.id == targetID);
-    
-    if (r) {
-        // تعبئة حقول الإدخال بالبيانات المسترجعة
-        document.getElementById('subject').value = r.subject || "";
-        document.getElementById('author').value = r.author || "";
-        document.getElementById('title').value = r.title || "";
-        document.getElementById('journal').value = r.journal || "";
-        document.getElementById('year').value = r.year || "";
-        document.getElementById('pages').value = r.pages || "";
-        document.getElementById('material_place').value = r.place || "";
-        document.getElementById('publisher').value = r.publisher || "";
-        if(document.getElementById('orig_title')) document.getElementById('orig_title').value = r.orig_title || "";
-        
-        // تنبيه بسيط لنجاح العملية
-        console.log("تم استرجاع التسجيلة: " + targetID);
-        alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح. يمكنك التعديل الآن.");
-    } else {
-        alert("لم يتم العثور على تسجيلة تحمل الرقم: " + targetID);
-    }
-}
+    <div style="background:#ecf0f1; padding:8px; border-bottom:2px solid #bdc3c7; display:flex; align-items:center; justify-content:center; gap:15px;">
+    <strong style="color:#2c3e50;">رقم التسجيلة المستهدفة:</strong>
+    <input type="number" id="searchID" style="width:100px; padding:5px; border:1px solid #7f8c8d; border-radius:4px; text-align:center; font-weight:bold;" placeholder="000">
+    <button type="button" class="btn" style="background:#27ae60; color:white; padding:5px 20px; cursor:pointer;" onclick="loadRec()">استرجاع للتعديل</button>
+</div>
     <form id="bForm">
         <table class="input-table" id="inputTable">
             <tr>
@@ -155,7 +133,28 @@ const cleanSort = (s) => {
     let cleaned = s.toString().replace(/^(ال)/, '');
     return cleaned.trim();
 };
-
+function loadRec() {
+    let targetID = document.getElementById('searchID').value;
+    if (!targetID) { alert("من فضلك أدخل رقم التسجيلة"); return; }
+    
+    let r = recs.find(x => x.finalID == targetID || x.id == targetID);
+    
+    if (r) {
+        document.getElementById('subject').value = r.subject || "";
+        document.getElementById('author').value = r.author || "";
+        document.getElementById('title').value = r.title || "";
+        document.getElementById('journal').value = r.journal || "";
+        document.getElementById('year').value = r.year || "";
+        document.getElementById('pages').value = r.pages || "";
+        document.getElementById('material_place').value = r.place || "";
+        document.getElementById('publisher').value = r.publisher || "";
+        if(document.getElementById('orig_title')) document.getElementById('orig_title').value = r.orig_title || "";
+        
+        alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح.");
+    } else {
+        alert("لم يتم العثور على التسجيلة رقم: " + targetID);
+    }
+}
 function draw() {
     recs.sort((a, b) => {
         let subA = cleanSort(a.subject);
