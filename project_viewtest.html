@@ -182,70 +182,34 @@ function updateAllDatalists() {
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
-        body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
-        .sub-header{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
-        .see-also-preview { 
-            display: block; 
-            text-align: center; 
-            font-weight: bold; 
-            margin: 6px 0; 
-            font-size: 13pt; 
-            background: #f2f2f2; 
-            padding: 5px 0; 
-            width: 100%; 
-        }
-        .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
-        .id-num{float:left; color:#666;}
-        .title-bold{font-weight:bold;}
-    </style></head><body>`;
-
-    const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
     let lastSub = '';
-
+    let html = `<html dir="rtl"><head><style>
+        body { font-family: 'Times New Roman', serif; padding: 40px; line-height: 1.6; font-size: 14pt; }
+        .sub-header { background: #eee; text-align: center; padding: 5px; border: 1px solid #000; margin: 20px 0 10px 0; font-weight: bold; }
+    </style></head><body>`;
+    
     recs.forEach(r => {
-        if (!r.title && r.see) {
-            if (usedSubjects.has(r.see.trim())) { content += `<div class="sub-header">${r.subject} انظر: ${r.see}</div>`; lastSub = r.subject; }
-            return;
+        if (g(r.subject) !== lastSub) {
+            html += `<div class="sub-header">${g(r.subject)}</div>`;
+            lastSub = g(r.subject);
         }
-        if (r.subject !== lastSub) {
-            content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
-            // معالجة تعدد الرؤوس في "انظر أيضاً" باستخدام الفاصلة المنقوطة
-            let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also)
-                                 .flatMap(x => x.see_also.split('/').map(s=>s.trim()))
-                                 .filter(s=>s)
-                                 .join(' ؛ ');
-            if (allSeeAlso) {
-                content += `<span class="see-also-preview">انظر أيضاً: ${allSeeAlso}</span>`;
+        if (g(r.title) || g(r.orig_title)) {
+            let pubInfo = [];
+            if (g(r.place)) pubInfo.push(g(r.place));
+            if (g(r.publisher)) pubInfo.push(g(r.publisher));
+            if (g(r.year)) pubInfo.push(g(r.year));
+            
+            // الحل النهائي للصاد: لا تظهر إلا إذا كان هناك رقم حقيقي
+            let pVal = g(r.pages);
+            if (pVal && pVal.trim() !== "") {
+                let pStr = g(r.journal) ? `ص ${pVal}` : `${pVal}ص`;
+                pubInfo.push(pStr);
             }
-        }
-        if (r.title) {
-            let authorPart = r.author ? `<b>${r.author}</b>` : "";
-            let idPart = `<span class="id-num">(${r.finalID})</span>`;
-            let respStr = [r.author_preview, r.collab].filter(x=>x).join('، ');
-            if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
-            if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
-            let bibTail = "";
-            if (r.journal) {
-                let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
-                bibTail = [r.journal, issueYear, r.pages ? "ص " + r.pages : ""].filter(x => x).join(" . ـــ ");
-            } else {
-                let pubInfo = [r.place, r.publisher].filter(x => x).join(" : ");
-                let yearInfo = r.year ? " ، " + r.year : "";
-                let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
-                bibTail = pubInfo + yearInfo + pagesInfo;
-            }
-            let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
-            let mainLine = `<div class="ent" style="text-align: justify;">
-                <div style="overflow:hidden; margin-bottom: 2px;">${authorPart} ${idPart}</div>
-                <span class="title-bold" style="display:inline;">${r.title}</span>
-                <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
-                ${r.orig_title ? `<div style="font-size: 12pt; margin-top:4px;"><i>العنوان الأصلي: ${r.orig_title}</i></div>` : ''}
-            </div>`;
-            content += mainLine;
+            let bibTail = pubInfo.filter(x => x).join(' ، ');
+            html += `<div style="margin-bottom:12px;"><b>${g(r.author)}</b> (${r.finalID}) ${g(r.title) || g(r.orig_title)} . ـــ ${bibTail}.</div>`;
         }
     });
-    win.document.write(content + '</body></html>'); win.document.close();
+    win.document.write(html + `</body></html>`); win.document.close();
 }
 
 function copyRec() {
