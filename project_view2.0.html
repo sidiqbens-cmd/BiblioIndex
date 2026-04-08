@@ -217,7 +217,7 @@ function openBiblioWindow() {
         body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
         .sub-header{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
         .see-also-preview { display: block; text-align: center; font-weight: bold; margin: 6px 0; font-size: 13pt; background: #f2f2f2; padding: 5px 0; width: 100%; }
-        .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; position:relative;}
+        .ent{margin-bottom:18px; border-bottom:none; padding-bottom:12px; position:relative;}
         .id-num{float:left; color:#666;}
         .title-bold{font-weight:bold;}
     </style></head><body>`;
@@ -255,7 +255,7 @@ function openBiblioWindow() {
                 bibTail = pubInfo + yearInfo + pagesInfo;
             }
             let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
-            let mainLine = `<div class="ent" style="text-align: justify;">
+            let mainLine = `<div class="ent" style="text-align: justify; border: none; padding-bottom: 2px; margin-bottom: 2px;">`
                 <div style="overflow:hidden; margin-bottom: 2px;">${authorPart} ${idPart}</div>
                 <span class="title-bold" style="display:inline;">${r.title}</span>
                 <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
