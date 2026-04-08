@@ -282,25 +282,31 @@ function pasteRec() {
 function save() { 
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
-    if(!d.subject) { alert("رأس الموضوع إلزامي"); return; } 
+    
+    if(!d.subject) { 
+        alert("رأس الموضوع إلزامي"); 
+        return; 
+    } 
 
     if (editIndex > -1) {
-        // تحديث السجل الحالي مع الحفاظ على المعرفات
+        // تحديث السجل الحالي
         recs[editIndex] = { ...recs[editIndex], ...d };
-        alert("تم تحديث التسجيلة بنجاح");
     } else {
         // إضافة سجل جديد
         d.id = recs.length > 0 ? Math.max(...recs.map(r => r.id)) + 1 : 1;
         d.finalID = d.id;
         recs.push(d);
-        alert("تم حفظ تسجيلة جديدة");
     } 
 
+    // تصفير الواجهة وإفراغ الخانات
     editIndex = -1; 
-    document.getElementById('bForm').reset(); 
+    document.getElementById('searchID').value = ""; // هذا هو السطر الذي سيفرغ خانة الاسترجاع
     
     draw(); 
-    
+    document.getElementById('bForm').reset(); 
+
+    // تنبيه واحد فقط بدلاً من النوافذ المتعددة
+    alert("تم الحفظ بنجاح"); 
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
