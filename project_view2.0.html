@@ -297,8 +297,10 @@ function save() {
     } 
 
     editIndex = -1; 
-    draw(); 
     document.getElementById('bForm').reset(); 
+    
+    draw(); 
+    
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
