@@ -45,6 +45,7 @@
     <input type="number" id="searchID" style="width:100px; padding:5px; border:1px solid #7f8c8d; border-radius:4px; text-align:center; font-weight:bold;" placeholder="000">
     <button type="button" class="btn" style="background:#27ae60; color:white; padding:5px 20px; cursor:pointer;" onclick="loadRec()">استرجاع للتعديل</button>
 </div>
+    <input type="hidden" id="editingID" value=""> 
     <form id="bForm">
         <table class="input-table" id="inputTable">
             <tr>
@@ -149,7 +150,20 @@ function loadRec() {
         document.getElementById('material_place').value = r.place || "";
         document.getElementById('publisher').value = r.publisher || "";
         if(document.getElementById('orig_title')) document.getElementById('orig_title').value = r.orig_title || "";
-        
+        if (editIndex > -1) {
+        // تحديث البيانات مع الحفاظ على المعرفات الأصلية (id و finalID)
+        recs[editIndex] = { ...recs[editIndex], ...d }; 
+        alert("تم تحديث التسجيلة بنجاح");
+    } else {
+        // كود الإضافة الجديد الخاص بك
+        d.id = recs.length > 0 ? Math.max(...recs.map(r => r.id)) + 1 : 1;
+        d.finalID = d.id;
+        recs.push(d);
+        alert("تم حفظ تسجيلة جديدة");
+    }
+    editIndex = -1; 
+    draw(); 
+    document.getElementById('bForm').reset();
         alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح.");
     } else {
         alert("لم يتم العثور على التسجيلة رقم: " + targetID);
