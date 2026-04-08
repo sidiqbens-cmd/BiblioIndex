@@ -155,7 +155,7 @@ function loadRec() {
             else inp.value = r[inp.id] || "";
         });
         
-        alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح.");
+        //alert("تم استرجاع بيانات التسجيلة رقم (" + targetID + ") بنجاح.");
     } else {
         alert("لم يتم العثور على التسجيلة رقم: " + targetID);
     }
@@ -281,32 +281,34 @@ function pasteRec() {
 // دالة الحفظ الذكية (تعديل أو إضافة)
 function save() { 
     let d = {}; 
+    // تجميع البيانات من جميع الحقول التي تحمل كلاس in
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     
+    // التحقق من الحقل الإلزامي
     if(!d.subject) { 
         alert("رأس الموضوع إلزامي"); 
         return; 
     } 
 
     if (editIndex > -1) {
-        // تحديث السجل الحالي
+        // تحديث السجل الحالي (وضع التعديل)
         recs[editIndex] = { ...recs[editIndex], ...d };
     } else {
-        // إضافة سجل جديد
+        // إضافة سجل جديد (تلقائي الرقم)
         d.id = recs.length > 0 ? Math.max(...recs.map(r => r.id)) + 1 : 1;
         d.finalID = d.id;
         recs.push(d);
     } 
 
-    // تصفير الواجهة وإفراغ الخانات
+    // تنظيف الواجهة بعد الحفظ
     editIndex = -1; 
-    document.getElementById('searchID').value = ""; // هذا هو السطر الذي سيفرغ خانة الاسترجاع
+    document.getElementById('searchID').value = ""; // إفراغ خانة رقم التسجيلة المستهدفة
+    document.getElementById('bForm').reset();      // إفراغ كافة حقول الإدخال
     
-    draw(); 
-    document.getElementById('bForm').reset(); 
+    draw(); // تحديث عرض الجدول والكشافات
 
-    // تنبيه واحد فقط بدلاً من النوافذ المتعددة
-    alert("تم الحفظ بنجاح"); 
+    // تنبيه واحد نهائي فقط
+    alert("تم الحفظ بنجاح وتطهير خانات الإدخال."); 
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
