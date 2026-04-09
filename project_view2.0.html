@@ -206,12 +206,12 @@ function updateAllDatalists() {
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
-        body{font-family:'Times New Roman', serif;padding:40px;line-height:1.4; font-size: 14pt;}
-        .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:10px 0 5px 0;font-weight:bold;border:none;}
-        .see-also-preview { display: block; text-align: center; font-weight: bold; margin: 4px 0; font-size: 13pt; background: #f2f2f2; padding: 3px; }
-        .ent { margin-bottom: 6px; border-bottom: 1px solid #ddd; padding-bottom: 6px; position: relative; }
-        .id-num{float:left; color:#666;}
-        .title-bold{font-weight:bold;}
+        // التعديلات في قسم الأنماط لضبط الأحجام والسمك
+    body{font-family:'Times New Roman', serif;padding:40px;line-height:1.4; font-size: 12pt;}
+    .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:10px 0 5px 0;font-weight:bold;border:none; font-size: 14pt;}
+    .see-also-preview { display: block; text-align: center; font-weight: bold; margin: 4px 0; font-size: 13pt; background: #f2f2f2; padding: 5px 0; }
+    .ent { margin-bottom: 6px; border-bottom: none; padding-bottom: 0px; position: relative; font-size: 12pt; }
+    .id-num{float:left; color:#666; font-size: 11pt;}
     </style></head><body>`;
 
     const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
@@ -248,14 +248,14 @@ function openBiblioWindow() {
             }
             let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
             // 1. تحديد نمط العنوان: غامق إذا لم يوجد مؤلف، وعادي إذا وجد مؤلف
+// تحديد نمط العنوان بناءً على وجود مؤلف (المدخل الرئيسي)
 let titleWeight = (!r.author || r.author.trim() === "") ? "bold" : "normal";
 
-// 2. بناء التسجيلة مع تطبيق النمط والمسافات الجديدة
-let mainLine = `<div class="ent" style="text-align: justify; border: none; padding-bottom: 0px; margin-bottom: 6px;">
+let mainLine = `<div class="ent" style="text-align: justify; border: none; margin-bottom: 6px;">
     <div style="overflow:hidden; margin-bottom: 0px;">${authorPart} ${idPart}</div>
     <span style="display:inline; font-weight: ${titleWeight};">${r.title}</span>
     <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
-    ${r.orig_title ? `<div style="font-size: 12pt; margin-top:4px;"><i>العنوان الأصلي: ${r.orig_title}</i></div>` : ''}
+    ${r.orig_title ? `<div style="font-size: 11pt; margin-top:2px;"><i>العنوان الأصلي: ${r.orig_title}</i></div>` : ''}
 </div>`;
             content += mainLine;
         }
