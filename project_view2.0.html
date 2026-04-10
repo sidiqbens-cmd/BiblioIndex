@@ -41,12 +41,15 @@
         </div>
     </div>
     
-    <div style="background:#ecf0f1; padding:8px; border-bottom:2px solid #bdc3c7; display:flex; align-items:center; justify-content:center; gap:15px;">
+    <div style="background:#ecf0f1; padding:8px; border-bottom:2px solid #bdc3c7; display:flex; align-items:center; justify-content:space-between; gap:15px;">
+    <div style="display:flex; align-items:center; gap:10px;">
         <strong style="color:#2c3e50;">رقم التسجيلة المستهدفة:</strong>
         <input type="number" id="searchID" style="width:80px; padding:5px; border:1px solid #7f8c8d; border-radius:4px; text-align:center; font-weight:bold;">
-        <span id="totalCounter" style="color:#c0392b; font-weight:bold; font-size: 14pt; margin: 0 10px;">[ العدد الإجمالي: 0 ]</span>
         <button type="button" class="btn" style="background:#27ae60; color:white; padding:5px 20px; cursor:pointer;" onclick="loadRec()">استرجاع للتعديل</button>
     </div>
+    
+    <span id="totalCounter" style="color:#c0392b; font-weight:bold; font-size: 14pt;">[ العدد الإجمالي: 0 ]</span>
+</div>
 
     <input type="hidden" id="editingID" value="">
 
@@ -158,10 +161,15 @@ function draw() {
     // تحديث العداد الحقيقي ليعبر عن عدد التسجيلات الفعلي في المصفوفة
     const counter = document.getElementById('totalCounter');
     if (counter) {
+        // استخدام recs.length يضمن الحصول على العدد الحقيقي دائماً
         counter.innerText = `[ العدد الإجمالي: ${recs.length} ]`;
     }
 
-    // بقية كود دالة draw الأصلية...
+    // تصفير خانة البحث بعد كل عملية حفظ أو تعديل لزيادة الكثافة
+    const searchField = document.getElementById('searchID');
+    if(searchField) searchField.value = "";
+
+    // ... بقية كود دالة draw الأصلية ...
     let html = '';
     // ...
 }
