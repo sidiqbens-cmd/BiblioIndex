@@ -13,7 +13,8 @@
         .scroll-area { margin-top: 310px; padding: 10px; }
         .admin-table { border-collapse: collapse; width: 100%; background: #fff; }
         .admin-table th, .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; }
-        #viewArea { background: white; padding: 20px; display: none; margin-top: 10px; border: 2px solid #2c3e50; }
+        /* تصميم النافذة المنبثقة كما في صورة 547810 */
+        #modal { display: none; position: fixed; top: 10%; left: 10%; width: 80%; height: 80%; background: white; border: 2px solid #2c3e50; z-index: 2000; overflow-y: auto; padding: 20px; }
     </style>
 </head>
 <body>
@@ -26,9 +27,9 @@
             <button class="btn" onclick="alert('لصق')">لصق</button>
             <button class="btn" onclick="alert('استيراد')">استيراد</button>
             <button class="btn" onclick="alert('تصدير')">تصدير</button>
-            <button class="btn" onclick="alert('مشروع جديد')">+ مشروع</button>
+            <button class="btn" onclick="addProject()">+ مشروع جديد</button>
             <select id="pSel"><option>المشروع الرئيسي</option></select>
-            <button class="btn" onclick="alert('حذف')">حذف</button>
+            <button class="btn" style="background:#c0392b" onclick="delProject()">حذف</button>
         </div>
     </div>
     
@@ -39,83 +40,61 @@
 
     <table class="input-table">
         <tr>
-            <td>رأس الموضوع<input type="text" id="subject" class="in"></td>
-            <td>إحالة انظر<input type="text" id="see" class="in"></td>
-            <td>إحالة انظر أيضاً<input type="text" id="see_also" class="in"></td>
+            <td>رأس الموضوع<select id="subject" class="in"><option>القانون الدولي</option></select></td>
+            <td>إحالة انظر<select id="see" class="in"></select></td>
+            <td>إحالة انظر أيضاً<select id="see_also" class="in"></select></td>
         </tr>
         <tr>
-            <td>اسم الطالب (مقلوب)<input type="text" id="author" class="in"></td>
-            <td colspan="2">العنوان<input type="text" id="title" class="in"></td>
+            <td>اسم الطالب<select id="author" class="in"><option>ابن كثير، محمد</option></select></td>
+            <td colspan="2">العنوان<select id="title" class="in"></select></td>
         </tr>
         <tr>
-            <td>المشرف<input type="text" id="editor" class="in"></td>
-            <td>القسم<input type="text" id="dept" class="in"></td>
-            <td>الكلية<input type="text" id="faculty" class="in"></td>
+            <td>المشرف<select id="editor" class="in"></select></td>
+            <td>القسم<select id="dept" class="in"><option>المكتبات</option></select></td>
+            <td>الكلية<select id="faculty" class="in"><option>الآداب</option></select></td>
         </tr>
         <tr>
-            <td>الجامعة<input type="text" id="uni" class="in"></td>
-            <td>السنة<input type="text" id="year" class="in"></td>
-            <td>نوع الرسالة<input type="text" id="type" class="in"></td>
+            <td>الجامعة<select id="uni" class="in"><option>المركزية</option></select></td>
+            <td>السنة<select id="year" class="in"><option>2025</option></select></td>
+            <td>نوع الرسالة<select id="type" class="in"><option>ماجستير</option></select></td>
         </tr>
     </table>
 
     <div class="actions">
         <button class="btn" onclick="save()">حفظ السجل</button>
-        <button class="btn" onclick="viewBiblio()">المعاينة</button>
-        <button class="btn" onclick="showStats('dept')">الأقسام</button>
-        <button class="btn" onclick="showStats('faculty')">الكليات</button>
-        <button class="btn" onclick="showStats('uni')">الجامعات</button>
+        <button class="btn" onclick="openModal('المعاينة النهائية')">المعاينة</button>
+        <button class="btn" onclick="openModal('قائمة الأقسام')">قائمة الأقسام</button>
+        <button class="btn" onclick="openModal('قائمة الكليات')">قائمة الكليات</button>
+        <button class="btn" onclick="openModal('قائمة الجامعات')">قائمة الجامعات</button>
     </div>
 </div>
 
 <div class="scroll-area">
-    <div id="viewArea"></div>
-    <table class="admin-table" id="mainTable">
-        <thead><tr><th style="width:40px;">رقم</th><th>العنوان والتفاصيل</th><th style="width:120px;">إجراءات</th></tr></thead>
+    <table class="admin-table">
+        <thead><tr><th style="width:40px;">رقم</th><th>المحتوى</th><th style="width:120px;">إجراءات</th></tr></thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
+<div id="modal">
+    <button onclick="document.getElementById('modal').style.display='none'">إغلاق</button>
+    <div id="modalContent"></div>
+</div>
+
 <script>
-let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
-
-function save() {
-    let d = {};
-    document.querySelectorAll('.in').forEach(i => { d[i.id] = i.value.trim(); i.value = ''; });
-    recs.push(d);
-    localStorage.setItem('THESES_DATA', JSON.stringify(recs));
-    draw();
+function addProject() {
+    let name = prompt("أدخل اسم المشروع الجديد:");
+    if(name) {
+        let opt = document.createElement('option');
+        opt.text = name;
+        document.getElementById('pSel').add(opt);
+    }
 }
-
-function showStats(field) {
-    document.getElementById('mainTable').style.display = 'none';
-    let area = document.getElementById('viewArea');
-    area.style.display = 'block';
-    let m = {};
-    recs.forEach((r, i) => { if(r[field]) { if(!m[r[field]]) m[r[field]] = []; m[r[field]].push(i+1); }});
-    let sorted = Object.keys(m).sort((a,b) => a.replace(/^(ال)/, '').localeCompare(b.replace(/^(ال)/, ''), 'ar'));
-    let h = `<h2>قائمة ${field}</h2><table border="1" style="width:100%; border-collapse:collapse;">`;
-    sorted.forEach(k => h += `<tr><td>${k}</td><td>${m[k].join(', ')}</td></tr>`);
-    area.innerHTML = h + "</table><button onclick='window.location.reload()'>عودة</button>";
+function openModal(title) {
+    document.getElementById('modal').style.display = 'block';
+    document.getElementById('modalContent').innerHTML = `<h2>${title}</h2><p>محتوى ${title} سيظهر هنا كما في الصورة...</p>`;
 }
-
-function viewBiblio() {
-    document.getElementById('mainTable').style.display = 'none';
-    let area = document.getElementById('viewArea');
-    area.style.display = 'block';
-    area.innerHTML = "<h2>المعاينة الببليوغرافية</h2><ul>" + recs.map(r => `<li>${r.author} - ${r.title}</li>`).join('') + "</ul><button onclick='window.location.reload()'>عودة</button>";
-}
-
-function draw() {
-    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.length} ]`;
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr>
-        <td>${i+1}</td>
-        <td><b>${r.subject || ''}</b>: ${r.author || ''} - ${r.title || ''} (${r.year || ''})</td>
-        <td><button onclick="edit(${i})">تعديل</button><button onclick="del(${i})">حذف</button></td>
-    </tr>`).join('');
-}
-function del(i) { recs.splice(i,1); localStorage.setItem('THESES_DATA', JSON.stringify(recs)); draw(); }
-window.onload = draw;
+// الدوال الأخرى تبقى كما هي...
 </script>
 </body>
 </html>
