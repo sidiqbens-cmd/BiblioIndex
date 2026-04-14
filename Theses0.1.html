@@ -214,15 +214,17 @@ function openBiblioWindow() {
             let line1 = `<div><b>${r.author || ''}</b></div>`;
             
             // السطر الثاني: العنوان / المشرف . ـــ القسم، الكلية، الجامعة، السنة . ـــ نوع الرسالة
-            let resp = r.editor ? ` / ${r.editor}` : "";
+            let parts = [];
+            if (r.editor) parts.push("إشراف: " + r.editor);
+            
             let details = [
-                r.dept ? "قسم " + r.dept : "",
-                r.faculty ? "كلية " + r.faculty : "",
-                r.uni ? "جامعة " + r.uni : "",
-                r.year
+                r.place ? "قسم " + r.place : "",
+                r.publisher ? "كلية " + r.publisher : "",
+                r.affiliation ? "جامعة " + r.affiliation : "",
+                r.year ? r.year : ""
             ].filter(x => x).join(" ، ");
             
-            let line2 = `<div>${r.title}${resp} . ـــ ${details} . ـــ ${r.material_type || ''}</div>`;
+            let line2 = `<div>${r.title} ${r.editor ? ' / إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${r.material_type || ''}</div>`;
             
             content += `<div class="ent">${line1}${line2}</div>`;
         }
