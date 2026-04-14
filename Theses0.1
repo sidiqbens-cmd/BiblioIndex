@@ -47,12 +47,20 @@
         </td>
         <td><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"></td>
     </tr>
-    <tr>
-        <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
-        <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"></td>
-        <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"></td>
-        <td class="stats-row"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
-    </tr>
+    <td><span class="field-label">القسم</span>
+        <input type="text" id="dept" list="list_dept" class="in">
+        <datalist id="list_dept"></datalist>
+    </td>
+
+    <td><span class="field-label">الكلية</span>
+        <input type="text" id="faculty" list="list_faculty" class="in">
+        <datalist id="list_faculty"></datalist>
+    </td>
+
+    <td><span class="field-label">الجامعة</span>
+        <input type="text" id="uni" list="list_uni" class="in">
+        <datalist id="list_uni"></datalist>
+    </td>
 </table>
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
@@ -81,7 +89,14 @@ function save() {
     localStorage.setItem('THESES_DATA', JSON.stringify(recs));
     alert("تم حفظ الرسالة");
 }
-
+function updateDataLists() {
+    let fields = ['dept', 'faculty', 'uni']; // الحقول التي نريدها منسدلة
+    fields.forEach(f => {
+        let list = document.getElementById('list_' + f);
+        let values = [...new Set(recs.map(r => r[f]).filter(v => v))]; // استخراج القيم الفريدة
+        list.innerHTML = values.map(v => `<option value="${v}">`).join('');
+    });
+}
 function openBiblioWindow() {
     // دالة المعاينة بالتنسيق المدمج (السطر الثاني: عنوان/إشراف . ـــــ قسم، كلية، جامعة، سنة . ـــ نوع)
 }
