@@ -2,132 +2,59 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Theses 0.1 - منظومة الرسائل</title>
+    <title>Theses 0.1</title>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; }
-        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; }
-        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; box-sizing: border-box; }
-        .actions { background: #cfcfcf; text-align: center; padding: 6px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; flex-wrap: wrap; }
-        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        .scroll-area { margin-top: 220px; height: calc(100vh - 230px); overflow-y: auto; padding: 5px; }
-        .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
-        .admin-table th { background: #34495e; color: white; padding: 5px; border: 1px solid #ccc; }
-        .admin-table td { border: 1px solid #ccc; padding: 4px; }
+        input { width: 100%; height: 26px; border: 1px solid #999; box-sizing: border-box; }
+        .btn { padding: 5px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between;">
-        <strong>Theses 0.1 - منظومة الرسائل الجامعية</strong>
-        <span id="totalCounter">[ العدد الإجمالي: 0 ]</span>
+    <table class="input-table">
+        <tr>
+            <td>القسم<input type="text" id="dept" list="list_dept" class="in" onfocus="updateLists()">
+                <datalist id="list_dept"></datalist>
+            </td>
+            <td>الكلية<input type="text" id="faculty" list="list_faculty" class="in" onfocus="updateLists()">
+                <datalist id="list_faculty"></datalist>
+            </td>
+            <td>الجامعة<input type="text" id="uni" list="list_uni" class="in" onfocus="updateLists()">
+                <datalist id="list_uni"></datalist>
+            </td>
+        </tr>
+    </table>
+    <div style="text-align:center; padding:10px;">
+        <button class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
     </div>
-    
-    <form id="bForm">
-        <table class="input-table" id="inputTable">
-            <tr>
-                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
-                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_subject" class="in"></td>
-                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_subject" class="in"></td>
-                <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" list="list_author" class="in"></td>
-            </tr>
-            <tr>
-                <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المشرف</span><input type="text" id="editor" list="list_editor" class="in"></td>
-                <td>
-                    <span class="field-label">نوع الرسالة</span>
-                    <select id="material_type" class="in">
-                        <option value=""></option>
-                        <option value="رسالة ماجستير">رسالة ماجستير</option>
-                        <option value="أطروحة دكتوراه">أطروحة دكتوراه</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"><datalist id="list_dept"></datalist></td>
-                <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"><datalist id="list_faculty"></datalist></td>
-                <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"><datalist id="list_uni"></datalist></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"><datalist id="list_year"></datalist></td>
-            </tr>
-        </table>
-        <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
-            <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف الطلاب</button>
-            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('dept', 'الأقسام')">كشاف الأقسام</button>
-            <button type="button" class="btn" style="background:#16a085" onclick="runIdx('faculty', 'الكليات')">كشاف الكليات</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('uni', 'الجامعات')">كشاف الجامعات</button>
-            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
-        </div>
-    </form>
-</div>
-
-<div class="scroll-area">
-    <table class="admin-table" id="adminBody"></table>
 </div>
 
 <script>
 let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
 
+// الدالة الأهم: تحديث القوائم
+function updateLists() {
+    ['dept', 'faculty', 'uni'].forEach(f => {
+        let list = document.getElementById('list_' + f);
+        let vals = [...new Set(recs.map(r => r[f]).filter(v => v))];
+        list.innerHTML = vals.map(v => `<option value="${v}">`).join('');
+    });
+}
+
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    d.finalID = recs.length + 1;
     recs.push(d);
     localStorage.setItem('THESES_DATA', JSON.stringify(recs));
-    updateLists();
-    drawTable();
-    alert("تم حفظ الرسالة");
+    updateLists(); // تحديث القوائم بعد الحفظ
+    alert("تم الحفظ");
 }
 
-function updateLists() {
-    let fields = ['dept', 'faculty', 'uni', 'year', 'subject', 'author', 'editor'];
-    fields.forEach(f => {
-        let list = document.getElementById('list_' + f);
-        if(list) {
-            let vals = [...new Set(recs.map(r => r[f]).filter(v => v))];
-            list.innerHTML = vals.map(v => `<option value="${v}">`).join('');
-        }
-    });
-}
-
-function drawTable() {
-    let b = document.getElementById('adminBody');
-    b.innerHTML = recs.map(r => `<tr><td>${r.finalID}</td><td>${r.subject}</td><td>${r.title}</td></tr>`).join('');
-    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.length} ]`;
-}
-
-function openBiblioWindow() {
-    const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><style>body{font-family:'Times New Roman'; padding:40px;} .sub{background:#eee; font-weight:bold; padding:5px; margin-top:10px;} .ent{margin-bottom:10px; text-align:justify;}</style><body>`;
-    let lastSub = '';
-    recs.forEach(r => {
-        if(r.subject !== lastSub) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
-        if(r.title) {
-            content += `<div class="ent">
-                <span style="float:left; font-weight:bold;">(${r.finalID})</span>
-                <b>${r.author}</b><br>
-                ${r.title} ${r.editor ? ' / إشراف ' + r.editor : ''} . ـــ 
-                ${[r.dept ? 'قسم ' + r.dept : '', r.faculty ? 'كلية ' + r.faculty : '', r.uni ? 'جامعة ' + r.uni : '', r.year].filter(x=>x).join(' ، ')}
-                . ـــ ${r.material_type}
-            </div>`;
-        }
-    });
-    win.document.write(content + '</body></html>'); win.document.close();
-}
-
-function runIdx(f, title) {
-    let m = {};
-    recs.forEach(r => { if(r[f]) { if(!m[r[f]]) m[r[f]] = []; m[r[f]].push(r.finalID); }});
-    let win = window.open('', '_blank');
-    let h = `<div dir="rtl"><h2>كشاف ${title}</h2>`;
-    Object.keys(m).sort().forEach(k => h += `<div>${k} (${m[k].join(', ')})</div>`);
-    win.document.write(h + '</div>');
-}
-
-window.onload = () => { updateLists(); drawTable(); };
+// التحديث عند فتح الصفحة
+window.onload = updateLists;
 </script>
 </body>
 </html>
