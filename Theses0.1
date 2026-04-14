@@ -27,31 +27,41 @@
     </div>
     
     <form id="bForm">
-        <table class="input-table">
-            <tr>
-                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
-                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" class="in"></td>
-                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" class="in"></td>
-                <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="student_name" class="in"></td>
-                <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
-            </tr>
-            <tr>
-                <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"></td>
-                <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"></td>
-                <td><span class="field-label">الجامعة</span><input type="university" id="univ" class="in"></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-                <td><span class="field-label">نوع الرسالة</span>
-                    <select id="thesis_type" class="in">
-                        <option>رسالة ماجستير</option>
-                        <option>أطروحة دكتوراه</option>
-                    </select>
-                </td>
-            </tr>
-        </table>
+        <table class="input-table" id="inputTable">
+    <tr>
+        <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
+        <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_subject" class="in"></td>
+        <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_subject" class="in"></td>
+        <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" list="list_author" class="in"></td>
+    </tr>
+    <tr>
+        <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" list="list_title" class="in"></td>
+        <td><span class="field-label">المشرف</span><input type="text" id="editor" list="list_editor" class="in"></td>
+        <td>
+            <span class="field-label">نوع الرسالة</span>
+            <select id="material_type" class="in">
+                <option value=""></option>
+                <option value="رسالة ماجستير">رسالة ماجستير</option>
+                <option value="أطروحة دكتوراه">أطروحة دكتوراه</option>
+            </select>
+        </td>
+        <td><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"></td>
+    </tr>
+    <tr>
+        <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
+        <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"></td>
+        <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"></td>
+        <td class="stats-row"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
+    </tr>
+</table>
         <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة الببليوغرافية</button>
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="runAuthorIdx()">كشاف الطلاب</button>
+            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('dept', 'الأقسام')">كشاف الأقسام</button>
+            <button type="button" class="btn" style="background:#16a085" onclick="runIdx('faculty', 'الكليات')">كشاف الكليات</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('uni', 'الجامعات')">كشاف الجامعات</button>
+            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
         </div>
     </form>
 </div>
