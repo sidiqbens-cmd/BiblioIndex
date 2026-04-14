@@ -7,12 +7,13 @@
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; }
-        input { width: 100%; height: 26px; border: 1px solid #999; box-sizing: border-box; }
+        input, select { width: 100%; height: 26px; border: 1px solid #999; box-sizing: border-box; }
         .actions { background: #cfcfcf; padding: 8px; display: flex; justify-content: center; gap: 6px; border-bottom: 2px solid #2c3e50; }
-        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; background: #27ae60; color: white; font-weight: bold; }
+        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: white; font-weight: bold; background: #34495e; }
         .scroll-area { margin-top: 310px; padding: 10px; }
         .admin-table { border-collapse: collapse; width: 100%; background: #fff; }
         .admin-table th, .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: right; }
+        #viewArea { background: white; padding: 20px; display: none; margin-top: 10px; border: 2px solid #2c3e50; }
     </style>
 </head>
 <body>
@@ -21,22 +22,18 @@
     <div style="background:#34495e; color:white; padding:6px 15px; display:flex; justify-content:space-between;">
         <strong>منظومة الرسائل الجامعية</strong>
         <div>
-            <button class="btn" onclick="copyRec()">نسخ</button>
-            <button class="btn" onclick="pasteRec()">لصق</button>
-            <button class="btn" onclick="importXLSX()">استيراد</button>
-            <button class="btn" onclick="exportXLSX()">تصدير</button>
-            <button class="btn" onclick="newProject()">+ مشروع</button>
-            <select id="pSel"></select>
-            <button class="btn" style="background:#c0392b" onclick="delProject()">حذف</button>
+            <button class="btn" onclick="alert('نسخ')">نسخ</button>
+            <button class="btn" onclick="alert('لصق')">لصق</button>
+            <button class="btn" onclick="alert('استيراد')">استيراد</button>
+            <button class="btn" onclick="alert('تصدير')">تصدير</button>
+            <button class="btn" onclick="alert('مشروع جديد')">+ مشروع</button>
+            <select id="pSel"><option>المشروع الرئيسي</option></select>
+            <button class="btn" onclick="alert('حذف')">حذف</button>
         </div>
     </div>
     
     <div style="background:#ecf0f1; padding:8px; display:flex; justify-content:space-between;">
-        <div>
-            <strong>رقم التسجيلة:</strong>
-            <input type="number" id="searchID" style="width:80px;">
-            <button class="btn" onclick="loadRec()">استرجاع</button>
-        </div>
+        <div>رقم التسجيلة: <input type="number" id="searchID" style="width:80px;"> <button class="btn" onclick="loadRec()">استرجاع</button></div>
         <span id="totalCounter" style="font-weight:bold;">[ العدد الإجمالي: 0 ]</span>
     </div>
 
@@ -64,18 +61,17 @@
 
     <div class="actions">
         <button class="btn" onclick="save()">حفظ السجل</button>
-        <button class="btn" onclick="openBiblio()">المعاينة</button>
-        <button class="btn" onclick="openStats('dept')">الأقسام</button>
-        <button class="btn" onclick="openStats('faculty')">الكليات</button>
-        <button class="btn" onclick="openStats('uni')">الجامعات</button>
+        <button class="btn" onclick="viewBiblio()">المعاينة</button>
+        <button class="btn" onclick="showStats('dept')">الأقسام</button>
+        <button class="btn" onclick="showStats('faculty')">الكليات</button>
+        <button class="btn" onclick="showStats('uni')">الجامعات</button>
     </div>
 </div>
 
 <div class="scroll-area">
-    <table class="admin-table">
-        <thead>
-            <tr><th style="width:40px;">رقم</th><th>العنوان والتفاصيل</th><th style="width:120px;">إجراءات</th></tr>
-        </thead>
+    <div id="viewArea"></div>
+    <table class="admin-table" id="mainTable">
+        <thead><tr><th style="width:40px;">رقم</th><th>العنوان والتفاصيل</th><th style="width:120px;">إجراءات</th></tr></thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
@@ -91,14 +87,23 @@ function save() {
     draw();
 }
 
-function openStats(field) {
-    let win = window.open("", "_blank");
+function showStats(field) {
+    document.getElementById('mainTable').style.display = 'none';
+    let area = document.getElementById('viewArea');
+    area.style.display = 'block';
     let m = {};
     recs.forEach((r, i) => { if(r[field]) { if(!m[r[field]]) m[r[field]] = []; m[r[field]].push(i+1); }});
     let sorted = Object.keys(m).sort((a,b) => a.replace(/^(ال)/, '').localeCompare(b.replace(/^(ال)/, ''), 'ar'));
-    let h = `<html dir="rtl"><body><h2>قائمة ${field}</h2><table border="1" style="width:100%; border-collapse:collapse;">`;
+    let h = `<h2>قائمة ${field}</h2><table border="1" style="width:100%; border-collapse:collapse;">`;
     sorted.forEach(k => h += `<tr><td>${k}</td><td>${m[k].join(', ')}</td></tr>`);
-    win.document.write(h + "</table></body></html>");
+    area.innerHTML = h + "</table><button onclick='window.location.reload()'>عودة</button>";
+}
+
+function viewBiblio() {
+    document.getElementById('mainTable').style.display = 'none';
+    let area = document.getElementById('viewArea');
+    area.style.display = 'block';
+    area.innerHTML = "<h2>المعاينة الببليوغرافية</h2><ul>" + recs.map(r => `<li>${r.author} - ${r.title}</li>`).join('') + "</ul><button onclick='window.location.reload()'>عودة</button>";
 }
 
 function draw() {
@@ -106,10 +111,7 @@ function draw() {
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr>
         <td>${i+1}</td>
         <td><b>${r.subject || ''}</b>: ${r.author || ''} - ${r.title || ''} (${r.year || ''})</td>
-        <td>
-            <button onclick="edit(${i})">تعديل</button>
-            <button onclick="del(${i})">حذف</button>
-        </td>
+        <td><button onclick="edit(${i})">تعديل</button><button onclick="del(${i})">حذف</button></td>
     </tr>`).join('');
 }
 function del(i) { recs.splice(i,1); localStorage.setItem('THESES_DATA', JSON.stringify(recs)); draw(); }
