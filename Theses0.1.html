@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Theses 0.1 - منظومة الرسائل الجامعية</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; color: white; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; color: #333; }
+        .field-label { font-size: 11px; font-weight: bold; display: block; }
+        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; }
+        .actions { background: #cfcfcf; padding: 6px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+        .scroll-area { margin-top: 180px; padding: 10px; }
+        .ent { margin-bottom: 15px; padding: 10px; background: white; border-bottom: 1px solid #ddd; }
+        .id-num { float: left; color: #666; font-weight: bold; }
+        .student-name { font-weight: bold; font-size: 14pt; }
+    </style>
+</head>
+<body>
+
+<div class="fixed-header">
+    <div style="padding: 5px 15px; background: #34495e;">
+        <strong>Theses 0.1 | منظومة الرسائل الجامعية</strong>
+        <span id="totalCounter" style="float: left;">[ العدد: 0 ]</span>
+    </div>
+    
+    <table class="input-table">
+        <tr>
+            <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
+            <td><span class="field-label">إحالة انظر</span><input type="text" id="see" class="in"></td>
+            <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" class="in"></td>
+            <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="student" class="in"></td>
+        </tr>
+        <tr>
+            <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
+            <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
+            <td><span class="field-label">الجامعة</span><input type="text" id="univ" class="in"></td>
+            <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"></td>
+            <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"></td>
+            <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
+            <td><span class="field-label">نوع الرسالة</span>
+                <select id="type" class="in">
+                    <option value="رسالة ماجستير">رسالة ماجستير</option>
+                    <option value="أطروحة دكتوراه">أطروحة دكتوراه</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    
+    <div class="actions">
+        <button class="btn" style="background:#27ae60" onclick="save()">حفظ التسجيلة</button>
+        <button class="btn" style="background:#8e44ad" onclick="viewBiblio()">المعاينة النهائية</button>
+        <button class="btn" style="background:#2980b9" onclick="alert('قريباً: كشاف الجامعات')">الجامعات</button>
+        <button class="btn" style="background:#d35400" onclick="alert('قريباً: كشاف الكليات')">الكليات</button>
+        <button class="btn" style="background:#16a085" onclick="alert('قريباً: كشاف الأقسام')">الأقسام</button>
+    </div>
+</div>
+
+<div id="displayArea" class="scroll-area"></div>
+
+<script>
+    let theses = JSON.parse(localStorage.getItem('theses_db')) || [];
+
+    function save() {
+        let entry = {};
+        document.querySelectorAll('.in').forEach(el => entry[el.id] = el.value);
+        theses.push(entry);
+        localStorage.setItem('theses_db', JSON.stringify(theses));
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('totalCounter').innerText = `[ العدد: ${theses.length} ]`;
+        let html = '';
+        theses.forEach((t, i) => {
+            html += `<div class="ent">
+                <span class="id-num">(${i+1})</span>
+                <div class="student-name">${t.student}</div>
+                <div>${t.title} / إشراف: ${t.supervisor} . ــــ ${t.dept}، ${t.faculty}، ${t.univ}، ${t.year} . ـــ ${t.type}</div>
+            </div>`;
+        });
+        document.getElementById('displayArea').innerHTML = html;
+    }
+    updateUI();
+
+    function viewBiblio() {
+        let win = window.open('', '_blank');
+        win.document.write('<html><head><title>الببليوغرافية</title><style>body{font-family:"Times New Roman"; padding:50px; direction:rtl;}</style></head><body>' + document.getElementById('displayArea').innerHTML + '</body></html>');
+    }
+</script>
+</body>
+</html>
