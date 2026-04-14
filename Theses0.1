@@ -2,19 +2,19 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Theses 0.1</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>Theses 0.1 - منظومة الرسائل</title>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
-        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; table-layout: fixed; }
-        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
-        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; }
+        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; }
+        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; box-sizing: border-box; }
         .actions { background: #cfcfcf; text-align: center; padding: 6px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
         .scroll-area { margin-top: 220px; height: calc(100vh - 230px); overflow-y: auto; padding: 5px; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
-        .admin-table th { background: #34495e; color: white; padding: 5px; }
+        .admin-table th { background: #34495e; color: white; padding: 5px; border: 1px solid #ccc; }
+        .admin-table td { border: 1px solid #ccc; padding: 4px; }
     </style>
 </head>
 <body>
@@ -78,6 +78,7 @@ function save() {
     recs.push(d);
     localStorage.setItem('THESES_DATA', JSON.stringify(recs));
     updateLists();
+    drawTable();
     alert("تم حفظ الرسالة");
 }
 
@@ -92,14 +93,41 @@ function updateLists() {
     });
 }
 
-function openBiblioWindow() {
-    // دالة المعاينة كما اتفقنا
+function drawTable() {
+    let b = document.getElementById('adminBody');
+    b.innerHTML = recs.map(r => `<tr><td>${r.finalID}</td><td>${r.subject}</td><td>${r.title}</td></tr>`).join('');
+    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.length} ]`;
 }
 
-function runIdx(f, title) { /* منطق الكشافات */ }
-function runAuthorIdx() { /* منطق كشاف الطلاب */ }
+function openBiblioWindow() {
+    const win = window.open('', '_blank');
+    let content = `<html dir="rtl"><style>body{font-family:'Times New Roman'; padding:40px;} .sub{background:#eee; font-weight:bold; padding:5px; margin-top:10px;} .ent{margin-bottom:10px; text-align:justify;}</style><body>`;
+    let lastSub = '';
+    recs.forEach(r => {
+        if(r.subject !== lastSub) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
+        if(r.title) {
+            content += `<div class="ent">
+                <span style="float:left; font-weight:bold;">(${r.finalID})</span>
+                <b>${r.author}</b><br>
+                ${r.title} ${r.editor ? ' / إشراف ' + r.editor : ''} . ـــ 
+                ${[r.dept ? 'قسم ' + r.dept : '', r.faculty ? 'كلية ' + r.faculty : '', r.uni ? 'جامعة ' + r.uni : '', r.year].filter(x=>x).join(' ، ')}
+                . ـــ ${r.material_type}
+            </div>`;
+        }
+    });
+    win.document.write(content + '</body></html>'); win.document.close();
+}
 
-window.onload = updateLists;
+function runIdx(f, title) {
+    let m = {};
+    recs.forEach(r => { if(r[f]) { if(!m[r[f]]) m[r[f]] = []; m[r[f]].push(r.finalID); }});
+    let win = window.open('', '_blank');
+    let h = `<div dir="rtl"><h2>كشاف ${title}</h2>`;
+    Object.keys(m).sort().forEach(k => h += `<div>${k} (${m[k].join(', ')})</div>`);
+    win.document.write(h + '</div>');
+}
+
+window.onload = () => { updateLists(); drawTable(); };
 </script>
 </body>
 </html>
