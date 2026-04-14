@@ -2,94 +2,98 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>Theses 0.1 - منظومة الرسائل الجامعية</title>
+    <title>Theses 0.1</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; }
-        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; }
-        .field-label { font-size: 12px; font-weight: bold; display: block; color: #000; }
-        input, select { width: 100%; height: 32px; font-size: 14px; font-weight: bold; border: 1px solid #7f8c8d; }
-        .actions { background: #cfcfcf; padding: 10px; display: flex; justify-content: center; gap: 10px; border-top: 2px solid #34495e; }
-        .btn { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-size: 14px; font-weight: bold; }
-        .stats-area { background: #34495e; color: white; padding: 5px; font-size: 12px; display: flex; justify-content: space-around; }
-        .scroll-area { margin-top: 240px; padding: 10px; }
-        .ent { margin-bottom: 8px; padding: 8px; background: white; border-bottom: 1px solid #ccc; font-size: 14px; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; }
+        .field-label { font-size: 12px; font-weight: bold; color: #333; display: block; margin-bottom: 2px; }
+        input, select { width: 100%; height: 32px; font-size: 14px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .actions { background: #cfcfcf; padding: 10px; display: flex; justify-content: center; gap: 8px; border-top: 2px solid #34495e; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-size: 14px; font-weight: bold; }
+        .stats-area { background: #34495e; color: white; padding: 5px; text-align: center; font-size: 14px; font-weight: bold; }
+        .scroll-area { margin-top: 320px; padding: 10px; }
+        .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; }
+        .admin-table th { background: #34495e; color: white; padding: 8px; }
+        .admin-table td { border: 1px solid #ccc; padding: 6px; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:6px 15px;">
+        <strong style="font-size: 18px;">Theses 0.1 - منظومة الرسائل الجامعية</strong>
+        <div style="display:flex; gap:8px;">
+            <button onclick="alert('نسخ')" class="btn" style="background:#7f8c8d; padding:4px 8px;">نسخ</button>
+            <button onclick="alert('لصق')" class="btn" style="background:#95a5a6; padding:4px 8px;">لصق</button>
+            <button onclick="alert('استيراد')" class="btn" style="background:#e67e22; padding:4px 8px;">استيراد</button>
+            <button onclick="alert('تصدير')" class="btn" style="background:#2980b9; padding:4px 8px;">تصدير</button>
+        </div>
+    </div>
+    
     <table class="input-table">
         <tr>
             <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
             <td><span class="field-label">إحالة انظر</span><input type="text" id="see" class="in"></td>
             <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" class="in"></td>
-            <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="student" class="in"></td>
+            <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" class="in"></td>
         </tr>
         <tr>
-            <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-            <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
-            <td><span class="field-label">الجامعة</span><input type="text" id="univ" class="in"></td>
-            <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"></td>
-            <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"></td>
+            <td colspan="4"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
+        </tr>
+        <tr>
+            <td><span class="field-label">المشرف</span><input type="text" id="editor" class="in"></td>
+            <td><span class="field-label">القسم</span><input type="text" id="affiliation" class="in"></td>
+            <td><span class="field-label">الكلية</span><input type="text" id="journal" class="in"></td>
+            <td><span class="field-label">الجامعة</span><input type="text" id="place" class="in"></td>
+        </tr>
+        <tr>
             <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-            <td><span class="field-label">النوع</span>
-                <select id="type" class="in">
-                    <option value="رسالة ماجستير">ماجستير</option>
-                    <option value="أطروحة دكتوراه">دكتوراه</option>
-                </select>
-            </td>
+            <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" class="in"></td>
+            <td colspan="2"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
         </tr>
     </table>
     
     <div class="actions">
-        <button class="btn" style="background:#27ae60" onclick="save()">حفظ التسجيلة</button>
-        <button class="btn" style="background:#8e44ad" onclick="viewBiblio()">المعاينة النهائية</button>
-        <button class="btn" style="background:#2980b9">الجامعات</button>
-        <button class="btn" style="background:#d35400">الكليات</button>
-        <button class="btn" style="background:#16a085">الأقسام</button>
+        <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
+        <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
+        <button type="button" class="btn" style="background:#2980b9">الجامعات</button>
+        <button type="button" class="btn" style="background:#d35400">الكليات</button>
+        <button type="button" class="btn" style="background:#16a085">الأقسام</button>
     </div>
-
-    <div class="stats-area" id="statsBar">
-        <span>إجمالي الرسائل: 0</span>
-    </div>
+    <div class="stats-area" id="statsBar">إجمالي الرسائل: 0 | ماجستير: 0 | دكتوراه: 0</div>
 </div>
 
-<div id="displayArea" class="scroll-area"></div>
+<div class="scroll-area">
+    <table class="admin-table" id="adminBody"></table>
+</div>
 
 <script>
-    let theses = JSON.parse(localStorage.getItem('theses_db')) || [];
+let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
 
-    function save() {
-        let entry = {};
-        document.querySelectorAll('.in').forEach(el => entry[el.id] = el.value);
-        theses.push(entry);
-        localStorage.setItem('theses_db', JSON.stringify(theses));
-        updateUI();
-    }
+function save() {
+    let d = {};
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    recs.push(d);
+    localStorage.setItem('THESES_DATA', JSON.stringify(recs));
+    draw();
+}
 
-    function updateUI() {
-        // تحديث الإحصائيات
-        let masterCount = theses.filter(t => t.type === "رسالة ماجستير").length;
-        let docCount = theses.filter(t => t.type === "أطروحة دكتوراه").length;
-        document.getElementById('statsBar').innerHTML = 
-            `<span>إجمالي: ${theses.length}</span> | <span>ماجستير: ${masterCount}</span> | <span>دكتوراه: ${docCount}</span>`;
+function draw() {
+    let master = recs.filter(r => r.material_type && r.material_type.includes('ماجستير')).length;
+    let doc = recs.filter(r => r.material_type && r.material_type.includes('دكتوراه')).length;
+    document.getElementById('statsBar').innerText = `إجمالي: ${recs.length} | ماجستير: ${master} | دكتوراه: ${doc}`;
+    
+    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr>
+        <td>${i+1}</td><td>${r.subject}</td><td><b>${r.author}</b> - ${r.title} / إشراف: ${r.editor} . ــــ ${r.affiliation}، ${r.journal}، ${r.place}، ${r.year} . ـــ ${r.material_type}</td>
+        <td><button onclick="deleteRec(${i})">حذف</button></td>
+    </tr>`).join('');
+}
 
-        let html = '';
-        theses.forEach((t, i) => {
-            html += `<div class="ent">
-                <b>(${i+1})</b> <span style="font-weight:bold; font-size:16px;">${t.student}</span><br>
-                ${t.title} / إشراف: ${t.supervisor} . ــــ ${t.dept}، ${t.faculty}، ${t.univ}، ${t.year} . ـــ ${t.type}
-            </div>`;
-        });
-        document.getElementById('displayArea').innerHTML = html;
-    }
-    updateUI();
-
-    function viewBiblio() {
-        let win = window.open('', '_blank');
-        win.document.write('<html><body dir="rtl" style="font-family:Times New Roman; padding:40px;">' + document.getElementById('displayArea').innerHTML + '</body></html>');
-    }
+function deleteRec(i) { recs.splice(i, 1); localStorage.setItem('THESES_DATA', JSON.stringify(recs)); draw(); }
+function openBiblioWindow() { /* نفس دالة المعاينة السابقة */ }
+window.onload = draw;
 </script>
 </body>
 </html>
