@@ -46,9 +46,9 @@
                 <td><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"><datalist id="list_dept"></datalist></td>
-                <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"><datalist id="list_faculty"></datalist></td>
-                <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"><datalist id="list_uni"></datalist></td>
+                <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"><datalist id="list_dept"></datalist></td>
+                <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"><datalist id="list_faculty"></datalist></td>
+                <td><span class="field-label">الجامعة</span><input type="text" id="uni" class="in"><datalist id="list_uni"></datalist></td>
                 <td class="stats-row"><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
             </tr>
         </table>
@@ -71,16 +71,30 @@
 <script>
 let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
 
+// محرك الإصلاح المدمج لربط الحقول بالقوائم
+function fixDatalists() {
+    let fields = ['dept', 'faculty', 'uni']; 
+    fields.forEach(f => {
+        let input = document.getElementById(f);
+        let list = document.getElementById('list_' + f);
+        if(input && list) {
+            input.setAttribute('list', 'list_' + f);
+        }
+    });
+}
+
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     recs.push(d);
     localStorage.setItem('THESES_DATA', JSON.stringify(recs));
     alert("تم حفظ الرسالة");
-    location.reload(); // تحديث الصفحة ليقوم المتصفح بتحديث القوائم المنسدلة
 }
 
-// دالة العرض الأصلية
+window.onload = function() {
+    fixDatalists();
+};
+
 function openBiblioWindow() {}
 function runIdx(f, title) {}
 function runAuthorIdx() {}
