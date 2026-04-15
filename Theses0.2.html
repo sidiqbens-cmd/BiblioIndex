@@ -164,12 +164,15 @@ function delP() { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function copyRec() { /* منطق النسخ */ }
 function pasteRec() { /* منطق اللصق */ }
+// --- دالة المعاينة بالتنسيق الجديد ---
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة</title><style>
         body{font-family:'Times New Roman', serif; padding:40px; line-height:1.5; font-size:13pt;}
-        .sub-header{background:#e0e0e0; padding:5px; margin-top:20px; font-weight:bold; font-size:14pt; border-bottom:1px solid #000;}
-        .ent { margin-bottom: 10px; text-align: justify; }
+        .sub-header{text-align:center; font-weight:bold; font-size:16pt; margin:20px 0; border-bottom:2px solid #000; padding-bottom:5px;}
+        .ent { margin-bottom: 12px; text-align: justify; display: flex; justify-content: space-between; }
+        .ent-content { flex: 1; }
+        .id-left { font-weight: bold; color: #000; margin-left: 15px; }
     </style></head><body>`;
 
     let grouped = {};
@@ -182,16 +185,40 @@ function openBiblioWindow() {
         content += `<div class="sub-header">${sub}</div>`;
         grouped[sub].forEach(r => {
             content += `<div class="ent">
-                <b>${r.author || ''}</b> - ${r.title || ''} 
-                ${r.dept ? '، قسم ' + r.dept : ''} 
-                ${r.faculty ? '، كلية ' + r.faculty : ''} 
-                ${r.year ? '، ' + r.year : ''}
+                <div class="ent-content">
+                    <b>${r.author || ''}</b> - ${r.title || ''} 
+                    ${r.dept ? '، قسم ' + r.dept : ''} 
+                    ${r.faculty ? '، كلية ' + r.faculty : ''} 
+                    ${r.year ? '، ' + r.year : ''}
+                </div>
+                <div class="id-left">(${r.finalID || ''})</div>
             </div>`;
         });
     });
 
     win.document.write(content + '</body></html>');
     win.document.close();
+}
+
+// --- دالة النسخ ---
+function copyRec() {
+    let d = {}; 
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    localStorage.setItem('BIB_CLIP', JSON.stringify(d));
+    alert("تم نسخ البيانات الحالية في الحافظة");
+}
+
+// --- دالة اللصق ---
+function pasteRec() {
+    let data = JSON.parse(localStorage.getItem('BIB_CLIP'));
+    if (data) {
+        document.querySelectorAll('.in').forEach(i => {
+            if (data[i.id]) i.value = data[i.id];
+        });
+        alert("تم لصق البيانات");
+    } else {
+        alert("لا توجد بيانات منسوخة");
+    }
 }
 
 window.onload = draw;
