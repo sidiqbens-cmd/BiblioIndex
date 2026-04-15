@@ -221,7 +221,7 @@ function openBiblioWindow() {
         grouped[sub].records.forEach(r => {
             let line2 = `${r.title || ''}`;
             if (r.supervisor) line2 += ` / إشراف ${r.supervisor}`;
-            if (r.dept) line2 += `، قسم ${r.dept}`;
+            if (r.dept) line2 += ` . — قسم ${r.dept}`;
             if (r.faculty) line2 += `، كلية ${r.faculty}`;
             if (r.uni) line2 += `، جامعة ${r.uni}`;
             if (r.year) line2 += `، ${r.year}`;
