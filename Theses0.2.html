@@ -159,28 +159,44 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة الببليوغرافية</title><style>
-        body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 1.6; font-size: 13pt; background: #fff; }
-        .subject-header { background-color: #f2f2f2; text-align: center; font-weight: bold; font-size: 14pt; padding: 8px; margin: 30px 0 15px 0; }
-        .reference-area { background-color: #fafafa; padding: 5px 15px; margin-bottom: 10px; font-style: italic; font-size: 11pt; }
-        .entry-container { margin-bottom: 25px; }
+        body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.4; font-size: 13pt; background: #fff; }
+        .subject-header { background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 14pt; padding: 5px; margin: 20px 0 5px 0; }
+        .ref-header { background-color: #f2f2f2; text-align: right; font-weight: bold; font-size: 14pt; padding: 5px; margin: 0; border-bottom: 1px solid #ccc; }
+        .entry-container { margin-bottom: 15px; }
         .first-line { display: flex; justify-content: space-between; font-weight: bold; }
-        .second-line { text-align: justify; display: block; margin-top: 0; }
+        .second-line { text-align: justify; }
     </style></head><body>`;
 
     let grouped = {};
     recs.forEach(r => {
-        if (!grouped[r.subject]) grouped[r.subject] = { records: [], see: r.see, see_also: r.see_also };
-        grouped[r.subject].records.push(r);
+        if (!grouped[r.subject]) grouped[r.subject] = { records: [], see: [], see_also: [] };
+        if (r.subject) {
+            if (r.see) grouped[r.subject].see.push(r.see);
+            if (r.see_also) grouped[r.subject].see_also.push(r.see_also);
+            grouped[r.subject].records.push(r);
+        }
     });
 
-    Object.keys(grouped).sort().forEach(sub => {
+    let sortedSubjects = Object.keys(grouped).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
+
+    sortedSubjects.forEach(sub => {
         content += `<div class="subject-header">${sub}</div>`;
-        if (grouped[sub].see || grouped[sub].see_also) {
-            content += `<div class="reference-area">`;
-            if (grouped[sub].see) content += `<div>انظر: ${grouped[sub].see}</div>`;
-            if (grouped[sub].see_also) content += `<div>انظر أيضاً: ${grouped[sub].see_also}</div>`;
-            content += `</div>`;
+        
+        // معالجة "انظر"
+        if (grouped[sub].see.length > 0) {
+            grouped[sub].see.sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(s => {
+                content += `<div class="ref-header">انظر: ${s}</div>`;
+            });
         }
+        // معالجة "انظر أيضاً"
+        if (grouped[sub].see_also.length > 0) {
+            grouped[sub].see_also.sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(s => {
+                if(grouped[s]) { // التأكد أن الرأس مستخدم فعلاً
+                    content += `<div class="ref-header" style="font-size: 13pt;">انظر أيضاً: ${s}</div>`;
+                }
+            });
+        }
+
         grouped[sub].records.forEach(r => {
             let line2 = `${r.title || ''}`;
             if (r.supervisor) line2 += ` / إشراف ${r.supervisor}`;
@@ -191,14 +207,12 @@ function openBiblioWindow() {
             if (r.degreeType) line2 += ` . — ${r.degreeType}`;
 
             content += `<div class="entry-container">
-                <div class="first-line">
-                    <span>${r.author || 'بدون مؤلف'}</span>
-                    <span>(${r.finalID || ''})</span>
-                </div>
+                <div class="first-line"><span>${r.author || 'بدون مؤلف'}</span><span>(${r.finalID || ''})</span></div>
                 <div class="second-line">${line2}</div>
             </div>`;
         });
     });
+
     win.document.write(content + '</body></html>');
     win.document.close();
 }
