@@ -136,6 +136,15 @@ function save() {
     if (editIndex > -1) recs[editIndex] = { ...recs[editIndex], ...d };
     else { d.finalID = recs.length + 1; recs.push(d); }
     editIndex = -1; document.getElementById('bForm').reset(); draw();
+    editIndex = -1; 
+    document.getElementById('bForm').reset(); // هذا يفرغ كل حقول النموذج
+    
+    // أضف هذه السطور للتأكد من تفريغ الحقول المخفية أو حقل رقم التسجيلة المستهدفة
+    document.getElementById('searchID').value = ""; 
+    document.getElementById('editingID').value = ""; 
+    
+    draw(); 
+    alert("تم الحفظ بنجاح وتطهير خانات الإدخال."); 
 }
 
 function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ''); window.scrollTo(0,0); }
