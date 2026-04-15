@@ -179,56 +179,27 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><title>المعاينة الببليوغرافية</title><style>
-        body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.4; font-size: 13pt; background: #fff; }
-        .subject-header { background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 14pt; padding: 5px; margin: 20px 0 5px 0; }
-        .ref-header { background-color: #f2f2f2; font-weight: bold; font-size: 13pt; padding: 5px; text-align: center; border-bottom: 1px solid #ccc; }
-        .entry-container { margin-bottom: 15px; }
-        .first-line { display: flex; justify-content: space-between; font-weight: bold; }
-        .second-line { text-align: justify; }
-    </style></head><body>`;
-
+    let content = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:40px; font-size:13pt;} .sub{background:#e0e0e0; font-weight:bold; padding:5px; margin-top:20px; font-size:14pt; text-align:center;} .ref{background:#f2f2f2; font-weight:bold; padding:5px; text-align:center; font-size:13pt;} .ent{margin-bottom:15px; text-align:justify;}</style></head><body>`;
+    
     let grouped = {};
     recs.forEach(r => {
-        if (!grouped[r.subject]) grouped[r.subject] = { records: [], see: new Set(), see_also: new Set() };
-        if (r.subject) {
-            if (r.see) grouped[r.subject].see.add(r.see);
-            if (r.see_also) grouped[r.subject].see_also.add(r.see_also);
-            if (r.title) grouped[r.subject].records.push(r); // إضافة السجل فقط إذا كان له عنوان
-        }
+        if(!grouped[r.subject]) grouped[r.subject] = {items:[], see:[], see_also:[]};
+        if(r.title) grouped[r.subject].items.push(r);
+        if(r.see) grouped[r.subject].see.push(r.see);
+        if(r.see_also) grouped[r.subject].see_also.push(r.see_also);
     });
 
-    let sortedSubjects = Object.keys(grouped).sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
-
-    sortedSubjects.forEach(sub => {
-        content += `<div class="subject-header">${sub}</div>`;
-        
-        // عرض الإحالات (تظهر مرة واحدة لكل رأس موضوع)
-        grouped[sub].see.forEach(s => content += `<div class="ref-header">${sub} أنظر: ${s}</div>`);
-        grouped[sub].see_also.forEach(s => content += `<div class="ref-header" style="background:#eee;">انظر أيضاً: ${s}</div>`);
-
-        grouped[sub].records.forEach(r => {
-            // تجميع التفاصيل في مصفوفة لضمان الترقيم الصحيح
-            let details = [];
-            if (r.supervisor) details.push(`إشراف ${r.supervisor}`);
-            if (r.dept) details.push(`قسم ${r.dept}`);
-            if (r.faculty) details.push(`كلية ${r.faculty}`);
-            if (r.uni) details.push(`جامعة ${r.uni}`);
-            if (r.year) details.push(`${r.year}`);
-
-            // تكوين السطر الثاني بذكاء
-            let line2 = `${r.title || ''}`;
-            if (details.length > 0) line2 += ` . ـــ ${details.join(' ، ')}`;
-            if (r.degreeType) line2 += ` . — ${r.degreeType}`;
-
-            content += `<div class="entry-container">
-                <div class="first-line"><span>${r.author || 'بدون مؤلف'}</span><span>(${r.finalID || ''})</span></div>
-                <div class="second-line">${line2}</div>
-            </div>`;
+    Object.keys(grouped).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(sub => {
+        content += `<div class="sub">${sub}</div>`;
+        grouped[sub].see.forEach(s => content += `<div class="ref">${sub} أنظر: ${s}</div>`);
+        grouped[sub].see_also.forEach(s => content += `<div class="ref" style="font-size:12pt; background:#eee;">انظر أيضاً: ${s}</div>`);
+        grouped[sub].items.forEach(r => {
+            let details = [r.dept?"قسم "+r.dept:"", r.faculty?"كلية "+r.faculty:"", r.uni?"جامعة "+r.uni:"", r.year].filter(x=>x).join("، ");
+            content += `<div class="ent"><b>(${r.finalID}) ${r.author}</b><br>${r.title} ${r.editor?' / إشراف '+r.editor:''} . ـــ ${details} . ـــ ${r.material_type||''}</div>`;
         });
     });
-
-    win.document.write(content + '</body></html>');
+    win.document.write(content + '</body></html>'); win.document.close();
+}
     win.document.close();
 }
 
