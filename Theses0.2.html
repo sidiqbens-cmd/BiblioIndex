@@ -168,22 +168,17 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة</title><style>
-        body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 3; font-size: 13pt; background: #ffffff; }
+        body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 3; font-size: 13pt; background: #ffffff; margin: 0; }
         .subject-header { 
-        background-color: #eeeeee; 
-        text-align: center; 
-        font-weight: bold; 
-        font-size: 14pt; 
-        padding: 5px; 
-        margin: 0px 0px 0px 0px; /* هذا سيجعل الهوامش صفرًا تمامًا */
-        border: none; 
-    }
-        
-        /* هذا التعديل يضبط المسافة بين كل تسجيلة وأخرى */
+            background-color: #eeeeee; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 16pt; 
+            padding: 10px; 
+            margin: 0 !important; 
+            border: none; 
+        }
         .entry-container { margin-bottom: 2em; }
-        
-        /* دمج السطرين في كتلة واحدة لمنع الفراغات */
-        .record-block { display: block; margin-bottom: 0; }
     </style></head><body>`;
 
     let grouped = {};
@@ -196,17 +191,15 @@ function openBiblioWindow() {
         content += `<div class="subject-header">${sub}</div>`;
         grouped[sub].records.forEach(r => {
             content += `<div class="entry-container">
-                <div class="record-block">
-                    <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                        <span>${r.author || 'بدون مؤلف'}</span>
-                        <span>(${r.finalID || ''})</span>
-                    </div>
-                    <div style="text-align: justify;">
-                        ${r.title || ''} 
-                        ${r.dept ? '، قسم ' + r.dept : ''} 
-                        ${r.faculty ? '، كلية ' + r.faculty : ''} 
-                        ${r.year ? '، ' + r.year : ''}
-                    </div>
+                <div style="display: flex; justify-content: space-between; font-weight: bold; margin: 0;">
+                    <span>${r.author || 'بدون مؤلف'}</span>
+                    <span>(${r.finalID || ''})</span>
+                </div>
+                <div style="text-align: justify; margin: 0;">
+                    ${r.title || ''} 
+                    ${r.dept ? '، قسم ' + r.dept : ''} 
+                    ${r.faculty ? '، كلية ' + r.faculty : ''} 
+                    ${r.year ? '، ' + r.year : ''}
                 </div>
             </div>`;
         });
@@ -215,7 +208,6 @@ function openBiblioWindow() {
     win.document.write(content + '</body></html>');
     win.document.close();
 }
-
 // --- دالة النسخ ---
 function copyRec() {
     let d = {}; 
