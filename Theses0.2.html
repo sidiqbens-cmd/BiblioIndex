@@ -2,55 +2,88 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد</title>
+    <title>Theses</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; padding: 5px; }
-        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; }
-        .field-label { font-size: 10px; font-weight: bold; color: #333; display: block; }
-        input, select { width: 100%; height: 22px; font-size: 11px; border: 1px solid #999; box-sizing: border-box; }
-        .actions { background: #cfcfcf; text-align: center; padding: 4px; display: flex; justify-content: center; gap: 3px; flex-wrap: wrap; }
-        .btn { padding: 3px 8px; cursor: pointer; border: none; border-radius: 2px; color: #fff; font-size: 10px; font-weight: bold; }
-        .scroll-area { margin-top: 180px; height: calc(100vh - 190px); overflow-y: auto; padding: 5px; }
-        .admin-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 11px; }
-        .admin-table th, .admin-table td { border: 1px solid #ccc; padding: 3px; text-align: right; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; table-layout: fixed; }
+        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
+        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .actions { background: #cfcfcf; text-align: center; padding: 6px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; flex-wrap: wrap; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+        .scroll-area { margin-top: 220px; height: calc(100vh - 230px); overflow-y: auto; padding: 5px; }
+        .admin-table { border-collapse: collapse; background: #fff; font-size: 11px; width: 100%; }
+        .admin-table th { background: #34495e; color: white; padding: 5px; border: 1px solid #ccc; }
+        .admin-table td { border: 1px solid #ccc; padding: 4px; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="color:white; font-weight:bold; margin-bottom:5px;">الفهرس الليبي الموحد - [ العدد: <span id="totalCounter">0</span> ]</div>
-    <table class="input-table" id="inputTable">
-        <tr>
-            <td><span class="field-label">الموضوع</span><input type="text" id="subject" class="in" list="list_subject"></td>
-            <td><span class="field-label">اسم الطالب</span><input type="text" id="author" class="in" list="list_author"></td>
-            <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-            <td><span class="field-label">الجامعة</span><input type="text" id="uni" class="in" list="list_uni"></td>
-        </tr>
-        <tr>
-            <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in" list="list_faculty"></td>
-            <td><span class="field-label">القسم</span><input type="text" id="dept" class="in" list="list_dept"></td>
-            <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-            <td><span class="field-label">إشراف</span><input type="text" id="editor" class="in"></td>
-        </tr>
-    </table>
-    <datalist id="list_subject"></datalist>
-    <datalist id="list_author"></datalist>
-    <datalist id="list_uni"></datalist>
-    <datalist id="list_faculty"></datalist>
-    <datalist id="list_dept"></datalist>
-
-    <div class="actions">
-        <button class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
-        <button class="btn" style="background:#8e44ad" onclick="openBiblio()">معاينة</button>
-        <button class="btn" style="background:#2980b9" onclick="exportData()">تصدير</button>
-        <button class="btn" style="background:#c0392b" onclick="runIdx('dept','الأقسام')">كشاف الأقسام</button>
-        <button class="btn" style="background:#d35400" onclick="runIdx('faculty','الكليات')">كشاف الكليات</button>
+    <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between;">
+        <strong>Theses 0.1 - منظومة الرسائل الجامعية</strong>
+        <span id="totalCounter">[ العدد الإجمالي: 0 ]</span>
     </div>
+    
+    <form id="bForm">
+        <table class="input-table" id="inputTable">
+            <tr>
+                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
+                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_subject" class="in"></td>
+                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_subject" class="in"></td>
+                <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" list="list_author" class="in"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" list="list_title" class="in"></td>
+                <td><span class="field-label">المشرف</span><input type="text" id="editor" list="list_editor" class="in"></td>
+                <td>
+                    <span class="field-label">نوع الرسالة</span>
+                    <select id="material_type" class="in">
+                        <option value=""></option>
+                        <option value="رسالة ماجستير">رسالة ماجستير</option>
+                        <option value="أطروحة دكتوراه">أطروحة دكتوراه</option>
+                    </select>
+                </td>
+                <td><span class="field-label">السنة</span><input type="text" id="year" list="list_year" class="in"></td>
+            </tr>
+            <tr>
+                <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
+                <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"></td>
+                <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"></td>
+                <td><span class="field-label">ملاحظات</span><input type="text" id="st_notes" class="in"></td>
+            </tr>
+        </table>
+
+        <datalist id="list_subject"></datalist><datalist id="list_author"></datalist><datalist id="list_title"></datalist>
+        <datalist id="list_editor"></datalist><datalist id="list_year"></datalist><datalist id="list_dept"></datalist>
+        <datalist id="list_faculty"></datalist><datalist id="list_uni"></datalist>
+
+        <div class="actions">
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">معاينة</button>
+            <button type="button" class="btn" style="background:#e67e22" onclick="exportExcel()">تصدير Excel</button>
+            <input type="file" id="fileImport" style="display:none" onchange="importExcel(event)">
+            <button type="button" class="btn" style="background:#d35400" onclick="document.getElementById('fileImport').click()">استيراد</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author', 'الطلاب')">كشاف الطلاب</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#16a085" onclick="runIdx('dept', 'الأقسام')">كشاف الأقسام</button>
+            <button type="button" class="btn" style="background:#c0392b" onclick="runIdx('faculty', 'الكليات')">كشاف الكليات</button>
+            <button type="button" class="btn" style="background:#34495e" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#7f8c8d" onclick="newData()">جديد</button>
+            <button type="button" class="btn" style="background:#e74c3c" onclick="deleteLast()">حذف الأخير</button>
+        </div>
+    </form>
 </div>
 
-<div class="scroll-area"><table class="admin-table" id="adminBody"></table></div>
+<div class="scroll-area">
+    <table class="admin-table" id="adminTable">
+        <thead>
+            <tr><th>ت</th><th>الموضوع</th><th>المؤلف</th><th>العنوان</th><th>القسم</th><th>الكلية</th><th>الجامعة</th></tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+    </table>
+</div>
 
 <script>
 let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
@@ -65,36 +98,55 @@ function save() {
 }
 
 function updateLists() {
-    ['subject', 'author', 'uni', 'faculty', 'dept'].forEach(f => {
+    let fields = ['subject', 'author', 'title', 'editor', 'year', 'dept', 'faculty', 'uni'];
+    fields.forEach(f => {
         let list = document.getElementById('list_' + f);
-        let vals = [...new Set(recs.map(r => r[f]).filter(v => v))];
-        list.innerHTML = vals.map(v => `<option value="${v}">`).join('');
+        if (list) {
+            let vals = [...new Set(recs.map(r => r[f]).filter(v => v))];
+            list.innerHTML = vals.map(v => `<option value="${v}">`).join('');
+        }
     });
 }
 
 function drawTable() {
-    document.getElementById('totalCounter').innerText = recs.length;
     let b = document.getElementById('adminBody');
-    b.innerHTML = recs.map(r => `<tr><td>${r.subject}</td><td>${r.author}</td><td>${r.title}</td><td>${r.dept}</td></tr>`).join('');
+    b.innerHTML = recs.map((r, i) => `<tr><td>${i+1}</td><td>${r.subject}</td><td>${r.author}</td><td>${r.title}</td><td>${r.dept}</td><td>${r.faculty}</td><td>${r.uni}</td></tr>`).join('');
+    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.length} ]`;
 }
 
-function runIdx(f, title) {
-    let win = window.open('', '_blank');
+function runIdx(f, label) {
     let m = {};
-    recs.forEach(r => { if(r[f]) { if(!m[r[f]]) m[r[f]] = []; m[r[f]].push(r.author); }});
-    let h = `<div dir="rtl"><h2>كشاف ${title}</h2>`;
-    Object.keys(m).sort().forEach(k => h += `<div><b>${k}</b>: ${m[k].join(', ')}</div>`);
-    win.document.write(h);
+    recs.forEach((r, i) => { if(r[f]) { if(!m[r[f]]) m[r[f]] = []; m[r[f]].push(i+1); }});
+    let win = window.open('', '_blank');
+    let h = `<div dir="rtl"><h3>كشاف ${label}</h3>`;
+    Object.keys(m).sort().forEach(k => h += `<div><b>${k}</b> (${m[k].join(', ')})</div>`);
+    win.document.write(h + '</div>');
 }
 
-function exportData() {
+function exportExcel() {
     let ws = XLSX.utils.json_to_sheet(recs);
     let wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Data");
-    XLSX.writeFile(wb, "Theses_Export.xlsx");
+    XLSX.writeFile(wb, "Libyan_Theses.xlsx");
 }
 
-window.onload = () => { updateLists(); drawTable(); };
+function importExcel(e) {
+    let file = e.target.files[0];
+    let reader = new FileReader();
+    reader.onload = function(evt) {
+        let data = new Uint8Array(evt.target.result);
+        let wb = XLSX.read(data, {type: 'array'});
+        recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        localStorage.setItem('THESES_DATA', JSON.stringify(recs));
+        drawTable(); updateLists();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function newData() { document.getElementById('bForm').reset(); }
+function deleteLast() { if(confirm("حذف آخر سجل؟")) { recs.pop(); localStorage.setItem('THESES_DATA', JSON.stringify(recs)); drawTable(); updateLists(); }}
+
+window.onload = () => { drawTable(); updateLists(); };
 </script>
 </body>
 </html>
