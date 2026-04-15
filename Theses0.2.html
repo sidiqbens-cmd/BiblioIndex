@@ -153,7 +153,24 @@ function renderIdx(m, title) {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function exportX() { XLSX.writeFile(XLSX.utils.book_new(), "Export.xlsx"); }
+function exportX() {
+    if (recs.length === 0) {
+        alert("لا توجد بيانات لتصديرها");
+        return;
+    }
+    
+    // تحويل مصفوفة البيانات إلى ورقة عمل
+    const ws = XLSX.utils.json_to_sheet(recs);
+    
+    // إنشاء كتاب عمل جديد
+    const wb = XLSX.utils.book_new();
+    
+    // إضافة الورقة إلى كتاب العمل
+    XLSX.utils.book_append_sheet(wb, ws, "البيانات");
+    
+    // تصدير الملف باسم المشروع الحالي
+    XLSX.writeFile(wb, (curP || "Export") + ".xlsx");
+}
 function importX(e) {}
 function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
