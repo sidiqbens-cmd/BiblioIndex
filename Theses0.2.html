@@ -168,17 +168,24 @@ function closeM() { document.getElementById('modalOverlay').style.display='none'
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة</title><style>
-        body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 3; font-size: 13pt; background: #ffffff; margin: 0; }
+        body { font-family: 'Times New Roman', serif; padding: 20px; line-height: 3; font-size: 13pt; background: #ffffff; }
+        
+        /* رأس الموضوع: تحكم مطلق في المسافات */
         .subject-header { 
             background-color: #eeeeee; 
             text-align: center; 
             font-weight: bold; 
             font-size: 16pt; 
-            padding: 10px; 
+            padding: 2px 0; 
             margin: 0 !important; 
-            border: none; 
+            display: block;
+            line-height: 1.2; /* تقليل ارتفاع سطر الرأس نفسه */
         }
-        .entry-container { margin-bottom: 2em; }
+        
+        /* إلغاء أي هوامش تلقائية */
+        * { margin: 0; padding: 0; }
+        
+        .entry-container { margin-bottom: 1em; }
     </style></head><body>`;
 
     let grouped = {};
@@ -191,11 +198,11 @@ function openBiblioWindow() {
         content += `<div class="subject-header">${sub}</div>`;
         grouped[sub].records.forEach(r => {
             content += `<div class="entry-container">
-                <div style="display: flex; justify-content: space-between; font-weight: bold; margin: 0;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; line-height: 1.2;">
                     <span>${r.author || 'بدون مؤلف'}</span>
                     <span>(${r.finalID || ''})</span>
                 </div>
-                <div style="text-align: justify; margin: 0;">
+                <div style="text-align: justify; line-height: 1.2;">
                     ${r.title || ''} 
                     ${r.dept ? '، قسم ' + r.dept : ''} 
                     ${r.faculty ? '، كلية ' + r.faculty : ''} 
