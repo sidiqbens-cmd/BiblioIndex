@@ -116,12 +116,16 @@ function draw() {
 
 function updateAllDatalists() {
     const container = document.getElementById('datalistsContainer');
+    // تأكد من إضافة 'supervisor' هنا
+    const fields = ['subject', 'see', 'see_also', 'author', 'title', 'supervisor', 'dept', 'faculty', 'uni'];
+
     let html = '';
-    const fields = { 'list_subject': 'subject', 'list_author': 'author', 'list_title': 'title', 'list_dept': 'dept', 'list_faculty': 'faculty', 'list_uni': 'uni' };
-    Object.keys(fields).forEach(listId => {
-        let field = fields[listId];
+    fields.forEach(field => {
+        // النظام سيبحث الآن عن قيم فريدة لـ 'supervisor' ويضعها في list_supervisor
         let values = [...new Set(recs.map(r => r[field]).filter(x => x))].sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
-        html += `<datalist id="${listId}">` + values.map(v => `<option value="${v}">`).join('') + `</datalist>`;
+        html += `<datalist id="list_${field}">`;
+        values.forEach(v => { html += `<option value="${v}">`; });
+        html += `</datalist>`;
     });
     container.innerHTML = html;
 }
