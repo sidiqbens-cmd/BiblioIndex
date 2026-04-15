@@ -162,8 +162,7 @@ function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function delP() { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-function copyRec() { /* منطق النسخ */ }
-function pasteRec() { /* منطق اللصق */ }
+
 // --- دالة المعاينة بالتنسيق الجديد ---
 function openBiblioWindow() {
     const win = window.open('', '_blank');
