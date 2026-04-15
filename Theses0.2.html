@@ -182,7 +182,7 @@ function openBiblioWindow() {
     let content = `<html dir="rtl"><head><title>المعاينة الببليوغرافية</title><style>
         body { font-family: 'Times New Roman', serif; padding: 30px; line-height: 1.4; font-size: 13pt; background: #fff; }
         .subject-header { background-color: #e0e0e0; text-align: center; font-weight: bold; font-size: 14pt; padding: 5px; margin: 20px 0 5px 0; }
-        .ref-header { background-color: #f2f2f2; text-align: right; font-weight: bold; font-size: 14pt; padding: 5px; margin: 0; border-bottom: 1px solid #ccc; }
+        .ref-header { background-color: #f2f2f2; font-weight: bold; font-size: 13pt; padding: 5px; text-align: center; border-bottom: 1px solid #ccc; }
         .entry-container { margin-bottom: 15px; }
         .first-line { display: flex; justify-content: space-between; font-weight: bold; }
         .second-line { text-align: justify; }
@@ -190,11 +190,11 @@ function openBiblioWindow() {
 
     let grouped = {};
     recs.forEach(r => {
-        if (!grouped[r.subject]) grouped[r.subject] = { records: [], see: [], see_also: [] };
+        if (!grouped[r.subject]) grouped[r.subject] = { records: [], see: new Set(), see_also: new Set() };
         if (r.subject) {
-            if (r.see) grouped[r.subject].see.push(r.see);
-            if (r.see_also) grouped[r.subject].see_also.push(r.see_also);
-            grouped[r.subject].records.push(r);
+            if (r.see) grouped[r.subject].see.add(r.see);
+            if (r.see_also) grouped[r.subject].see_also.add(r.see_also);
+            if (r.title) grouped[r.subject].records.push(r); // إضافة السجل فقط إذا كان له عنوان
         }
     });
 
@@ -203,24 +203,12 @@ function openBiblioWindow() {
     sortedSubjects.forEach(sub => {
         content += `<div class="subject-header">${sub}</div>`;
         
-        // معالجة "انظر"
-        if (grouped[sub].see.length > 0) {
-            grouped[sub].see.sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(s => {
-                content += `<div class="ref-header">انظر: ${s}</div>`;
-            });
-        }
-        // معالجة "انظر أيضاً"
-        if (grouped[sub].see_also.length > 0) {
-            grouped[sub].see_also.sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(s => {
-                if(grouped[s]) { // التأكد أن الرأس مستخدم فعلاً
-                    content += `<div class="ref-header" style="font-size: 13pt;">انظر أيضاً: ${s}</div>`;
-                }
-            });
-        }
+        // عرض الإحالات (تظهر مرة واحدة لكل رأس موضوع)
+        grouped[sub].see.forEach(s => content += `<div class="ref-header">${sub} أنظر: ${s}</div>`);
+        grouped[sub].see_also.forEach(s => content += `<div class="ref-header" style="background:#eee;">انظر أيضاً: ${s}</div>`);
 
         grouped[sub].records.forEach(r => {
-            let line2 = `${r.title || ''}`; // العنوان دائماً موجود
-            // نجمع الأجزاء التي تحتوي على بيانات فقط
+            // تجميع التفاصيل في مصفوفة لضمان الترقيم الصحيح
             let details = [];
             if (r.supervisor) details.push(`إشراف ${r.supervisor}`);
             if (r.dept) details.push(`قسم ${r.dept}`);
@@ -228,13 +216,10 @@ function openBiblioWindow() {
             if (r.uni) details.push(`جامعة ${r.uni}`);
             if (r.year) details.push(`${r.year}`);
 
-            // الآن ندمجهم: الفواصل بين البيانات، والشرطة قبل نوع الرسالة
-            if (details.length > 0) {
-            line2 += ` . ـــ ${details.join(' ، ')}`;
-            }
-            if (r.degreeType) {
-                line2 += ` . — ${r.degreeType}`;
-            }
+            // تكوين السطر الثاني بذكاء
+            let line2 = `${r.title || ''}`;
+            if (details.length > 0) line2 += ` . ـــ ${details.join(' ، ')}`;
+            if (r.degreeType) line2 += ` . — ${r.degreeType}`;
 
             content += `<div class="entry-container">
                 <div class="first-line"><span>${r.author || 'بدون مؤلف'}</span><span>(${r.finalID || ''})</span></div>
@@ -245,13 +230,6 @@ function openBiblioWindow() {
 
     win.document.write(content + '</body></html>');
     win.document.close();
-}
-
-function copyRec() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    localStorage.setItem('BIB_CLIP', JSON.stringify(d));
-    alert("تم نسخ البيانات الحالية في الحافظة");
 }
 
 function pasteRec() {
