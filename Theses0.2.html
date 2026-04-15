@@ -219,13 +219,22 @@ function openBiblioWindow() {
         }
 
         grouped[sub].records.forEach(r => {
-            let line2 = `${r.title || ''}`;
-            if (r.supervisor) line2 += ` / إشراف ${r.supervisor}`;
-            if (r.dept) line2 += ` . — قسم ${r.dept}`;
-            if (r.faculty) line2 += `، كلية ${r.faculty}`;
-            if (r.uni) line2 += `، جامعة ${r.uni}`;
-            if (r.year) line2 += `، ${r.year}`;
-            if (r.degreeType) line2 += ` . — ${r.degreeType}`;
+            let line2 = `${r.title || ''}`; // العنوان دائماً موجود
+            // نجمع الأجزاء التي تحتوي على بيانات فقط
+            let details = [];
+            if (r.supervisor) details.push(`إشراف ${r.supervisor}`);
+            if (r.dept) details.push(`قسم ${r.dept}`);
+            if (r.faculty) details.push(`كلية ${r.faculty}`);
+            if (r.uni) details.push(`جامعة ${r.uni}`);
+            if (r.year) details.push(`${r.year}`);
+
+            // الآن ندمجهم: الفواصل بين البيانات، والشرطة قبل نوع الرسالة
+            if (details.length > 0) {
+            line2 += ` . ـــ ${details.join(' ، ')}`;
+            }
+            if (r.degreeType) {
+                line2 += ` . — ${r.degreeType}`;
+            }
 
             content += `<div class="entry-container">
                 <div class="first-line"><span>${r.author || 'بدون مؤلف'}</span><span>(${r.finalID || ''})</span></div>
