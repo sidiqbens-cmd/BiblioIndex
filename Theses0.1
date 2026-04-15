@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Theses 0.1</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; }
@@ -72,31 +71,19 @@
 <script>
 let recs = JSON.parse(localStorage.getItem('THESES_DATA')) || [];
 
-function updateLists() {
-    let fields = ['dept', 'faculty', 'uni', 'year', 'subject', 'author', 'editor', 'title'];
-    fields.forEach(f => {
-        let list = document.getElementById('list_' + f);
-        if(list) {
-            let vals = [...new Set(recs.map(r => r[f]).filter(v => v))];
-            list.innerHTML = vals.map(v => `<option value="${v}">`).join('');
-        }
-    });
-}
-
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     recs.push(d);
     localStorage.setItem('THESES_DATA', JSON.stringify(recs));
-    updateLists(); 
     alert("تم حفظ الرسالة");
+    location.reload(); // تحديث الصفحة ليقوم المتصفح بتحديث القوائم المنسدلة
 }
 
-window.onload = updateLists;
-
-function openBiblioWindow() { /* كود المعاينة الخاص بك */ }
-function runIdx(f, title) { /* كود الكشافات */ }
-function runAuthorIdx() { /* كود كشاف الطلاب */ }
+// دالة العرض الأصلية
+function openBiblioWindow() {}
+function runIdx(f, title) {}
+function runAuthorIdx() {}
 </script>
 </body>
 </html>
