@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -56,8 +56,15 @@
             </tr>
             <tr>
                 <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" list="list_title" class="in"></td>
-                <td><span class="field-label">المشرف</span><input type="text" id="editor" class="in"></td>
-                <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" class="in"></td>
+                <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
+                <td>
+                    <span class="field-label">نوع الرسالة</span>
+                    <select id="degreeType" class="in">
+                        <option value="">اختر النوع</option>
+                        <option value="رسالة ماجستير">رسالة ماجستير</option>
+                        <option value="أطروحة دكتوراه">أطروحة دكتوراه</option>
+                    </select>
+                </td>
             </tr>
             <tr>
                 <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
@@ -102,9 +109,7 @@ function draw() {
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
-    
     updateAllDatalists();
-    
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.finalID||i+1}</td><td>${r.author||''}</td><td>${r.title||''}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
@@ -112,11 +117,7 @@ function draw() {
 function updateAllDatalists() {
     const container = document.getElementById('datalistsContainer');
     let html = '';
-    const fields = {
-        'list_subject': 'subject', 'list_author': 'author', 
-        'list_title': 'title', 'list_dept': 'dept', 
-        'list_faculty': 'faculty', 'list_uni': 'uni'
-    };
+    const fields = { 'list_subject': 'subject', 'list_author': 'author', 'list_title': 'title', 'list_dept': 'dept', 'list_faculty': 'faculty', 'list_uni': 'uni' };
     Object.keys(fields).forEach(listId => {
         let field = fields[listId];
         let values = [...new Set(recs.map(r => r[field]).filter(x => x))].sort((a,b) => cleanSort(a).localeCompare(cleanSort(b), 'ar'));
@@ -137,17 +138,8 @@ function edit(i) { editIndex = i; let r = recs[i]; document.querySelectorAll('.i
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
 function loadRec() { let id = document.getElementById('searchID').value; let idx = recs.findIndex(x => x.finalID == id); if(idx !== -1) edit(idx); else alert("غير موجود"); }
 
-function runIdx(f, label) {
-    let m = {};
-    recs.forEach(r => { let v = r[f]; if(v) { if(!m[v]) m[v]=[]; m[v].push(r.finalID); }});
-    renderIdx(m, label);
-}
-
-function runAuthorIdx() {
-    let m = {};
-    recs.forEach(r => { if(r.author) { if(!m[r.author]) m[r.author]=[]; m[r.author].push(r.finalID); }});
-    renderIdx(m, "المؤلفين");
-}
+function runIdx(f, label) { let m = {}; recs.forEach(r => { let v = r[f]; if(v) { if(!m[v]) m[v]=[]; m[v].push(r.finalID); }}); renderIdx(m, label); }
+function runAuthorIdx() { let m = {}; recs.forEach(r => { if(r.author) { if(!m[r.author]) m[r.author]=[]; m[r.author].push(r.finalID); }}); renderIdx(m, "المؤلفين"); }
 
 function renderIdx(m, title) {
     let k = Object.keys(m).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b),'ar'));
@@ -158,51 +150,21 @@ function renderIdx(m, title) {
 }
 
 function exportX() { XLSX.writeFile(XLSX.utils.book_new(), "Export.xlsx"); }
-function importX(e) { /* تم اختصارها للحفاظ على الهيكل */ }
+function importX(e) {}
 function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function delP() { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 
-// --- دالة المعاينة بالتنسيق الجديد ---
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     let content = `<html dir="rtl"><head><title>المعاينة الببليوغرافية</title><style>
         body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 1.6; font-size: 13pt; background: #fff; }
-        
-        /* تنسيق رأس الموضوع - رمادي خافت */
-        .subject-header { 
-            background-color: #f2f2f2; 
-            text-align: center; 
-            font-weight: bold; 
-            font-size: 14pt; 
-            padding: 8px; 
-            margin: 30px 0 15px 0; 
-        }
-        
-        /* تنسيق الإحالات - رمادي فاتح جداً */
-        .reference-area {
-            background-color: #fafafa;
-            padding: 5px 15px;
-            margin-bottom: 10px;
-            font-style: italic;
-            font-size: 11pt;
-        }
-
+        .subject-header { background-color: #f2f2f2; text-align: center; font-weight: bold; font-size: 14pt; padding: 8px; margin: 30px 0 15px 0; }
+        .reference-area { background-color: #fafafa; padding: 5px 15px; margin-bottom: 10px; font-style: italic; font-size: 11pt; }
         .entry-container { margin-bottom: 25px; }
-
-        /* السطر الأول: المؤلف يميناً والرقم يساراً */
-        .first-line { 
-            display: flex; 
-            justify-content: space-between; 
-            font-weight: bold; 
-        }
-
-        /* السطر الثاني: بقية البيانات */
+        .first-line { display: flex; justify-content: space-between; font-weight: bold; }
         .second-line { text-align: justify; display: block; margin-top: 0; }
-          
-     
-        .record-id { margin-left: 10px; }
     </style></head><body>`;
 
     let grouped = {};
@@ -212,40 +174,35 @@ function openBiblioWindow() {
     });
 
     Object.keys(grouped).sort().forEach(sub => {
-        // طباعة رأس الموضوع
         content += `<div class="subject-header">${sub}</div>`;
-
-        // طباعة الإحالات إن وجدت
         if (grouped[sub].see || grouped[sub].see_also) {
             content += `<div class="reference-area">`;
             if (grouped[sub].see) content += `<div>انظر: ${grouped[sub].see}</div>`;
             if (grouped[sub].see_also) content += `<div>انظر أيضاً: ${grouped[sub].see_also}</div>`;
             content += `</div>`;
         }
-
-        // طباعة التسجيلات
         grouped[sub].records.forEach(r => {
+            let line2 = `${r.title || ''}`;
+            if (r.supervisor) line2 += ` / إشراف ${r.supervisor}`;
+            if (r.dept) line2 += `، قسم ${r.dept}`;
+            if (r.faculty) line2 += `، كلية ${r.faculty}`;
+            if (r.uni) line2 += `، جامعة ${r.uni}`;
+            if (r.year) line2 += `، ${r.year}`;
+            if (r.degreeType) line2 += ` . — ${r.degreeType}`;
+
             content += `<div class="entry-container">
                 <div class="first-line">
                     <span>${r.author || 'بدون مؤلف'}</span>
                     <span>(${r.finalID || ''})</span>
                 </div>
-                <div class="second-line">
-                    ${r.title || ''} / إشراف ${r.supervisor || ''} 
-                    ${r.dept ? '، قسم ' + r.dept : ''} 
-                    ${r.faculty ? '، كلية ' + r.faculty : ''} 
-                    ${r.uni ? '، جامعة ' + r.uni : ''}
-                    ${r.year ? '، ' + r.year : ''}
-                    . — ${r.degreeType || ''}
-                </div>
+                <div class="second-line">${line2}</div>
             </div>`;
         });
     });
-
     win.document.write(content + '</body></html>');
     win.document.close();
 }
-// --- دالة النسخ ---
+
 function copyRec() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
@@ -253,17 +210,12 @@ function copyRec() {
     alert("تم نسخ البيانات الحالية في الحافظة");
 }
 
-// --- دالة اللصق ---
 function pasteRec() {
     let data = JSON.parse(localStorage.getItem('BIB_CLIP'));
     if (data) {
-        document.querySelectorAll('.in').forEach(i => {
-            if (data[i.id]) i.value = data[i.id];
-        });
+        document.querySelectorAll('.in').forEach(i => { if (data[i.id]) i.value = data[i.id]; });
         alert("تم لصق البيانات");
-    } else {
-        alert("لا توجد بيانات منسوخة");
-    }
+    } else { alert("لا توجد بيانات منسوخة"); }
 }
 
 window.onload = draw;
