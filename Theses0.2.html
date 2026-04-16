@@ -104,16 +104,6 @@ let editIndex = -1;
 
 const cleanSort = (s) => s ? s.toString().replace(/^(ال)/, '').trim() : '';
 
-function draw() {
-    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.length} ]`;
-    localStorage.setItem('R_' + curP, JSON.stringify(recs));
-    localStorage.setItem('L_P', JSON.stringify(projs));
-    localStorage.setItem('L_A', curP);
-    updateAllDatalists();
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.finalID||i+1}</td><td>${r.author||''}</td><td>${r.title||''}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`).join('');
-    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
-}
-
 function updateAllDatalists() {
     const container = document.getElementById('datalistsContainer');
     // تأكد من إضافة 'supervisor' هنا
@@ -186,29 +176,7 @@ function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[];
 function delP() { projs = projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; recs=JSON.parse(localStorage.getItem('R_'+curP))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 
-function openBiblioWindow() {
-    const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:40px; font-size:13pt;} .sub{background:#e0e0e0; font-weight:bold; padding:5px; margin-top:20px; font-size:14pt; text-align:center;} .ref{background:#f2f2f2; font-weight:bold; padding:5px; text-align:center; font-size:13pt;} .ent{margin-bottom:15px; text-align:justify;}</style></head><body>`;
-    
-    let grouped = {};
-    recs.forEach(r => {
-        if(!grouped[r.subject]) grouped[r.subject] = {items:[], see:[], see_also:[]};
-        if(r.title) grouped[r.subject].items.push(r);
-        if(r.see) grouped[r.subject].see.push(r.see);
-        if(r.see_also) grouped[r.subject].see_also.push(r.see_also);
-    });
 
-    Object.keys(grouped).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), 'ar')).forEach(sub => {
-        content += `<div class="sub">${sub}</div>`;
-        grouped[sub].see.forEach(s => content += `<div class="ref">${sub} أنظر: ${s}</div>`);
-        grouped[sub].see_also.forEach(s => content += `<div class="ref" style="font-size:12pt; background:#eee;">انظر أيضاً: ${s}</div>`);
-        grouped[sub].items.forEach(r => {
-            let details = [r.dept?"قسم "+r.dept:"", r.faculty?"كلية "+r.faculty:"", r.uni?"جامعة "+r.uni:"", r.year].filter(x=>x).join("، ");
-            content += `<div class="ent"><b>(${r.finalID}) ${r.author}</b><br>${r.title} ${r.editor?' / إشراف '+r.editor:''} . ـــ ${details} . ـــ ${r.material_type||''}</div>`;
-        });
-    });
-    win.document.write(content + '</body></html>'); win.document.close();
-}
 
 function pasteRec() {
     let data = JSON.parse(localStorage.getItem('BIB_CLIP'));
