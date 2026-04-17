@@ -242,7 +242,7 @@ function openBiblioWindow() {
                 r.year
             ].filter(x => x).join(" ، ");
             
-             let line2 = `<div>${r.title} / إعداد: ${r.author} ؛ ${r.editor ? 'إشراف: ' + r.editor : ''} . ـــ ${details} . ـــ (${r.material_type || ''}) . ـــ </div>`;
+            let line2 = `<div>${r.title} ${r.editor ? ' / إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${r.material_type || ''}</div>`;
             
             content += `<div class="ent">${line1}${line2}</div>`;
         }
