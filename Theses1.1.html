@@ -2,113 +2,102 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد</title>
+    <title>ببليواندكس</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
-        .input-table { width: 100%; background: #cfcfcf; padding: 5px; }
-        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; }
+        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 2px; }
         input, select { width: 100%; height: 26px; font-size: 13px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
-        .actions { background: #cfcfcf; padding: 8px; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+        .actions { background: #cfcfcf; text-align: center; padding: 8px; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
         .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 12px; font-weight: bold; }
-        .scroll-area { margin-top: 260px; height: calc(100vh - 270px); overflow-y: auto; padding: 10px; }
+        .scroll-area { margin-top: 275px; height: calc(100vh - 285px); overflow-y: auto; padding: 10px; }
         .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; }
+        .admin-table th { background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; }
         .admin-table td { border: 1px solid #ccc; padding: 6px; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="background:#34495e; color:white; padding:6px 15px; display:flex; justify-content:space-between;">
-        <strong>الفهرس الليبي الموحد</strong>
-        <span id="totalCounter" style="font-weight:bold;">العدد الإجمالي: 0</span>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:6px 15px;">
+        <strong style="font-size: 18px;">الفهرس الليبي الموحد</strong>
+        <span id="totalCounter" style="font-size: 14pt;">العدد الإجمالي: 0</span>
     </div>
     <form id="bForm">
         <table class="input-table">
             <tr>
-                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
+                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
+                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_see" class="in"></td>
+                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_see_also" class="in"></td>
                 <td><span class="field-label">اسم الطالب</span><input type="text" id="author" class="in"></td>
-                <td><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المشرفون (بفاصلة)</span><input type="text" id="editor" class="in"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
+                <td><span class="field-label">المشرف</span><input type="text" id="editor" class="in"></td>
+                <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">المكان</span><select id="place" class="in"></select></td>
                 <td><span class="field-label">الجامعة</span><select id="uni" class="in"></select></td>
                 <td><span class="field-label">الكلية</span><select id="faculty" class="in"></select></td>
-                <td><span class="field-label">القسم</span><select id="dept" class="in"></select></td>
-            </tr>
-            <tr>
+                <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
                 <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-                <td><span class="field-label">عدد الورقات</span><input type="text" id="pages" class="in"></td>
-                <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" class="in"></td>
+                <td><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
             </tr>
         </table>
         <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">المعاينة</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('editor', 'المشرفين')">كشاف المشرفين</button>
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">المعاينة النهائية</button>
+            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('editor', 'كشاف المشرفين')">كشاف المشرفين</button>
         </div>
     </form>
 </div>
 
 <div class="scroll-area">
-    <table class="admin-table" id="adminBody"></table>
+    <table class="admin-table"><tbody id="adminBody"></tbody></table>
 </div>
 
+<div id="listContainer"></div>
+
 <script>
-let recs = JSON.parse(localStorage.getItem('L_DATA')) || [];
+let recs = JSON.parse(localStorage.getItem('R_DATA')) || [];
 let editIdx = -1;
 
-function updateSelects() {
-    ['place', 'uni', 'faculty', 'dept'].forEach(f => {
+function draw() {
+    let mainRecs = recs.filter(r => r.title);
+    document.getElementById('totalCounter').innerText = "العدد الإجمالي: " + mainRecs.length;
+    
+    // تحديث القوائم المنسدلة تلقائياً
+    ['place', 'uni', 'faculty'].forEach(f => {
         let vals = [...new Set(recs.map(r => r[f]).filter(x => x))].sort();
-        let sel = document.getElementById(f);
-        sel.innerHTML = '<option value="">إضافة جديد...</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+        document.getElementById(f).innerHTML = '<option value="">-- اختر --</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
     });
+
+    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.subject}</td><td>${r.title || r.see || ''}</td><td><button onclick="edit(${i})">تعديل</button></td></tr>`).join('');
 }
 
 function save() {
     let d = {}; 
-    document.querySelectorAll('.in').forEach(i => {
-        if(i.tagName === 'SELECT' && i.value === "") d[i.id] = prompt("أدخل القيمة الجديدة لـ " + i.previousElementSibling.innerText);
-        else d[i.id] = i.value.trim();
-    });
-    if (!d.subject || !d.title) { alert("رأس الموضوع والعنوان إلزاميان!"); return; }
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
+    if (!d.subject || (!d.title && !d.see)) { alert("رأس الموضوع إلزامي"); return; }
     if (editIdx > -1) recs[editIdx] = d; else recs.push(d);
     document.getElementById('bForm').reset(); editIdx = -1; draw();
-}
-
-function draw() {
-    localStorage.setItem('L_DATA', JSON.stringify(recs));
-    let mainRecs = recs.filter(r => r.title);
-    document.getElementById('totalCounter').innerText = "العدد الإجمالي: " + mainRecs.length;
-    updateSelects();
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.subject}</td><td>${r.title}</td><td><button onclick="edit(${i})">تعديل</button></td></tr>`).join('');
 }
 
 function openBiblio() {
     const win = window.open('', '_blank');
     let h = `<div dir="rtl" style="font-family:'Times New Roman'; padding:40px;">`;
     recs.filter(r => r.title).forEach((r, i) => {
-        let det = [r.place, r.uni, r.faculty, r.dept, r.year].filter(x => x).join("، ");
-        let info = `${r.title} / إعداد: ${r.author} ؛ إشراف: ${r.editor} . ـــ ${r.place ? r.place + ": " : ""}${det} . ـــ ${r.pages ? r.pages + " ورقة " : ""}. ـــ ${r.material_type ? "(" + r.material_type + ")" : ""} . ـــ`;
+        let loc = [r.place, r.uni, r.faculty, r.dept, r.year].filter(x => x).join("، ");
+        let info = `${r.title} / إعداد: ${r.author} ؛ إشراف: ${r.editor} . ـــ ${r.place ? r.place + ": " : ""}${loc} . ـــ ${r.pages ? r.pages + " ورقة " : ""}. ـــ (${r.material_type || ''}) . ـــ`;
         h += `<div>(${i+1}) ${info}</div><br>`;
     });
     win.document.write(h + '</div>');
 }
 
-function runIdx(f, title) {
-    let m = {};
-    recs.forEach(r => {
-        if(r[f]) r[f].split(',').forEach(n => {
-            let name = n.trim(); if(!m[name]) m[name] = []; m[name].push(r.subject);
-        });
-    });
-    alert("كشاف " + title + ":\n" + Object.keys(m).sort().map(k => k + ": " + m[k].join(', ')).join('\n'));
-}
-
-function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id]||''); }
+function edit(i) { editIdx = i; document.querySelectorAll('.in').forEach(inp => inp.value = recs[i][inp.id]||''); }
 window.onload = draw;
 </script>
 </body>
