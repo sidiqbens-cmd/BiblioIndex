@@ -230,7 +230,25 @@ function openBiblioWindow() {
                 r.year
             ].filter(x => x).join(" ، ");
             
-            let line2 = `<div>${r.title} ${r.editor ? ' / إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${r.material_type || ''}</div>`;
+            if (r.title) {
+            // السطر الأول: الاسم وبجانبه الرقم في أقصى اليسار
+            let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
+            
+            // السطر الثاني: تفاصيل الرسالة
+            let details = [
+                r.dept ? "قسم " + r.dept : "",
+                r.faculty ? "كلية " + r.faculty : "",
+                r.uni ? "جامعة " + r.uni : "",
+                r.year
+            ].filter(x => x).join(" ، ");
+            
+            let line2 = `<div>${r.title} / إعداد: ${r.author} ؛ ${r.editor ? 'إشراف: ' + r.editor : ''} . ـــ ${details} . ـــ (${r.material_type || ''}) . ـــ</div>`;
+            
+            content += `<div class="ent">${line1}${line2}</div>`;
+        }
+    });
+    win.document.write(content + '</body></html>'); win.document.close();
+}
             
             content += `<div class="ent">${line1}${line2}</div>`;
         }
