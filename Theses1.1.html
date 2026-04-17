@@ -2,43 +2,44 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ببليواندكس 1.1</title>
+    <title>الفهرس الليبي الموحد</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
-        .input-table { width: 100%; background: #cfcfcf; padding: 5px; }
-        input, select { height: 26px; font-size: 13px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
-        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 12px; font-weight: bold; }
-        .scroll-area { margin-top: 280px; height: calc(100vh - 290px); overflow-y: auto; padding: 10px; }
-        .admin-table { border-collapse: collapse; background: #fff; font-size: 12px; width: 100%; }
-        .admin-table th { background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; }
-        .admin-table td { border: 1px solid #ccc; padding: 6px; text-align: center; }
-        .see-also-preview { text-align: center; font-weight: bold; margin: 4px 0; font-size: 12pt; background: #f2f2f2; padding: 5px; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; padding: 5px; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; }
+        .input-table td { padding: 2px; font-size: 11px; font-weight: bold; color: #333; }
+        input, select { width: 100%; height: 24px; font-size: 13px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .actions { background: #cfcfcf; padding: 5px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-weight: bold; font-size: 11px; }
+        .scroll-area { margin-top: 275px; height: calc(100vh - 285px); overflow-y: auto; padding: 10px; }
+        .admin-table { border-collapse: collapse; background: #fff; width: 100%; font-size: 12px; table-layout: fixed; }
+        .admin-table th { background: #34495e; color: white; padding: 5px; border: 1px solid #2c3e50; }
+        .admin-table td { border: 1px solid #ccc; padding: 4px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="background:#34495e; color:white; padding:10px 15px; display:flex; justify-content:space-between;">
-        <strong style="font-size: 18px;">ببليواندكس1.1</strong>
-        <span id="totalCounter" style="font-size: 14pt;">العدد الإجمالي: 0</span>
+    <div style="display:flex; justify-content:space-between; color:white; padding:5px 15px; align-items:center;">
+        <strong style="font-size:18px;">الفهرس الليبي الموحد</strong>
+        <span id="totalCounter" style="color:#e74c3c; font-size:16px; font-weight:bold;">[ العدد الإجمالي: 0 ]</span>
     </div>
     
-    <div style="background:#cfcfcf; padding:5px; border-bottom:2px solid #2c3e50; display:flex; gap:5px; justify-content:center;">
-        <button class="btn" style="background:#7f8c8d" onclick="copyRec()">نسخ تسجيلة</button>
-        <button class="btn" style="background:#95a5a6" onclick="pasteRec()">لصق تسجيلة</button>
-        <button class="btn" style="background:#e67e22" onclick="document.getElementById('xlIn').click()">استيراد XLSX</button>
-        <button class="btn" style="background:#2980b9" onclick="exportX()">تصدير XLSX</button>
+    <div class="actions">
+        <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
+        <select id="pSel" style="width:120px;" onchange="switchP(this.value)"></select>
+        <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
+        <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX</button>
+        <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد XLSX</button>
         <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
-        <button class="btn" style="background:#27ae60" onclick="newP()">+ مشروع جديد</button>
-        <select id="pSel" style="width:160px" onchange="switchP(this.value)"></select>
-        <button class="btn" style="background:#c0392b" onclick="delP()">حذف المشروع</button>
+        <button onclick="pasteRec()" class="btn" style="background:#95a5a6">لصق تسجيلة</button>
+        <button onclick="copyRec()" class="btn" style="background:#7f8c8d">نسخ تسجيلة</button>
     </div>
 
-    <div style="margin: 5px; text-align:center;">
-        رقم التسجيلة المستهدفة: <input type="number" id="searchID" style="width:70px;"> 
-        <button class="btn" style="background:#27ae60" onclick="loadRec()">استرجاع للتعديل</button>
+    <div style="padding:5px; text-align:left; background:#cfcfcf; display:flex; justify-content:flex-end; align-items:center; gap:10px;">
+        <button onclick="loadRec()" class="btn" style="background:#27ae60; height:26px;">استرجاع للتعديل</button>
+        <input type="number" id="searchID" style="width:80px; height:26px;"> :رقم التسجيلة المستهدفة
     </div>
 
     <form id="bForm">
@@ -47,7 +48,7 @@
                 <td>رأس الموضوع<input type="text" id="subject" class="in"></td>
                 <td>إحالة انظر<input type="text" id="see" class="in"></td>
                 <td>إحالة انظر أيضاً<input type="text" id="see_also" class="in"></td>
-                <td>اسم الطالب<input type="text" id="author" class="in"></td>
+                <td>اسم الطالب (مقلوب)<input type="text" id="author" class="in"></td>
             </tr>
             <tr>
                 <td colspan="2">العنوان<input type="text" id="title" class="in"></td>
@@ -60,82 +61,93 @@
                 <td>الكلية<select id="faculty" class="in"></select></td>
                 <td>القسم<input type="text" id="dept" class="in"></td>
                 <td>السنة<input type="text" id="year" class="in"></td>
+                <td>عدد الورقات<input type="text" id="pages" class="in"></td>
             </tr>
         </table>
-        
-        <div class="actions" style="justify-content:center; display:flex; gap:5px; padding:5px;">
-            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblioWindow()">المعاينة النهائية</button>
-            <button type="button" class="btn" style="background:#34495e" onclick="runAuthorIdx()">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runEditorIdx()">كشاف المشرفين</button>
-            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
+        <div class="actions">
+            <button type="button" onclick="save()" class="btn" style="background:#27ae60">حفظ السجل</button>
+            <button type="button" onclick="openBiblio()" class="btn" style="background:#8e44ad">المعاينة النهائية</button>
+            <button type="button" onclick="runIdx('author', 'المؤلفين')" class="btn" style="background:#34495e">كشاف المؤلفين</button>
+            <button type="button" onclick="runIdx('editor', 'المشرفين')" class="btn" style="background:#d35400">كشاف المشرفين</button>
+            <button type="button" onclick="runIdx('title', 'العناوين')" class="btn" style="background:#16a085">كشاف العناوين</button>
+            <button type="button" onclick="runIdx('subject', 'الموضوعات')" class="btn" style="background:#2980b9">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#c0392b">كشاف المترجمين</button>
         </div>
     </form>
 </div>
 
 <div class="scroll-area">
     <table class="admin-table">
+        <thead>
+            <tr><th style="width:80px">إجراءات</th><th style="width:60%">تفاصيل السجل</th><th style="width:30%">رأس الموضوع</th><th style="width:50px">رقم</th></tr>
+        </thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
 <script>
-let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['قانون'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-let editIndex = -1;
+let editIdx = -1;
 
 function draw() {
+    localStorage.setItem('R_' + curP, JSON.stringify(recs));
     let mainRecs = recs.filter(r => r.title);
-    document.getElementById('totalCounter').innerText = "العدد الإجمالي: " + mainRecs.length;
-    
-    // تحديث القوائم المنسدلة تلقائياً
+    document.getElementById('totalCounter').innerText = "[ العدد الإجمالي: " + mainRecs.length + " ]";
     ['place', 'uni', 'faculty'].forEach(f => {
         let vals = [...new Set(recs.map(r => r[f]).filter(x => x))].sort();
         document.getElementById(f).innerHTML = '<option value="">-- اختر --</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
     });
-
-    recs.sort((a, b) => (a.subject || '').localeCompare(b.subject || '', 'ar'));
-    localStorage.setItem('R_' + curP, JSON.stringify(recs));
-    
-    let counterVal = 1;
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
-        r.finalID = (r.see || r.see_also) && !r.title ? null : counterVal++;
-        return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${r.title || r.see || ''}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
-    }).join('');
-    
+    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `
+        <tr>
+            <td><button onclick="del(${i})">حذف</button> <button onclick="edit(${i})">تعديل</button></td>
+            <td style="text-align:right; padding-right:10px;"><b>${r.author||''}</b> - ${r.title||''}</td>
+            <td>${r.subject||''}</td>
+            <td>${i+1}</td>
+        </tr>`).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
 }
 
-function save() { 
+function save() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject || (!d.title && !d.see)) { alert("رأس الموضوع إلزامي لجميع السجلات."); return; }
-    if(editIndex > -1) recs[editIndex] = { ...recs[editIndex], ...d };
-    else { d.id = recs.length > 0 ? Math.max(...recs.map(r => r.id)) + 1 : 1; recs.push(d); }
-    document.getElementById('bForm').reset(); editIndex = -1; draw();
+    if(!d.subject || (!d.title && !d.see)) { alert("رأس الموضوع إلزامي"); return; }
+    if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
+    editIdx = -1; document.getElementById('bForm').reset(); draw();
 }
 
-function openBiblioWindow() {
+function openBiblio() {
     const win = window.open('', '_blank');
-    let h = `<html dir="rtl"><head><title>المعاينة</title><style>body{font-family:'Times New Roman'; padding:40px; line-height:1.2; font-size:12pt;}</style></head><body>`;
-    recs.filter(r => r.title).forEach((r, i) => {
+    let h = `<div dir="rtl" style="font-family:'Times New Roman'; padding:40px; font-size:12pt;">`;
+    let lastSub = "";
+    recs.forEach((r, i) => {
+        if(!r.title) return;
+        if(r.subject !== lastSub) {
+            h += `<div style="background:#eee; text-align:center; font-weight:bold; padding:5px; margin:20px 0;">${r.subject}</div>`;
+            lastSub = r.subject;
+        }
         let loc = [r.place ? r.place+":" : "", r.uni, r.faculty, r.dept, r.year].filter(x => x).join("، ");
-        // السطر الأول: اسم معد الرسالة (يسار) ورقم السجل (يمين)
-        h += `<div style="display:flex; justify-content:space-between; margin-top:6px;"><span style="font-weight:bold;">${r.author || ''}</span><span>(${r.finalID||i+1})</span></div>`;
-        // السطر الثاني: العنوان والبيانات
-        h += `<div style="margin-bottom:6px;">${r.title} / إشراف: ${r.editor} . ـــ ${loc} . ـــ (${r.material_type || ''}) . ـــ</div>`;
+        h += `<div style="display:flex; justify-content:space-between; margin-top:10px;">
+                <span style="font-weight:bold;">${r.author || ''}</span>
+                <span>(${i+1})</span>
+              </div>
+              <div style="margin-bottom:10px;">${r.title} / إشراف: ${r.editor} . ـــ ${loc} . ـــ ${r.pages ? r.pages + "ص" : ""}. ـــ (${r.material_type || ''}) . ـــ</div>`;
     });
-    win.document.write(h + '</body></html>');
+    win.document.write(h + '</div>');
 }
 
-function runEditorIdx() { alert("كشاف المشرفين قيد التنفيذ"); } // سأضيف المنطق لاحقاً، لكن الزر موجود.
-function runAuthorIdx() { alert("كشاف المؤلفين قيد التنفيذ"); }
-function runIdx() { alert("الكشاف قيد التنفيذ"); }
-function edit(i) { editIndex = i; document.querySelectorAll('.in').forEach(inp => inp.value = recs[i][inp.id]||''); }
-function deleteRec(i) { recs.splice(i, 1); draw(); }
-function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
-function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function runIdx(f, t) {
+    let m = {}; recs.forEach((r, i) => { if(r[f]) { let v = r[f]; if(!m[v]) m[v] = []; m[v].push(i+1); } });
+    let win = window.open('', '_blank');
+    let c = `<h3>كشاف ${t}</h3>` + Object.keys(m).sort().map(k => `<div>${k}: ${m[k].join(', ')}</div>`).join('');
+    win.document.write(`<div dir="rtl">${c}</div>`);
+}
+
+function edit(i) { editIdx = i; document.querySelectorAll('.in').forEach(inp => inp.value = recs[i][inp.id]||''); window.scrollTo(0,0); }
+function del(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
+function loadRec() { let id = document.getElementById('searchID').value; if(recs[id-1]) edit(id-1); else alert("غير موجود"); }
+function copyRec() { localStorage.setItem('B_CLIP', JSON.stringify(Object.fromEntries([...document.querySelectorAll('.in')].map(i=>[i.id, i.value])))); }
+function pasteRec() { let d = JSON.parse(localStorage.getItem('B_CLIP')); if(d) Object.keys(d).forEach(k => document.getElementById(k).value = d[k]); }
 window.onload = draw;
 </script>
 </body>
