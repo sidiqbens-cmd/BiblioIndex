@@ -153,61 +153,66 @@ function openBiblioWindow() {
         return parts[1].trim() + ' ' + parts[0].trim();
     };
 
-    let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
-    body{font-family:'Times New Roman', serif;padding:40px; font-size: 12pt; line-height: 1.5;}
-    /* تنسيق رأس الموضوع - خط غامق */
-    .sub-header{background:#e0e0e0; text-align:center; padding:4px; margin:20px 0 10px 0; font-weight:bold; border: 1px solid #333; font-size: 14pt;}
-    /* تنسيق إحالة انظر أيضاً - تحت رأس الموضوع مباشرة خ13 */
-    .see-also { background:#f5f5f5; text-align:center; padding:3px; margin:-10px 0 15px 0; font-weight:bold; font-size: 13pt; border: 1px dotted #999; border-top:none; }
-    /* تنسيق إحالة انظر - سطر مستقل خ14 غامق */
-    .see-line { text-align:center; font-weight:bold; font-size: 14pt; margin: 15px 0; }
+    let content = `<html dir="rtl"><head><title>المعاينة النهائية - الفهرس الليبي الموحد</title><style>
+    body{font-family:'Times New Roman', serif; padding:40px; font-size: 12pt; line-height: 1.6;}
     
-    .ent { margin-bottom: 15px; position: relative; text-align: justify; }
-    .id-left { float: left; font-weight: bold; }
-    .line1 { overflow: hidden; margin-bottom: 2px; }
+    /* تنسيق رأس الموضوع - خط 14 غامق */
+    .sub-header{background:#e0e0e0; text-align:center; padding:6px; margin:25px 0 15px 0; font-weight:bold; border: 1px solid #333; font-size: 14pt;}
+    
+    /* تنسيق إحالة انظر أيضاً - تحت رأس الموضوع مباشرة خ13 غامق */
+    .see-also { background:#f9f9f9; text-align:center; padding:4px; margin:-15px 0 15px 0; font-weight:bold; font-size: 13pt; border: 1px solid #ccc; border-top:none; }
+    
+    /* تنسيق إحالة انظر - سطر واحد خ14 غامق */
+    .see-line { text-align:center; font-weight:bold; font-size: 14pt; margin: 20px 0; display: block; border: 1px solid #eee; padding: 5px; }
+    
+    .ent { margin-bottom: 18px; position: relative; text-align: justify; }
+    .id-left { float: left; font-weight: bold; font-size: 12pt; }
+    .line1 { overflow: hidden; margin-bottom: 4px; }
     </style></head><body>`;
 
     let lastSub = '';
     recs.forEach(r => {
-    // 1. طباعة رأس الموضوع وتنسيق "انظر أيضاً"
-    if (r.subject && r.subject !== lastSub) {
-        content += `<div class="sub-header">${r.subject}</div>`;
-        lastSub = r.subject;
-        
-        if (r.see_also) {
-            content += `<div class="see-also">انظر أيضاً: ${r.see_also}</div>`;
+        // 1. معالجة رأس الموضوع وإحالة "انظر أيضاً"
+        if (r.subject && r.subject !== lastSub) {
+            // إذا كانت التسجيلة الحالية هي مجرد إحالة "انظر"، لا نطبع رأس الموضوع التقليدي هنا
+            if (!r.see) {
+                content += `<div class="sub-header">${r.subject}</div>`;
+                if (r.see_also) {
+                    content += `<div class="see-also">انظر أيضاً: ${r.see_also}</div>`;
+                }
+            }
+            lastSub = r.subject;
         }
-    }
 
-    // 2. تعديل إحالة "انظر" لتكون في سطر واحد (الموضوع + الإحالة)
-    if (r.see) {
-        // حذفنا أي div فرعي وجعلناها في سطر واحد بخط 14 غامق
-        content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
-    } 
-    
-    // 3. معالجة التسجيلة الببليوغرافية العادية
-    else if (r.title) {
-        let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
+        // 2. معالجة إحالة "انظر" في سطر واحد غامق (كما في الصورة)
+        if (r.see) {
+            content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
+        } 
         
-        let details = [
-            r.uni ? "جامعة " + r.uni : "", 
-            r.faculty ? "كلية " + r.faculty : "", 
-            r.dept ? "قسم " + r.dept : "", 
-            r.year || ""
-        ].filter(x => x).join(" ، ");
-        
-        let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
-        
-        let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
-        
-        content += `<div class="ent">${line1}${line2}</div>`;
-    }
-});
+        // 3. معالجة التسجيلة الببليوغرافية العادية
+        else if (r.title) {
+            let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
+            
+            // ترتيب المؤسسات: جامعة ، كلية ، قسم ، سنة
+            let details = [
+                r.uni ? "جامعة " + r.uni : "", 
+                r.faculty ? "كلية " + r.faculty : "", 
+                r.dept ? "قسم " + r.dept : "", 
+                r.year || ""
+            ].filter(x => x).join(" ، ");
+            
+            let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
+            
+            // السطر الثاني: الاسم معتدلاً، الصفحات، نوع الرسالة، ونقطة القاطعة
+            let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
+            
+            content += `<div class="ent">${line1}${line2}</div>`;
+        }
+    });
 
     win.document.write(content + '</body></html>'); 
     win.document.close();
 }
-
 function runIdx(f, t) {
     let m = {};
     recs.forEach(r => {
