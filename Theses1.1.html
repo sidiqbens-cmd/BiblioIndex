@@ -136,47 +136,54 @@ function save() {
 function openBiblioWindow() {
     const win = window.open('', '_blank');
     
-    // دالة داخلية لقلب الاسم إذا كان يحتوي على فاصلة
+    // دالة قلب الاسم ليظهر عدلاً (الاسم الأول ثم اللقب)
     const fixName = (name) => {
         if (!name || !name.includes('،')) return name;
         let parts = name.split('،');
         return parts[1].trim() + ' ' + parts[0].trim();
     };
 
-    let content = `<html dir="rtl"><head><title>المعاينة</title><style>
-    body{font-family:'Times New Roman', serif;padding:40px; font-size: 12pt;}
-    .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:20px 0 10px 0;font-weight:bold;}
-    .ent { margin-bottom: 15px; position: relative; }
+    let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
+    body{font-family:'Times New Roman', serif;padding:40px; font-size: 12pt; line-height: 1.5;}
+    .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:20px 0 10px 0;font-weight:bold; border: 1px solid #333;}
+    .ent { margin-bottom: 15px; position: relative; text-align: justify; }
     .id-left { float: left; font-weight: bold; }
     .line1 { overflow: hidden; margin-bottom: 2px; }
     </style></head><body>`;
 
     let lastSub = '';
     recs.forEach(r => {
+        // طباعة رأس الموضوع
         if (r.subject !== lastSub) {
             content += `<div class="sub-header">${r.subject}</div>`;
             lastSub = r.subject;
         }
+
         if (r.title) {
-            // السطر الأول: يبقى فيه الاسم كما هو (مقلوب) أو حسب رغبتك في الفهرس
-            let line1 = `<div class="line1"><span class="id-left">(${r.finalID})</span><b>${r.author}</b></div>`;
+            // السطر الأول: الاسم المقلوب والرقم جهة اليسار
+            let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
             
-            // تجهيز بيانات المؤسسة والسنة
+            // ترتيب المؤسسات المعكوس: جامعة ، كلية ، قسم ، سنة
             let details = [
-                r.dept ? "قسم " + r.dept : "", 
-                r.faculty ? "كلية " + r.faculty : "", 
                 r.uni ? "جامعة " + r.uni : "", 
-                r.year
+                r.faculty ? "كلية " + r.faculty : "", 
+                r.dept ? "قسم " + r.dept : "", 
+                r.year || ""
             ].filter(x => x).join(" ، ");
             
-            // السطر الثاني: استخدام fixName لقلب اسم الطالب، وتغيير النهاية إلى قاطعة /
-            let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ (${r.material_type || ''}).</div>`;
+            // صياغة الوصف المادي (الصفحات ص)
+            let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
+            
+            // السطر الثاني: الاسم معتدلاً، الصفحات، ثم نوع الرسالة متبوعاً بنقطة ملتصقة بالقوس
+            let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
             
             content += `<div class="ent">${line1}${line2}</div>`;
         } else if (r.see) {
-            content += `<div style="text-align:center; font-weight:bold;">انظر: ${r.see}</div>`;
+            // في حال وجود إحالة فقط
+            content += `<div style="text-align:center; font-weight:bold; margin: 5px 0;">انظر: ${r.see}</div>`;
         }
     });
+
     win.document.write(content + '</body></html>'); 
     win.document.close();
 }
