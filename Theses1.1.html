@@ -184,27 +184,51 @@ function updateAllDatalists() {
 }
 
 function draw() {
+    // 1. حفظ الحالة الحالية للمشاريع والبيانات
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     
-    document.getElementById('pSel').innerHTML = projs.map(p => `<option ${p===curP?'selected':''}>${p}</option>`).join('');
-    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${recs.filter(r=>!r.see).length} ]`;
+    // 2. الفرز الهجائي الذكي (تجاهل ال التعريف عند المقارنة)
+    // هذا الجزء هو الذي سيضع "قرينة البراءة" قبل "الوصية" كما طلبت
+    recs.sort((a, b) => {
+        return cleanSort(a.subject).localeCompare(cleanSort(b.subject), 'ar');
+    });
+
+    // 3. تحديث قائمة المشاريع في الواجهة
+    document.getElementById('pSel').innerHTML = projs.map(p => 
+        `<option ${p === curP ? 'selected' : ''}>${p}</option>`
+    ).join('');
     
     let html = '';
+    let counter = 0;
+    
+    // 4. بناء الجدول وإعادة ترقيم المداخل (Final ID) وفق الترتيب الهجائي الجديد
     recs.forEach((r, i) => {
-        if (!r.see) r.finalID = recs.filter((x, idx) => idx <= i && !x.see).length;
+        // إذا لم يكن السجل مجرد إحالة "انظر"، نمنحه رقماً بيبليوجرافياً
+        if (!r.see) {
+            counter++;
+            r.finalID = counter; 
+        } else {
+            r.finalID = null; // الإحالات لا تأخذ رقماً تسلسلياً في المعاينة
+        }
+
         html += `<tr>
             <td>${r.see ? '-' : r.finalID}</td>
             <td>${r.subject}</td>
-            <td>${r.see ? 'إحالة انظر: ' + r.see : r.title + ' / ' + r.author}</td>
+            <td>${r.see ? 'إحالة انظر: ' + r.see : (r.title || '') + ' / ' + (r.author || '')}</td>
             <td>
                 <button class="btn" style="background:#2980b9; padding:2px 5px;" onclick="edit(${i})">تعديل</button>
                 <button class="btn" style="background:#c0392b; padding:2px 5px;" onclick="deleteRec(${i})">حذف</button>
             </td>
         </tr>`;
     });
+    
+    // 5. تحديث عرض الجدول والعداد الإجمالي
     document.getElementById('adminBody').innerHTML = html;
+    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${counter} ]`;
+    
+    // 6. تحديث القوائم المنسدلة بناءً على البيانات الجديدة والمرتبة
     updateAllDatalists();
 }
 
