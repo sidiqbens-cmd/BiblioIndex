@@ -63,7 +63,7 @@
                 </td>
                 <td>
                     <span class="field-label">إحالة انظر أيضاً</span>
-                    <input type="text" id="see_also" list="list_see_also" class="in">
+                    <input type="text" id="see_also" list="list_subject" class="in"> 
                     <datalist id="list_see_also"></datalist>
                 </td>
             </tr>
@@ -81,6 +81,7 @@
                 <td>
                     <span class="field-label">العنوان</span>
                     <input type="text" id="title" class="in">
+                     <datalist id="list_title"></datalist>
                 </td>
             </tr>
             <tr>
@@ -166,24 +167,34 @@ function updateAllDatalists() {
         'faculty': 'list_faculty',
         'dept': 'list_dept',
         'material_type': 'list_material_type',
-        'subject': 'list_subject',
+        'subject': 'list_subject', // القائمة الأساسية للموضوعات
         'editor': 'list_editor',
         'author': 'list_author',
-        'see': 'list_see',
-        'see_also': 'list_see_also',
-        'year': 'list_year'
+        'title': 'list_title'      // القائمة الجديدة للعناوين لمنع التكرار
     };
 
     Object.keys(mappings).forEach(field => {
         const listId = mappings[field];
         const datalist = document.getElementById(listId);
         if (datalist) {
+            // جلب القيم الفريدة وتصفية الحقول الفارغة
             const uniqueValues = [...new Set(recs.map(r => r[field]))]
                 .filter(val => val && val.toString().trim() !== "")
                 .sort();
+            
             datalist.innerHTML = uniqueValues.map(val => `<option value="${val}">`).join('');
         }
     });
+
+    // ربط "إحالة انظر أيضاً" و "إحالة انظر" بقائمة رؤوس الموضوعات تلقائياً
+    // لضمان استخدام الرؤوس المستخدمة فعلاً كما طلبت
+    const subjectValues = [...new Set(recs.map(r => r.subject))]
+        .filter(v => v && v.trim() !== "").sort();
+    
+    const subjectList = document.getElementById('list_subject');
+    if (subjectList) {
+        subjectList.innerHTML = subjectValues.map(val => `<option value="${val}">`).join('');
+    }
 }
     
 function draw() {
