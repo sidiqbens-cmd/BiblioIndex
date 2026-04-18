@@ -169,42 +169,40 @@ function openBiblioWindow() {
 
     let lastSub = '';
     recs.forEach(r => {
-        // 1. طباعة رأس الموضوع وتنسيق "انظر أيضاً"
-        if (r.subject && r.subject !== lastSub) {
-            content += `<div class="sub-header">${r.subject}</div>`;
-            lastSub = r.subject;
-            
-            // إذا وجد "انظر أيضاً" لهذا الموضوع، تظهر تحته مباشرة
-            if (r.see_also) {
-                content += `<div class="see-also">انظر أيضاً: ${r.see_also}</div>`;
-            }
-        }
-
-        // 2. معالجة إحالة "انظر" (تظهر في نفس السطر مع الموضوع)
-        if (r.see) {
-            content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
-        } 
+    // 1. طباعة رأس الموضوع وتنسيق "انظر أيضاً"
+    if (r.subject && r.subject !== lastSub) {
+        content += `<div class="sub-header">${r.subject}</div>`;
+        lastSub = r.subject;
         
-        // 3. معالجة التسجيلة الببليوغرافية العادية
-        else if (r.title) {
-            let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
-            
-            // الترتيب المعكوس: جامعة ، كلية ، قسم ، سنة
-            let details = [
-                r.uni ? "جامعة " + r.uni : "", 
-                r.faculty ? "كلية " + r.faculty : "", 
-                r.dept ? "قسم " + r.dept : "", 
-                r.year || ""
-            ].filter(x => x).join(" ، ");
-            
-            let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
-            
-            // السطر الثاني مع مراعاة إلصاق النقطة بالقوس
-            let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
-            
-            content += `<div class="ent">${line1}${line2}</div>`;
+        if (r.see_also) {
+            content += `<div class="see-also">انظر أيضاً: ${r.see_also}</div>`;
         }
-    });
+    }
+
+    // 2. تعديل إحالة "انظر" لتكون في سطر واحد (الموضوع + الإحالة)
+    if (r.see) {
+        // حذفنا أي div فرعي وجعلناها في سطر واحد بخط 14 غامق
+        content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
+    } 
+    
+    // 3. معالجة التسجيلة الببليوغرافية العادية
+    else if (r.title) {
+        let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
+        
+        let details = [
+            r.uni ? "جامعة " + r.uni : "", 
+            r.faculty ? "كلية " + r.faculty : "", 
+            r.dept ? "قسم " + r.dept : "", 
+            r.year || ""
+        ].filter(x => x).join(" ، ");
+        
+        let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
+        
+        let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
+        
+        content += `<div class="ent">${line1}${line2}</div>`;
+    }
+});
 
     win.document.write(content + '</body></html>'); 
     win.document.close();
