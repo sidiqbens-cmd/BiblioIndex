@@ -49,23 +49,33 @@
 
     <form id="bForm">
         <table class="input-table">
-            <tr>
-                <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" class="in"></td>
-                <td><span class="field-label">إحالة انظر</span><input type="text" id="see" class="in"></td>
-                <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" class="in"></td>
-                <td><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" class="in"></td>
-            </tr>
-            <tr>
-                <td colspan="2"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المشرف</span><input type="text" id="editor" class="in"></td>
-                <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" class="in"></td>
-            </tr>
-            <tr>
-                <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"></td>
-                <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"></td>
-                <td><span class="field-label">الجامعة</span><input type="text" id="uni" class="in"></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-            </tr>
+           <table class="input-table" id="inputTable">
+    <tr>
+        <td><span class="field-label">رأس الموضوع</span><input type="text" id="subject" list="list_subject" class="in"></td>
+        <td><span class="field-label">إحالة انظر</span><input type="text" id="see" list="list_see" class="in"></td>
+        <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_see_also" class="in"></td>
+    </tr>
+    <tr>
+        <td colspan="1"><span class="field-label">اسم الطالب (مقلوب)</span><input type="text" id="author" list="list_author" class="in"></td>
+        <td colspan="1"><span class="field-label">المشرف</span><input type="text" id="editor" list="list_editor" class="in"></td>
+        <td colspan="1"><span class="field-label">العنوان</span><input type="text" id="title" list="list_title" class="in"></td>
+    </tr>
+    <tr>
+        <td><span class="field-label">الجامعة</span><input type="text" id="uni" list="list_uni" class="in"></td>
+        <td><span class="field-label">الكلية</span><input type="text" id="faculty" list="list_faculty" class="in"></td>
+        <td><span class="field-label">القسم</span><input type="text" id="dept" list="list_dept" class="in"></td>
+    </tr>
+    <tr>
+        <td><span class="field-label">نوع الرسالة</span><input type="text" id="material_type" list="list_material_type" class="in"></td>
+        <td>
+            <div style="display: flex; gap: 5px;">
+                <div style="flex: 2;"><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></div>
+                <div style="flex: 1;"><span class="field-label">السنة</span><input type="text" id="year" class="in"></div>
+            </div>
+        </td>
+        <td><button type="button" class="btn" style="background:#27ae60; width:100%; height:40px; margin-top:10px;" onclick="save()">حفظ السجل</button></td>
+    </tr>
+</table>
         </table>
 
         <div class="actions">
