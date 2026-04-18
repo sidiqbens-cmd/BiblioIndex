@@ -49,79 +49,331 @@
 
     <div class="input-container">
     <form id="mainForm">
+        <div class="fixed-header">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:6px 15px;">
+
+        <strong style="font-size: 18px;">الرسائل الجامعية</strong>
+
+        <div style="display:flex; gap:8px;">
+
+            <button onclick="copyRec()" class="btn" style="background:#7f8c8d">نسخ تسجيلة</button>
+
+            <button onclick="pasteRec()" class="btn" style="background:#95a5a6">لصق تسجيلة</button>
+
+            <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد XLSX</button>
+
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX</button>
+
+            <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
+
+            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
+
+            <select id="pSel" style="width:160px" onchange="switchP(this.value)"></select>
+
+            <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
+
+        </div>
+
+    </div>
+
+    
+
+    <div style="background:#ecf0f1; padding:8px; border-bottom:2px solid #bdc3c7; display:flex; align-items:center; justify-content:space-between;">
+
+        <div style="display:flex; align-items:center; gap:10px;">
+
+            <strong style="color:#2c3e50;">رقم التسجيلة المستهدفة:</strong>
+
+            <input type="number" id="searchID" style="width:80px; text-align:center;">
+
+            <button class="btn" style="background:#27ae60;" onclick="loadRec()">استرجاع للتعديل</button>
+
+        </div>
+
+        <span id="totalCounter" style="color:#c0392b; font-weight:bold; font-size: 14pt;">[ العدد الإجمالي: 0 ]</span>
+
+    </div>
+
+
+
+    <div class="input-container">
+
+    <form id="mainForm">
+
         <table class="input-table">
+
             <tr>
+
                 <td>
+
                     <span class="field-label">رأس الموضوع</span>
+
                     <input type="text" id="subject" list="list_subject" class="in">
+
                     <datalist id="list_subject"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">إحالة انظر</span>
+
                     <input type="text" id="see" list="list_see" class="in">
+
                     <datalist id="list_see"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">إحالة انظر أيضاً</span>
+
                     <input type="text" id="see_also" list="list_see_also" class="in">
+
                     <datalist id="list_see_also"></datalist>
+
                 </td>
+
             </tr>
+
             <tr>
+
                 <td>
+
                     <span class="field-label">اسم الطالب (مقلوب)</span>
+
                     <input type="text" id="author" list="list_author" class="in">
+
                     <datalist id="list_author"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">المشرف</span>
+
                     <input type="text" id="editor" list="list_editor" class="in">
+
                     <datalist id="list_editor"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">العنوان</span>
+
                     <input type="text" id="title" list="list_title" class="in">
+
                     <datalist id="list_title"></datalist>
+
                 </td>
+
             </tr>
+
             <tr>
+
                 <td>
+
                     <span class="field-label">الجامعة</span>
+
                     <input type="text" id="uni" list="list_uni" class="in">
+
                     <datalist id="list_uni"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">الكلية</span>
+
                     <input type="text" id="faculty" list="list_faculty" class="in">
+
                     <datalist id="list_faculty"></datalist>
+
                 </td>
+
                 <td>
+
                     <span class="field-label">القسم</span>
+
                     <input type="text" id="dept" list="list_dept" class="in">
+
                     <datalist id="list_dept"></datalist>
+
                 </td>
+
             </tr>
+
             <tr>
+
                 <td>
+
                     <span class="field-label">نوع الرسالة</span>
+
                     <input type="text" id="material_type" list="list_material_type" class="in">
+
                     <datalist id="list_material_type"></datalist>
+
                 </td>
+
                 <td colspan="2">
+
                     <div style="display: flex; gap: 10px; align-items: flex-end;">
+
                         <div style="flex: 2;">
+
                             <span class="field-label">الصفحات</span>
+
                             <input type="text" id="pages" class="in" placeholder="مثلاً: 120">
+
                         </div>
+
                         <div style="flex: 1;">
+
                             <span class="field-label">السنة</span>
+
                             <input type="text" id="year" id="year" list="list_year" class="in">
+
                             <datalist id="list_year"></datalist>
+
                         </div>
+
                     </div>
+
                 </td>
+
             </tr>
+
         </table>
+
+
+
+        <div class="actions" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;">
+
+            <button type="button" class="btn" style="background:#27ae60; flex: 1;" onclick="save()">حفظ السجل</button>
+
+            <button type="button" class="btn" style="background:#8e44ad; flex: 1;" onclick="openBiblioWindow()">المعاينة النهائية</button>
+
+            <button type="button" class="btn" style="background:#34495e; flex: 1;" onclick="runIdx('author', 'المؤلفين')">كشاف المؤلفين</button>
+
+            <button type="button" class="btn" style="background:#d35400; flex: 1;" onclick="runIdx('editor', 'المشرفين')">كشاف المشرفين</button>
+
+            <button type="button" class="btn" style="background:#16a085; flex: 1;" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
+
+            <button type="button" class="btn" style="background:#2980b9; flex: 1;" onclick="runIdx('subject', 'الموضوعات')">رؤوس الموضوعات</button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+
+<div id="modalOverlay">
+
+    <div style="padding: 10px;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق النافذة</button></div>
+
+    <div class="modal-content" id="modalBody"></div>
+
+</div>
+
+
+
+<div class="scroll-area">
+
+    <table class="admin-table">
+
+        <thead>
+
+            <tr>
+
+                <th style="width:50px;">رقم</th>
+
+                <th style="width:200px;">رأس الموضوع</th>
+
+                <th>تفاصيل السجل</th>
+
+                <th style="width:120px;">إجراءات</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="adminBody"></tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_1'];
+
+let curP = localStorage.getItem('L_A') || projs[0];
+
+let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+
+let editIndex = -1;
+
+
+
+const cleanSort = (s) => s ? s.toString().replace(/^(ال)/, '').trim() : '';
+
+
+
+function updateAllDatalists() {
+
+    // تحديد الحقول التي نريد تحويلها لقوائم منسدلة ومعرفات الـ datalist الخاصة بها
+
+    const mappings = {
+
+        'uni': 'list_uni',
+
+        'faculty': 'list_faculty',
+
+        'dept': 'list_dept',
+
+        'material_type': 'list_type',
+
+        'subject': 'list_subject',
+
+        'editor': 'list_editor' // أضفت لك المشرف أيضاً لتسهيل العمل
+
+    };
+
+
+
+    Object.keys(mappings).forEach(field => {
+
+        const listId = mappings[field];
+
+        const datalist = document.getElementById(listId);
+
+        if (datalist) {
+
+            // جلب القيم الفريدة من مصفوفة السجلات recs وترتيبها
+
+            const uniqueValues = [...new Set(recs.map(r => r[field]))]
+
+                .filter(val => val && val.trim() !== "")
+
+                .sort();
+
+
+
+            // ملء القائمة بالخيارات
+
+            datalist.innerHTML = uniqueValues
+
+                .map(val => `<option value="${val}">`)
+
+                .join('');
+
+        }
+
+    });
 
         <div class="actions" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px;">
             <button type="button" class="btn" style="background:#27ae60; flex: 1;" onclick="save()">حفظ السجل</button>
