@@ -116,6 +116,34 @@ let editIndex = -1;
 
 const cleanSort = (s) => s ? s.toString().replace(/^(ال)/, '').trim() : '';
 
+function updateAllDatalists() {
+    // تحديد الحقول التي نريد تحويلها لقوائم منسدلة ومعرفات الـ datalist الخاصة بها
+    const mappings = {
+        'uni': 'list_uni',
+        'faculty': 'list_faculty',
+        'dept': 'list_dept',
+        'material_type': 'list_type',
+        'subject': 'list_subject',
+        'editor': 'list_editor' // أضفت لك المشرف أيضاً لتسهيل العمل
+    };
+
+    Object.keys(mappings).forEach(field => {
+        const listId = mappings[field];
+        const datalist = document.getElementById(listId);
+        if (datalist) {
+            // جلب القيم الفريدة من مصفوفة السجلات recs وترتيبها
+            const uniqueValues = [...new Set(recs.map(r => r[field]))]
+                .filter(val => val && val.trim() !== "")
+                .sort();
+
+            // ملء القائمة بالخيارات
+            datalist.innerHTML = uniqueValues
+                .map(val => `<option value="${val}">`)
+                .join('');
+        }
+    });
+}
+    
 function draw() {
     const counter = document.getElementById('totalCounter');
     let mainRecs = recs.filter(r => r.title);
@@ -141,7 +169,13 @@ function save() {
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; }
     if (editIndex > -1) recs[editIndex] = d; else recs.push(d);
     editIndex = -1; document.getElementById('bForm').reset(); draw();
+
+    recs.push(newRecord); // إضافة السجل للمصفوفة
+    
+    updateAllDatalists(); // تحديث القوائم المنسدلة فوراً بالبيانات الجديدة
+    draw(); // إعادة رسم الجدول
 }
+    
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
