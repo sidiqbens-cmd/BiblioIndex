@@ -57,9 +57,9 @@
                     <datalist id="list_subject"></datalist>
                 </td>
                 <td>
-                    <span class="field-label">إحالة انظر</span>
-                    <input type="text" id="see" list="list_see" class="in">
-                    <datalist id="list_see"></datalist>
+                    <input type="text" id="see" list="list_subject" class="in"> 
+                    <input type="text" id="title" list="list_title" class="in">
+                    <datalist id="list_title"></datalist>
                 </td>
                 <td>
                     <span class="field-label">إحالة انظر أيضاً</span>
@@ -162,62 +162,38 @@ let editIndex = -1;
 const cleanSort = (s) => s ? s.toString().replace(/^(ال)/, '').trim() : '';
 
 function updateAllDatalists() {
+    // الخريطة الكاملة لربط كل حقل بقائمته
     const mappings = {
         'uni': 'list_uni',
         'faculty': 'list_faculty',
         'dept': 'list_dept',
         'material_type': 'list_material_type',
-        'subject': 'list_subject', // القائمة الأساسية للموضوعات
-        'editor': 'list_editor',
+        'subject': 'list_subject',
         'author': 'list_author',
-        'title': 'list_title'      // القائمة الجديدة للعناوين لمنع التكرار
+        'editor': 'list_editor',
+        'title': 'list_title',    // إضافة العنوان هنا
+        'year': 'list_year'
     };
 
     Object.keys(mappings).forEach(field => {
         const listId = mappings[field];
         const datalist = document.getElementById(listId);
         if (datalist) {
-            // جلب القيم الفريدة وتصفية الحقول الفارغة
             const uniqueValues = [...new Set(recs.map(r => r[field]))]
-                .filter(val => val && val.toString().trim() !== "")
+                .filter(val => val && String(val).trim() !== "")
                 .sort();
-            
             datalist.innerHTML = uniqueValues.map(val => `<option value="${val}">`).join('');
         }
     });
 
-    // ربط "إحالة انظر أيضاً" و "إحالة انظر" بقائمة رؤوس الموضوعات تلقائياً
-    // لضمان استخدام الرؤوس المستخدمة فعلاً كما طلبت
-    const subjectValues = [...new Set(recs.map(r => r.subject))]
-        .filter(v => v && v.trim() !== "").sort();
-    
+    // تأكيد ربط "انظر" و "انظر أيضاً" بقائمة الموضوعات لضمان التوافق
+    // هذا الجزء يضمن أن حقلي الإحالات يقرآن من قائمة رؤوس الموضوعات تلقائياً
     const subjectList = document.getElementById('list_subject');
     if (subjectList) {
-        subjectList.innerHTML = subjectValues.map(val => `<option value="${val}">`).join('');
+        const subjects = [...new Set(recs.map(r => r.subject))].filter(v => v).sort();
+        subjectList.innerHTML = subjects.map(v => `<option value="${v}">`).join('');
     }
 }
-    
-function draw() {
-    const counter = document.getElementById('totalCounter');
-    let mainRecs = recs.filter(r => r.title);
-    if (counter) counter.innerText = `[ العدد الإجمالي: ${mainRecs.length} ]`;
-
-    recs.sort((a, b) => cleanSort(a.subject).localeCompare(cleanSort(b.subject), 'ar'));
-
-    localStorage.setItem('R_' + curP, JSON.stringify(recs));
-    localStorage.setItem('L_P', JSON.stringify(projs));
-    localStorage.setItem('L_A', curP);
-    
-    let c = 1;
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => {
-        r.finalID = r.title ? c++ : null;
-        let info = r.title ? `<b>${r.author || ''}</b> - ${r.title}` : (r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`);
-        return `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${info}</td><td><button onclick="edit(${i})">تعديل</button><button onclick="deleteRec(${i})" style="color:red">حذف</button></td></tr>`;
-    }).join('');
-    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
-    updateAllDatalists();
-}
-
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
