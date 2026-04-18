@@ -155,7 +155,13 @@ function openBiblioWindow() {
 
     let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
     body{font-family:'Times New Roman', serif;padding:40px; font-size: 12pt; line-height: 1.5;}
-    .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:20px 0 10px 0;font-weight:bold; border: 1px solid #333;}
+    /* تنسيق رأس الموضوع - خط غامق */
+    .sub-header{background:#e0e0e0; text-align:center; padding:4px; margin:20px 0 10px 0; font-weight:bold; border: 1px solid #333; font-size: 14pt;}
+    /* تنسيق إحالة انظر أيضاً - تحت رأس الموضوع مباشرة خ13 */
+    .see-also { background:#f5f5f5; text-align:center; padding:3px; margin:-10px 0 15px 0; font-weight:bold; font-size: 13pt; border: 1px dotted #999; border-top:none; }
+    /* تنسيق إحالة انظر - سطر مستقل خ14 غامق */
+    .see-line { text-align:center; font-weight:bold; font-size: 14pt; margin: 15px 0; }
+    
     .ent { margin-bottom: 15px; position: relative; text-align: justify; }
     .id-left { float: left; font-weight: bold; }
     .line1 { overflow: hidden; margin-bottom: 2px; }
@@ -163,17 +169,27 @@ function openBiblioWindow() {
 
     let lastSub = '';
     recs.forEach(r => {
-        // طباعة رأس الموضوع
-        if (r.subject !== lastSub) {
+        // 1. طباعة رأس الموضوع وتنسيق "انظر أيضاً"
+        if (r.subject && r.subject !== lastSub) {
             content += `<div class="sub-header">${r.subject}</div>`;
             lastSub = r.subject;
+            
+            // إذا وجد "انظر أيضاً" لهذا الموضوع، تظهر تحته مباشرة
+            if (r.see_also) {
+                content += `<div class="see-also">انظر أيضاً: ${r.see_also}</div>`;
+            }
         }
 
-        if (r.title) {
-            // السطر الأول: الاسم المقلوب والرقم جهة اليسار
+        // 2. معالجة إحالة "انظر" (تظهر في نفس السطر مع الموضوع)
+        if (r.see) {
+            content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
+        } 
+        
+        // 3. معالجة التسجيلة الببليوغرافية العادية
+        else if (r.title) {
             let line1 = `<div class="line1"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>`;
             
-            // ترتيب المؤسسات المعكوس: جامعة ، كلية ، قسم ، سنة
+            // الترتيب المعكوس: جامعة ، كلية ، قسم ، سنة
             let details = [
                 r.uni ? "جامعة " + r.uni : "", 
                 r.faculty ? "كلية " + r.faculty : "", 
@@ -181,16 +197,12 @@ function openBiblioWindow() {
                 r.year || ""
             ].filter(x => x).join(" ، ");
             
-            // صياغة الوصف المادي (الصفحات ص)
             let pagesPart = r.pages ? r.pages + " ص . ـــ " : "";
             
-            // السطر الثاني: الاسم معتدلاً، الصفحات، ثم نوع الرسالة متبوعاً بنقطة ملتصقة بالقوس
+            // السطر الثاني مع مراعاة إلصاق النقطة بالقوس
             let line2 = `<div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${pagesPart}(${r.material_type || ''}).</div>`;
             
             content += `<div class="ent">${line1}${line2}</div>`;
-        } else if (r.see) {
-            // في حال وجود إحالة فقط
-            content += `<div style="text-align:center; font-weight:bold; margin: 5px 0;">انظر: ${r.see}</div>`;
         }
     });
 
