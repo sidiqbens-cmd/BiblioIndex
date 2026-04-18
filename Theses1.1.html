@@ -135,6 +135,14 @@ function save() {
 
 function openBiblioWindow() {
     const win = window.open('', '_blank');
+    
+    // دالة داخلية لقلب الاسم إذا كان يحتوي على فاصلة
+    const fixName = (name) => {
+        if (!name || !name.includes('،')) return name;
+        let parts = name.split('،');
+        return parts[1].trim() + ' ' + parts[0].trim();
+    };
+
     let content = `<html dir="rtl"><head><title>المعاينة</title><style>
     body{font-family:'Times New Roman', serif;padding:40px; font-size: 12pt;}
     .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:20px 0 10px 0;font-weight:bold;}
@@ -150,15 +158,27 @@ function openBiblioWindow() {
             lastSub = r.subject;
         }
         if (r.title) {
+            // السطر الأول: يبقى فيه الاسم كما هو (مقلوب) أو حسب رغبتك في الفهرس
             let line1 = `<div class="line1"><span class="id-left">(${r.finalID})</span><b>${r.author}</b></div>`;
-            let details = [r.dept?"قسم "+r.dept:"", r.faculty?"كلية "+r.faculty:"", r.uni?"جامعة "+r.uni:"", r.year].filter(x=>x).join(" ، ");
-            let line2 = `<div>${r.title} / إعداد: ${r.author} ؛ ${r.editor ? 'إشراف: ' + r.editor : ''} . ـــ ${details} . ـــ (${r.material_type || ''}) /</div>`;
+            
+            // تجهيز بيانات المؤسسة والسنة
+            let details = [
+                r.dept ? "قسم " + r.dept : "", 
+                r.faculty ? "كلية " + r.faculty : "", 
+                r.uni ? "جامعة " + r.uni : "", 
+                r.year
+            ].filter(x => x).join(" ، ");
+            
+            // السطر الثاني: استخدام fixName لقلب اسم الطالب، وتغيير النهاية إلى قاطعة /
+            let line2 = `<div>${r.title} / إعداد: ${fixName(r.author)} ؛ ${r.editor ? 'إشراف: ' + r.editor : ''} . ـــ ${details} . ـــ (${r.material_type || ''}) .</div>`;
+            
             content += `<div class="ent">${line1}${line2}</div>`;
         } else if (r.see) {
             content += `<div style="text-align:center; font-weight:bold;">انظر: ${r.see}</div>`;
         }
     });
-    win.document.write(content + '</body></html>'); win.document.close();
+    win.document.write(content + '</body></html>'); 
+    win.document.close();
 }
 
 function runIdx(f, t) {
