@@ -289,9 +289,23 @@ function runIdx(f, t) {
 }
 
 function loadRec() {
-    let target = document.getElementById('searchID').value;
+    // 1. الحصول على الرقم من الخانة
+    let searchInput = document.getElementById('searchID');
+    let target = searchInput.value;
+    
+    // 2. البحث عن مكان السجل في المصفوفة
     let idx = recs.findIndex(x => x.finalID == target);
-    if (idx !== -1) edit(idx); else alert("غير موجود");
+    
+    if (idx !== -1) {
+        // 3. استدعاء دالة التعديل لتعبئة الحقول بالبيانات
+        edit(idx);
+        
+        // 4. --- الإضافة المطلوبة هنا: تفريغ خانة الرقم بعد الاسترجاع ---
+        searchInput.value = ""; 
+        // ---------------------------------------------------------
+    } else {
+        alert("عذراً، هذا الرقم غير موجود");
+    }
 }
 function edit(i) { editIndex = i; document.querySelectorAll('.in').forEach(inp => inp.value = recs[i][inp.id] || ''); window.scrollTo(0,0); }
 function deleteRec(i) { if(confirm("حذف؟")) { recs.splice(i, 1); draw(); } }
