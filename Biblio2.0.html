@@ -1,0 +1,39 @@
+<div class="main-container">
+    <div class="toolbar">
+        <button class="btn" onclick="saveRec()">حفظ (Ctrl+S)</button>
+        <button class="btn" onclick="clearInputs()">تفريغ الخانات</button>
+        <button class="btn" onclick="openManager()" style="background:#8e44ad;">البحث والإدارة</button>
+        <button class="btn" onclick="exportData()">تصدير JSON</button>
+        <input type="file" id="fileIn" style="display:none" onchange="importData(event)">
+        <button class="btn" onclick="document.getElementById('fileIn').click()">استيراد</button>
+    </div>
+
+    <div class="input-grid">
+        <input type="text" id="subject" placeholder="رأس الموضوع">
+        <input type="text" id="author" placeholder="المؤلف الرئيسي (اللقب، الاسم)">
+        <input type="text" id="co_authors" placeholder="المؤلفون المشاركون">
+        <input type="text" id="title" placeholder="العنوان">
+        <input type="text" id="orig_title" placeholder="Original Title (Latin)" dir="ltr">
+        <input type="text" id="orig_author" placeholder="Original Author" dir="ltr">
+        
+        <input type="text" id="translator" placeholder="المترجمون">
+        <input type="text" id="editor" placeholder="المحقق/المقدم/المشرف">
+        
+        <select id="material_type" onchange="toggleFields()">
+            <option value="رسالة">رسالة جامعية</option>
+            <option value="كتاب">كتاب</option>
+            <option value="مقالة">مقالة</option>
+        </select>
+
+        <input type="text" id="uni" placeholder="الجامعة/التبعية">
+        <input type="text" id="faculty" placeholder="الكلية/المدرسة">
+        <input type="text" id="year" placeholder="السنة" maxlength="8">
+        <input type="text" id="pages" placeholder="الصفحات" maxlength="12">
+        <input type="text" id="edition" placeholder="الطبعة" maxlength="20">
+        <input type="text" id="pub_place" placeholder="مكان النشر" maxlength="20">
+        <input type="text" id="publisher" placeholder="الناشر" maxlength="40">
+        <input type="text" id="series" placeholder="السلسلة">
+        
+        <textarea id="notes" placeholder="ملاحظات إضافية..." style="grid-column: span 3; height: 60px;"></textarea>
+    </div>
+</div>
