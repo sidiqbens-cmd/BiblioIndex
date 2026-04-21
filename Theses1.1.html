@@ -276,17 +276,18 @@ function openBiblioWindow() {
         return parts[1].trim() + ' ' + parts[0].trim();
     };
 
-    let content = `<html dir="rtl"><head><title>المعاينة</title><style>
-    body{font-family:'Times New Roman', serif; padding:40px; font-size: 12pt;}
-    .sub-header{background:#e0e0e0; text-align:center; padding:6px; margin:25px 0 15px 0; font-weight:bold; border: 1px solid #333;}
-    .see-also { text-align:center; margin:-10px 0 15px 0; font-weight:bold; }
-    .see-line { text-align:center; font-weight:bold; margin: 20px 0; }
-    .ent { margin-bottom: 18px; text-align: justify; }
-    .id-left { float: left; font-weight: bold; }
+    let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
+    body{font-family:'Times New Roman', serif; padding:40px; font-size: 12pt; line-height: 1.6;}
+    .sub-header{background:#e0e0e0; text-align:center; padding:6px; margin:25px 0 15px 0; font-weight:bold; border: 1px solid #333; font-size: 14pt;}
+    .see-also { background:#f9f9f9; text-align:center; padding:4px; margin:-15px 0 15px 0; font-weight:bold; font-size: 13pt; border: 1px solid #ccc; border-top:none; }
+    .see-line { text-align:center; font-weight:bold; font-size: 14pt; margin: 20px 0; display: block; border: 1px solid #eee; padding: 5px; }
+    .ent { margin-bottom: 18px; position: relative; text-align: justify; }
+    .id-left { float: left; font-weight: bold; font-size: 12pt; }
     </style></head><body>`;
 
     let lastSub = '';
     recs.forEach(r => {
+        // إدارة رؤوس الموضوعات والإحالات
         if (r.subject && r.subject !== lastSub) {
             if (!r.see) {
                 content += `<div class="sub-header">${r.subject}</div>`;
@@ -294,17 +295,37 @@ function openBiblioWindow() {
             }
             lastSub = r.subject;
         }
+
         if (r.see) {
             content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
         } else if (r.title) {
-            let details = [r.uni, r.faculty, r.dept, r.year].filter(x => x).join(" ، ");
+            // بناء بيانات النشر/الجامعة بدقة (تجاهل الفارغ)
+            let details = [
+                r.uni ? "جامعة " + r.uni : "", 
+                r.faculty ? "كلية " + r.faculty : "", 
+                r.dept ? "قسم " + r.dept : "", 
+                r.year || ""
+            ].filter(x => x).join(" ، ");
+
+            // بناء سطر المسؤولية (المؤلف والمشرف)
+            let responsibility = `إعداد ${fixName(r.author)}`;
+            if (r.editor) responsibility += ` ؛ إشراف ${r.editor}`;
+
+            // المعاينة النهائية مع التحقق من وجود البيانات لمنع ظهور علامات ترقيم يتيمة
             content += `<div class="ent">
-                <div style="overflow:hidden"><span class="id-left">(${r.finalID})</span><b>${r.author}</b></div>
-                <div>${r.title} / إعداد ${fixName(r.author)} ؛ ${r.editor ? 'إشراف ' + r.editor : ''} . ـــ ${details} . ـــ ${r.pages?r.pages+' ص.':''} (${r.material_type}).</div>
+                <div style="overflow:hidden"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>
+                <div>
+                    ${r.title} / ${responsibility} 
+                    ${details ? " . ـــ " + details : ""} 
+                    ${r.pages ? " . ـــ " + r.pages + " ص. " : ""}
+                    ${r.material_type ? " (" + r.material_type + ")." : ""}
+                </div>
             </div>`;
         }
     });
-    win.document.write(content + '</body></html>'); win.document.close();
+
+    win.document.write(content + '</body></html>'); 
+    win.document.close();
 }
 
 function runIdx(f, t) {
