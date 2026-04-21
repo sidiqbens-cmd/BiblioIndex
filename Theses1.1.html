@@ -299,16 +299,14 @@ function openBiblioWindow() {
         if (r.see) {
             content += `<div class="see-line">${r.subject} انظر: ${r.see}</div>`;
         } else if (r.title) {
-            // بناء بيانات النشر/الجامعة بدقة (تجاهل الفارغ)
-            let details = [
-              // 1. معالجة تسمية الجامعة (تجنب تكرار كلمة جامعة إذا وجدت كلمة أكاديمية)
+            // 1. معالجة تسمية الجامعة (تجنب تكرار كلمة جامعة إذا وجدت كلمة أكاديمية)
             let uLab = r.uni ? (r.uni.trim().startsWith("أكاديمية") ? r.uni : "جامعة " + r.uni) : "";
 
             // 2. معالجة تسمية الكلية (تتحول إلى مدرسة في حال كانت المؤسسة أكاديمية)
             let fLab = "";
             if (r.faculty) {
                 fLab = (r.uni && r.uni.includes("أكاديمية")) ? "مدرسة " + r.faculty : "كلية " + r.faculty;
-}
+            }
 
             // 3. تسمية القسم والسنة
             let dLab = r.dept ? "قسم " + r.dept : "";
@@ -321,7 +319,7 @@ function openBiblioWindow() {
             let responsibility = `إعداد ${fixName(r.author)}`;
             if (r.editor) responsibility += ` ؛ إشراف ${r.editor}`;
 
-            // المعاينة النهائية مع التحقق من وجود البيانات لمنع ظهور علامات ترقيم يتيمة
+            // المعاينة النهائية
             content += `<div class="ent">
                 <div style="overflow:hidden"><span class="id-left">(${r.finalID || ''})</span><b>${r.author || ''}</b></div>
                 <div>
