@@ -301,11 +301,21 @@ function openBiblioWindow() {
         } else if (r.title) {
             // بناء بيانات النشر/الجامعة بدقة (تجاهل الفارغ)
             let details = [
-                r.uni ? "جامعة " + r.uni : "", 
-                r.faculty ? "كلية " + r.faculty : "", 
-                r.dept ? "قسم " + r.dept : "", 
-                r.year || ""
-            ].filter(x => x).join(" ، ");
+              // 1. معالجة تسمية الجامعة (تجنب تكرار كلمة جامعة إذا وجدت كلمة أكاديمية)
+            let uLab = r.uni ? (r.uni.trim().startsWith("أكاديمية") ? r.uni : "جامعة " + r.uni) : "";
+
+            // 2. معالجة تسمية الكلية (تتحول إلى مدرسة في حال كانت المؤسسة أكاديمية)
+            let fLab = "";
+            if (r.faculty) {
+                fLab = (r.uni && r.uni.includes("أكاديمية")) ? "مدرسة " + r.faculty : "كلية " + r.faculty;
+}
+
+            // 3. تسمية القسم والسنة
+            let dLab = r.dept ? "قسم " + r.dept : "";
+            let yLab = r.year || "";
+
+            // 4. دمج الحقول التي تحتوي على بيانات فقط باستخدام الفاصلة ( ، )
+            let details = [uLab, fLab, dLab, yLab].filter(x => x).join(" ، ");
 
             // بناء سطر المسؤولية (المؤلف والمشرف)
             let responsibility = `إعداد ${fixName(r.author)}`;
