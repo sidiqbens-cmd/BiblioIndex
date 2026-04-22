@@ -239,19 +239,44 @@ function openBiblioWindow() {
         if (r.title) {
             let authorPart = r.author ? `<b>${r.author}</b>` : "";
             let idPart = `<span class="id-num">(${r.finalID})</span>`;
-            let respStr = [r.author_preview, r.collab].filter(x=>x).join('، ');
-            if(r.translator) respStr += (respStr ? ' ؛ ترجمة ' : 'ترجمة ') + r.translator;
-            if(r.editor) respStr += (respStr ? ' ؛ ' : '') + r.editor;
+
+            // --- منطق بيان المسؤولية المحدث ---
+            let responsibilities = [];
+            
+            // 1. معالجة المؤلف والمترجم
+            if (r.author) {
+                responsibilities.push(r.author);
+                if (r.translator) responsibilities.push("ترجمة " + r.translator);
+            } else if (r.translator) {
+                // إذا لم يوجد مؤلف، نبدأ بالمترجم مباشرة بعد العنوان
+                responsibilities.push("ترجمة " + r.translator);
+            }
+
+            // 2. معالجة المشرف (يفصل دائما بفاصلة منقوطة ؛)
+            if (r.supervisor) {
+                responsibilities.push("إشراف " + r.supervisor);
+            }
+
+            // الربط بالفاصلة المنقوطة ؛ للأدوار المختلفة
+            let respStr = responsibilities.join(' ؛ ');
+
             let bibTail = "";
             if (r.journal) {
                 let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
                 bibTail = [r.journal, issueYear, r.pages ? "ص " + r.pages : ""].filter(x => x).join(" . ـــ ");
             } else {
-                let pubInfo = [r.place, r.publisher].filter(x => x).join(" : ");
+                // منطق الرسائل الجامعية + بيانات النشر العادية
+                // نجمع الجامعة والكلية والقسم ثم مكان النشر والناشر
+                let institutionInfo = [r.university, r.college, r.dept].filter(x => x).join("، ");
+                let publisherInfo = [r.place, r.publisher].filter(x => x).join(" : ");
+                
+                // دمج الجميع مع مراعاة الفواصل
+                let mainPub = [institutionInfo, publisherInfo].filter(x => x).join(" ؛ ");
                 let yearInfo = r.year ? " ، " + r.year : "";
                 let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
-                bibTail = pubInfo + yearInfo + pagesInfo;
+                bibTail = mainPub + yearInfo + pagesInfo;
             }
+            
             let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
             let titleWeight = (!r.author || r.author.trim() === "") ? "bold" : "normal";
 
@@ -266,7 +291,6 @@ function openBiblioWindow() {
     });
     win.document.write(content + '</body></html>'); win.document.close();
 }
-
 function copyRec() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     localStorage.setItem('BIB_CLIP', JSON.stringify(d));
