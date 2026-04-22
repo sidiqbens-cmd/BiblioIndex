@@ -193,35 +193,43 @@ function openBiblioWindow() {
     const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
 
     recs.forEach(r => {
+        // معالجة الإحالات
         if (!r.title && r.see) {
             if (usedSubjects.has(r.see.trim())) content += `<div class="sub-header">${r.subject} انظر: ${r.see}</div>`;
             return;
         }
+        // معالجة رؤوس الموضوعات
         if (r.subject !== lastSub) {
-            content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
+            content += `<div class="sub-header">${r.subject}</div>`; 
+            lastSub = r.subject;
         }
+
         if (r.title) {
             let authorPart = r.author ? `<b>${r.author}</b>` : "";
             let idPart = `<span class="id-num">(${r.finalID})</span>`;
 
-            // --- الإصلاح الجوهري لمنع تكرار المؤلف ---
-            let responsibilities = [];
+            // --- تعريف ريسبونسبيليتي (بيان المسؤولية) لكل سجل على حدة ---
+            let responsibilities = []; 
             let authorVal = (r.author || "").trim();
             
-            // تقسيم المؤلفين بناءً على الفاصلة للتأكد من عددهم
+            // تقسيم المؤلفين للتأكد من عددهم (بناءً على الفاصلة العربية أو اللاتينية)
             let authorList = authorVal.split(/[،,]/).map(s => s.trim()).filter(s => s);
 
-            // قاعدة: يذكر المؤلف بعد العنوان فقط إذا كانوا 2 أو أكثر
+            // القاعدة الصارمة: 
+            // إذا كان العدد أكبر من 1، نضيف المؤلف لبيان المسؤولية.
+            // إذا كان العدد 1 (مؤلف وحيد)، لا نضيفه (لأنه موجود أصلاً في الأعلى)
             if (authorList.length > 1) {
                 responsibilities.push(authorVal);
             }
 
-            // المترجم والمشرف يضافان دائماً بفاصلة منقوطة
+            // إضافة المترجم والمشرف دائماً (سواء كان المؤلف وحيداً أو مشاركاً)
             if (r.translator) responsibilities.push("ترجمة " + r.translator);
             if (r.supervisor) responsibilities.push("إشراف " + r.supervisor);
             
+            // ربط العناصر بفاصلة منقوطة ؛
             let respStr = responsibilities.join(' ؛ ');
 
+            // بناء ذيل التسجيلة (بيانات النشر أو الرسالة)
             let bibTail = "";
             if (r.journal) {
                 let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
@@ -233,14 +241,16 @@ function openBiblioWindow() {
                 bibTail = mainPub + (r.year ? " ، " + r.year : "") + (r.pages ? " . ـــ " + r.pages + " ص" : "");
             }
 
+            // تجميع السطر النهائي
             content += `<div class="ent">
                 <div>${authorPart} ${idPart}</div>
-                <span style="font-weight:${!r.author?'bold':'normal'}">${r.title}</span>
+                <span style="font-weight:${!r.author ? 'bold' : 'normal'}">${r.title}</span>
                 <span>${respStr ? ' / ' + respStr : ''} . ــــ ${bibTail}.</span>
             </div>`;
         }
     });
-    win.document.write(content + '</body></html>'); win.document.close();
+    win.document.write(content + '</body></html>'); 
+    win.document.close();
 }
 function runAuthorIdx() {
     let m = {};
