@@ -210,87 +210,28 @@ function updateAllDatalists() {
     container.innerHTML = html;
 }
 
-function openBiblioWindow() {
-    const win = window.open('', '_blank');
-    let content = `<html dir="rtl"><head><title>المعاينة النهائية</title><style>
-    body{font-family:'Times New Roman', serif;padding:40px;line-height:1.4; font-size: 12pt;}
-    .sub-header{background:#e0e0e0;text-align:center;padding:4px;margin:10px 0 5px 0;font-weight:bold;border:none; font-size: 14pt;}
-    .see-also-preview { display: block; text-align: center; font-weight: bold; margin: 4px 0; font-size: 13pt; background: #f2f2f2; padding: 5px 0; }
-    .ent { margin-bottom: 6px; border-bottom: none; padding-bottom: 0px; position: relative; font-size: 12pt; }
-    .id-num{float:left; color:#666; font-size: 11pt;}
-    </style></head><body>`;
-
-    const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
-    let lastSub = '';
-
-    recs.forEach(r => {
-        if (!r.title && r.see) {
-            if (usedSubjects.has(r.see.trim())) { content += `<div class="sub-header">${r.subject} انظر: ${r.see}</div>`; lastSub = r.subject; }
-            return;
-        }
-        if (r.subject !== lastSub) {
-            content += `<div class="sub-header">${r.subject}</div>`; lastSub = r.subject;
-            let allSeeAlso = recs.filter(x => x.subject === r.subject && x.see_also)
-                                 .flatMap(x => x.see_also.split('/').map(s=>s.trim()))
-                                 .filter(s=>s)
-                                 .join(' ؛ ');
-            if (allSeeAlso) { content += `<span class="see-also-preview">انظر أيضاً: ${allSeeAlso}</span>`; }
-        }
-        if (r.title) {
-            let authorPart = r.author ? `<b>${r.author}</b>` : "";
-            let idPart = `<span class="id-num">(${r.finalID})</span>`;
-
-            // --- منطق بيان المسؤولية المحدث ---
+// --- منطق بيان المسؤولية المحدث وفق قاعدة عدم التكرار ---
             let responsibilities = [];
             
-            // 1. معالجة المؤلف والمترجم
-            if (r.author) {
-                responsibilities.push(r.author);
-                if (r.translator) responsibilities.push("ترجمة " + r.translator);
-            } else if (r.translator) {
-                // إذا لم يوجد مؤلف، نبدأ بالمترجم مباشرة بعد العنوان
-                responsibilities.push("ترجمة " + r.translator);
+            // تحقق مما إذا كان هناك مؤلفين مشاركين (مفصولين بفاصلة في خانة المؤلف)
+            let authorVal = r.author || "";
+            let authorList = authorVal.split('،').map(s => s.trim()).filter(s => s);
+
+            // القاعدة: لا نكرر المؤلف إلا إذا كانوا أكثر من واحد (مؤلف مشارك أو أكثر)
+            if (authorList.length > 1) {
+                responsibilities.push(r.author); 
             }
 
-            // 2. معالجة المشرف (يفصل دائما بفاصلة منقوطة ؛)
-            if (r.supervisor) {
-                responsibilities.push("إشراف " + r.supervisor);
-            }
-
-            // الربط بالفاصلة المنقوطة ؛ للأدوار المختلفة
-            let respStr = responsibilities.join(' ؛ ');
-
-            let bibTail = "";
-            if (r.journal) {
-                let issueYear = [r.issue, r.year].filter(x => x).join(" ، ");
-                bibTail = [r.journal, issueYear, r.pages ? "ص " + r.pages : ""].filter(x => x).join(" . ـــ ");
-            } else {
-                // منطق الرسائل الجامعية + بيانات النشر العادية
-                // نجمع الجامعة والكلية والقسم ثم مكان النشر والناشر
-                let institutionInfo = [r.university, r.college, r.dept].filter(x => x).join("، ");
-                let publisherInfo = [r.place, r.publisher].filter(x => x).join(" : ");
-                
-                // دمج الجميع مع مراعاة الفواصل
-                let mainPub = [institutionInfo, publisherInfo].filter(x => x).join(" ؛ ");
-                let yearInfo = r.year ? " ، " + r.year : "";
-                let pagesInfo = r.pages ? " . ـــ " + r.pages + " ص" : "";
-                bibTail = mainPub + yearInfo + pagesInfo;
-            }
+            // المترجم والمشرف يضافون دائماً ولا يكسرون قاعدة التكرار للمؤلف
+            if (r.translator) responsibilities.push("ترجمة " + r.translator);
+            if (r.supervisor) responsibilities.push("إشراف " + r.supervisor);
             
-            let separator = `<span style="white-space: nowrap;"> . ــــ </span>`;
-            let titleWeight = (!r.author || r.author.trim() === "") ? "bold" : "normal";
+            // إذا لم يكن هناك مؤلف أصلاً، وبدأنا بالمترجم أو المشرف مباشرة
+            if (authorList.length === 0 && (r.translator || r.supervisor)) {
+                // المنطق سيعمل تلقائياً عبر المصفوفة
+            }
 
-            let mainLine = `<div class="ent" style="text-align: justify; border: none; margin-bottom: 6px;">
-                <div style="overflow:hidden; margin-bottom: 0px;">${authorPart} ${idPart}</div>
-                <span style="display:inline; font-weight: ${titleWeight};">${r.title}</span>
-                <span style="display:inline;">${respStr ? ' / ' + respStr : ''}${separator}${bibTail}.</span>
-                ${r.orig_title ? `<div style="font-size: 11pt; margin-top:2px;"><i>العنوان الأصلي: ${r.orig_title}</i></div>` : ''}
-            </div>`;
-            content += mainLine;
-        }
-    });
-    win.document.write(content + '</body></html>'); win.document.close();
-}
+            let respStr = responsibilities.join(' ؛ ');
 function copyRec() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
     localStorage.setItem('BIB_CLIP', JSON.stringify(d));
