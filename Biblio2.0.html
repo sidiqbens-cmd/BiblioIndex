@@ -2,46 +2,49 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>الفهرس الليبي الموحد - 1.6</title>
+    <title>الفهرس الليبي الموحد - الإصدار الشامل 1.7</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; }
-        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
-        .input-table { width: 100%; background: #cfcfcf; border-spacing: 2px; padding: 5px; table-layout: fixed; }
-        .field-label { font-size: 10px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
-        input, select, textarea { width: 100%; height: 22px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
-        textarea { height: 40px !important; }
-        .actions { background: #cfcfcf; padding: 5px; display: flex; justify-content: center; gap: 4px; border-bottom: 2px solid #2c3e50; flex-wrap: wrap; }
-        .btn { padding: 4px 8px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        .modal-content { background:white; width:95%; margin:1% auto; padding:15px; height: 85vh; overflow-y: auto; }
-        .admin-table { border-collapse: collapse; width: 100%; font-size: 11px; table-layout: fixed; }
-        .admin-table th { background: #34495e; color: white; padding: 4px; border: 1px solid #2c3e50; }
-        .admin-table td { border: 1px solid #ccc; padding: 2px 5px; height: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .btn-group { display: flex; gap: 4px; justify-content: center; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; padding: 0; overflow-x: hidden; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 3px solid #000; }
+        .input-table { width: 100%; background: #cfcfcf; border-spacing: 4px; padding: 8px; table-layout: fixed; }
+        .field-label { font-size: 11px; font-weight: bold; color: #1a1a1a; display: block; margin-bottom: 2px; }
+        input, select, textarea { width: 100%; height: 26px; font-size: 13px; font-weight: bold; border: 1px solid #777; text-align: right; box-sizing: border-box; background: #fff; }
+        textarea { height: 50px !important; resize: none; }
+        .actions { background: #cfcfcf; padding: 10px; display: flex; justify-content: center; gap: 6px; border-bottom: 2px solid #2c3e50; flex-wrap: wrap; }
+        .btn { padding: 6px 12px; cursor: pointer; border: none; border-radius: 4px; color: #fff; font-size: 12px; font-weight: bold; transition: 0.3s; }
+        .btn:hover { filter: brightness(1.2); }
+        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; }
+        .modal-content { background:white; width:98%; margin:1% auto; padding:20px; height: 85vh; overflow-y: auto; border-radius: 8px; }
+        .idx-grid { column-count: 3; column-gap: 25px; font-size: 13px; line-height: 1.6; }
+        .admin-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+        .admin-table th { background: #34495e; color: white; padding: 8px; border: 1px solid #2c3e50; position: sticky; top: 0; }
+        .admin-table td { border: 1px solid #ccc; padding: 4px; height: 24px; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:4px 15px;">
-        <strong>الفهرس الليبي الموحد</strong>
-        <div style="display:flex; gap:5px;">
-            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
-            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#34495e; color:white; padding:8px 20px;">
+        <strong style="font-size: 22px;">الفهرس الليبي الموحد</strong>
+        <div style="display:flex; gap:8px;">
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير XLSX</button>
+            <button onclick="newP()" class="btn" style="background:#27ae60">+ مشروع جديد</button>
             <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
-            <select id="pSel" style="width:120px;" onchange="switchP(this.value)"></select>
+            <select id="pSel" style="width:150px; height:30px;" onchange="switchP(this.value)"></select>
         </div>
     </div>
     
-    <div style="background:#ecf0f1; padding:5px; border-bottom:1px solid #bdc3c7; display:flex; gap:10px; align-items:center; justify-content:center;">
-        <span style="font-size:11px; font-weight:bold;">رقم التسجيلة:</span>
-        <input type="number" id="searchID" style="width:60px; height:22px;">
-        <button class="btn" style="background:#27ae60;" onclick="loadRec()">استرجاع</button>
-        <button class="btn" style="background:#c0392b;" onclick="deleteByNum()">حذف</button>
-        <button class="btn" style="background:#3498db;" onclick="openMagManager()">المجلات والتبعية</button>
-        <button class="btn" style="background:#34495e;" onclick="openAdminModal()">إدارة السجلات</button>
-        <b id="totalCounter" style="color:red; font-size:14px; margin-right:10px;"></b>
+    <div style="background:#ecf0f1; padding:8px; border-bottom:1px solid #bdc3c7; display:flex; gap:15px; align-items:center; justify-content:center;">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-weight:bold; font-size:13px;">رقم التسجيلة:</span>
+            <input type="number" id="searchID" style="width:70px; height:28px; text-align:center;">
+            <button class="btn" style="background:#27ae60;" onclick="loadRec()">استرجاع للتعديل</button>
+            <button class="btn" style="background:#c0392b;" onclick="deleteByNum()">حذف</button>
+        </div>
+        <button class="btn" style="background:#3498db;" onclick="openMagManager()">إدارة المجلات والتبعية</button>
+        <button class="btn" style="background:#34495e;" onclick="openAdminModal()">إدارة كافة السجلات</button>
+        <b id="totalCounter" style="color:#c0392b; font-size:16px;"></b>
     </div>
 
     <form id="mainForm">
@@ -52,27 +55,33 @@
                 <td><span class="field-label">إحالة انظر أيضاً</span><input type="text" id="see_also" list="list_subject" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
+                <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input type="text" id="author" class="in"></td>
                 <td><span class="field-label">مؤلفون مشاركون</span><input type="text" id="co_authors" class="in"></td>
+                <td><span class="field-label">المحقق / المراجع</span><input type="text" id="editor_reviewer" class="in"></td>
                 <td><span class="field-label">المترجمون</span><input type="text" id="translator" class="in"></td>
-                <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
             </tr>
             <tr>
                 <td colspan="2"><span class="field-label">العنوان الرئيسي</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">الجامعة</span><input type="text" id="uni" class="in"></td>
-                <td><span class="field-label">الكلية / القسم</span><input type="text" id="faculty_dept" class="in"></td>
+                <td><span class="field-label">العنوان الأصلي (Latin)</span><input type="text" id="orig_title" class="in" dir="ltr"></td>
+                <td><span class="field-label">المؤلف الأصلي</span><input type="text" id="orig_author" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">الوعاء</span><select id="doc_type" class="in"><option>كتاب</option><option>مقالة</option><option>رسالة</option></select></td>
                 <td><span class="field-label">نوع الرسالة</span><select id="res_type" class="in"><option></option><option>رسالة ماجستير</option><option>أطروحة دكتوراه</option></select></td>
+                <td><span class="field-label">المشرف</span><input type="text" id="supervisor" class="in"></td>
+                <td><span class="field-label">الجامعة</span><input type="text" id="uni" class="in"></td>
+            </tr>
+            <tr>
+                <td><span class="field-label">الكلية</span><input type="text" id="faculty" class="in"></td>
+                <td><span class="field-label">القسم</span><input type="text" id="dept" class="in"></td>
                 <td><span class="field-label">المجلة</span><input type="text" id="journal" list="list_mag" class="in"></td>
-                <td><span class="field-label">العدد</span><input type="text" id="issue" class="in"></td>
+                <td><span class="field-label">العدد / المجلد</span><input type="text" id="issue" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">الناشر</span><input type="text" id="publisher" class="in"></td>
                 <td><span class="field-label">مكان النشر</span><input type="text" id="pub_place" class="in"></td>
                 <td>
-                    <div style="display:flex; gap:2px;">
+                    <div style="display:flex; gap:4px;">
                         <div style="flex:1"><span class="field-label">السنة</span><input type="text" id="year" class="in"></div>
                         <div style="flex:1"><span class="field-label">الطبعة</span><input type="text" id="edition" class="in"></div>
                         <div style="flex:1"><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></div>
@@ -82,20 +91,23 @@
             </tr>
         </table>
         <div class="actions">
-            <button type="button" class="btn" style="background:#27ae60; flex:1;" onclick="save()">حفظ</button>
-            <button type="button" class="btn" style="background:#8e44ad;" onclick="openBiblioWindow()">المعاينة البيبليوغرافية</button>
+            <button type="button" class="btn" style="background:#27ae60; flex:1; height:45px; font-size:16px;" onclick="save()">حفظ التسجيلة</button>
+            <button type="button" class="btn" style="background:#8e44ad;" onclick="openBiblioWindow()">المعاينة النهائية</button>
             <button type="button" class="btn" style="background:#34495e;" onclick="runIdx('author', 'المؤلفين')">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400;" onclick="runIdx('supervisor', 'المشرفين')">كشاف المشرفين</button>
+            <button type="button" class="btn" style="background:#c0392b;" onclick="runIdx('translator', 'المترجمين')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#16a085;" onclick="runIdx('title', 'العناوين')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#2980b9;" onclick="runIdx('subject', 'الموضوعات', false, true)">الموضوعات</button>
+            <button type="button" class="btn" style="background:#7f8c8d;" onclick="runIdx('orig_title', 'العناوين الأصلية', true)">كشاف العناوين الأصلية</button>
+            <button type="button" class="btn" style="background:#2c3e50;" onclick="runIdx('orig_author', 'المؤلفين الأصليين')">المؤلفين الأصليين</button>
+            <button type="button" class="btn" style="background:#2980b9;" onclick="runIdx('subject', 'الموضوعات', false, true)">كشاف الموضوعات</button>
         </div>
     </form>
 </div>
 
 <div id="modalOverlay">
-    <div style="padding:10px; background:#2c3e50; color:white; display:flex; justify-content:space-between; align-items:center;">
-        <span id="mTitle" style="font-weight:bold;">نظام الإدارة</span>
-        <button onclick="closeM()" class="btn" style="background:#c0392b">إغلاق</button>
+    <div style="padding:15px; background:#2c3e50; color:white; display:flex; justify-content:space-between; align-items:center;">
+        <span id="mTitle" style="font-weight:bold; font-size:18px;">إدارة البيانات</span>
+        <button onclick="closeM()" class="btn" style="background:#c0392b">إغلاق النافذة</button>
     </div>
     <div class="modal-content" id="modalBody"></div>
 </div>
@@ -118,10 +130,10 @@ function draw() {
     recs.sort((a, b) => cleanSort(a.subject).localeCompare(cleanSort(b.subject), 'ar'));
     let c = 0; recs.forEach(r => { if(!r.see) { c++; r.finalID = c; } else r.finalID = null; });
     document.getElementById('pSel').innerHTML = projs.map(p => `<option ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
-    document.getElementById('totalCounter').innerText = `[ إجمالي السجلات: ${c} ]`;
+    document.getElementById('totalCounter').innerText = `[ العدد الإجمالي: ${c} ]`;
 }
 
-// مفتاح Enter للانتقال
+// التنقل بـ Enter
 document.getElementById('mainForm').addEventListener('keydown', e => {
     if(e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
@@ -133,10 +145,9 @@ document.getElementById('mainForm').addEventListener('keydown', e => {
 
 function save() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim());
-    if(!d.subject) return alert("خطأ: حقل الموضوع إلزامي");
+    if(!d.subject) return alert("يرجى إدخال رأس الموضوع أولاً");
     if (editIndex > -1) { recs[editIndex] = d; editIndex = -1; } else recs.push(d);
     document.getElementById('mainForm').reset();
-    document.getElementById('searchID').value = '';
     draw(); document.getElementById('subject').focus();
 }
 
@@ -149,27 +160,27 @@ function loadRec() {
 function deleteByNum() {
     let id = document.getElementById('searchID').value;
     let i = recs.findIndex(r => r.finalID == id && !r.see);
-    if(i !== -1 && confirm("حذف السجل؟")) { recs.splice(i, 1); document.getElementById('mainForm').reset(); draw(); }
+    if(i !== -1 && confirm("حذف نهائي؟")) { recs.splice(i, 1); document.getElementById('mainForm').reset(); draw(); }
 }
 
 function openAdminModal() {
-    let h = `<input type="text" placeholder="بحث حركي..." oninput="filterT(this.value)" style="width:100%; margin-bottom:8px; height:30px;">
-    <table class="admin-table" id="adminTbl"><thead><tr><th style="width:40px">رقم</th><th style="width:150px">الموضوع</th><th>العنوان</th><th style="width:80px">إجراء</th></tr></thead><tbody>`;
+    let h = `<input type="text" placeholder="بحث شامل..." oninput="filterT(this.value)" style="width:100%; margin-bottom:10px; height:35px;">
+    <table class="admin-table" id="adminTbl"><thead><tr><th style="width:50px">رقم</th><th style="width:200px">الموضوع</th><th>العنوان / المؤلف</th><th style="width:120px">إجراءات</th></tr></thead><tbody>`;
     recs.forEach((r, i) => {
-        h += `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${r.title || ''}</td>
-        <td><div class="btn-group"><button onclick="loadFromIdx(${i})">تعديل</button><button onclick="delIdx(${i})">حذف</button></div></td></tr>`;
+        h += `<tr><td>${r.finalID || '-'}</td><td>${r.subject}</td><td>${r.title || ''} [${r.author || ''}]</td>
+        <td><div style="display:flex; gap:4px;"><button onclick="loadFromIdx(${i})">تعديل</button><button onclick="delIdx(${i})">حذف</button></div></td></tr>`;
     });
     document.getElementById('modalBody').innerHTML = h + `</tbody></table>`;
     document.getElementById('modalOverlay').style.display = 'block';
 }
 
 function loadFromIdx(i) { editIndex = i; document.querySelectorAll('.in').forEach(inp => inp.value = recs[i][inp.id] || ''); closeM(); }
-function delIdx(i) { if(confirm("حذف السجل؟")) { recs.splice(i, 1); openAdminModal(); draw(); } }
+function delIdx(i) { if(confirm("حذف؟")) { recs.splice(i, 1); openAdminModal(); draw(); } }
 function filterT(q) { document.querySelectorAll('#adminTbl tbody tr').forEach(r => r.style.display = r.innerText.includes(q) ? '' : 'none'); }
 
 function openMagManager() {
-    let h = `<div style="display:flex; gap:10px;"><input id="mN" placeholder="اسم المجلة"><input id="mT" placeholder="التبعية"><button onclick="addM()">إضافة</button></div><hr>`;
-    for(let m in mags) h += `<div style="padding:4px; border-bottom:1px solid #eee;">${m} (${mags[m]}) <button onclick="delM('${m}')" style="float:left; color:red;">حذف</button></div>`;
+    let h = `<h4>إدارة المجلات وتبعية المؤسسات</h4><div style="display:flex; gap:10px;"><input id="mN" placeholder="اسم المجلة"><input id="mT" placeholder="المؤسسة التابعة لها"><button onclick="addM()">حفظ</button></div><hr>`;
+    for(let m in mags) h += `<div style="padding:5px; border-bottom:1px solid #ddd;">${m} ➜ ${mags[m]} <button onclick="delM('${m}')" style="float:left; color:red;">حذف</button></div>`;
     document.getElementById('modalBody').innerHTML = h; document.getElementById('modalOverlay').style.display = 'block';
 }
 function addM() { let n=document.getElementById('mN').value, t=document.getElementById('mT').value; if(n){mags[n]=t; openMagManager(); draw();} }
@@ -184,32 +195,26 @@ function openBiblioWindow() {
         if (r.subject !== lastSub && !r.see) { content += `<div class="sub">${r.subject}</div>`; lastSub = r.subject; }
         if (r.see) content += `<div style="text-align:center; margin-bottom:10px;"><b>${r.subject} انظر: ${r.see}</b></div>`;
         else if (r.title) {
-            // منطق المسؤولية (Author Responsibility)
             let respLine = "";
             if(r.doc_type === 'رسالة') {
                 respLine = `${fixN(r.author)} ؛ إشراف ${r.supervisor || ''}`;
             } else {
-                // لا يكرر الاسم إلا مع المشاركين
                 if(r.co_authors) respLine = `${fixN(r.author)} ، ${r.co_authors}`;
+                if(r.editor_reviewer) respLine += (respLine ? " ؛ تحقيق " : "تحقيق ") + r.editor_reviewer;
                 if(r.translator) respLine += (respLine ? " ؛ ترجمة " : "ترجمة ") + r.translator;
                 if(r.supervisor && r.doc_type !== 'رسالة') respLine += (respLine ? " ؛ إشراف " : "إشراف ") + r.supervisor;
             }
 
-            // المجلة والتبعية
             let journalFull = r.journal;
             if(mags[r.journal]) journalFull += ` (${mags[r.journal]})`;
 
-            // بناء مصفوفة البيانات (فقط الموجود)
-            let detailsArr = [r.uni, r.faculty_dept, journalFull, r.issue, r.publisher, r.pub_place, r.year, r.edition].filter(x=>x);
-            let detailsStr = detailsArr.join(" ، ");
-            
-            // الصفحات ص.
+            let details = [r.uni, r.faculty, r.dept, journalFull, r.issue, r.publisher, r.pub_place, r.year, r.edition].filter(x=>x).join(" ، ");
             let pgStr = r.pages ? (r.doc_type === 'مقالة' ? "ص." + r.pages : r.pages + " ص") : "";
 
             content += `<div class="entry">
                 <span class="id">(${r.finalID})</span><b>${r.author}</b><br>
                 ${r.title}${respLine ? " / " + respLine : ""} 
-                ${detailsStr ? " . ـــ " + detailsStr : ""} 
+                ${details ? " . ـــ " + details : ""} 
                 ${pgStr ? " . ـــ " + pgStr : ""} 
                 ${r.res_type ? " . ـــ (" + r.res_type + ")" : ""} .
             </div>`;
@@ -218,17 +223,32 @@ function openBiblioWindow() {
     win.document.write(content + '</body></html>'); win.document.close();
 }
 
+function formatRange(nums) {
+    if (nums.length === 0) return "";
+    nums.sort((a, b) => a - b);
+    let result = [];
+    let start = nums[0], end = nums[0];
+    for (let i = 1; i <= nums.length; i++) {
+        if (i < nums.length && nums[i] === end + 1) { end = nums[i]; } 
+        else {
+            result.push(start === end ? start : `${start} - ${end}`);
+            if (i < nums.length) { start = end = nums[i]; }
+        }
+    }
+    return result.join(" ، ");
+}
+
 function runIdx(f, t, isL=false, isS=false) {
     let m = {};
     recs.forEach(r => { if (r.finalID && r[f]) { r[f].split('؛').forEach(v => { v=v.trim(); if(!m[v]) m[v]=[]; if(!m[v].includes(r.finalID)) m[v].push(r.finalID); }); } });
     let k = Object.keys(m).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b), isL?'en':'ar'));
-    let h = `<div style="column-count:2; font-size:12px;">` + k.map(x=>`<div style="margin-bottom:3px;">${x} (${m[x].join(' ، ')})</div>`).join('') + `</div>`;
+    let h = `<div class="idx-grid">` + k.map(x=>`<div>${x} (${isS ? formatRange(m[x]) : m[x].join(' ، ')})</div>`).join('') + `</div>`;
     document.getElementById('modalBody').innerHTML = `<h2 style="text-align:center">كشاف ${t}</h2>` + h; document.getElementById('modalOverlay').style.display='block';
 }
 
 function exportX() { XLSX.writeFile(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(recs), `${curP}.xlsx`); }
 function newP() { let n=prompt("اسم المشروع الجديد:"); if(n){projs.push(n); curP=n; recs=[]; draw();} }
-function delP() { if(confirm("حذف المشروع الحالي نهائياً؟")){ projs=projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; if(!projs.length) projs=['مشروع_1']; switchP(curP); } }
+function delP() { if(confirm("حذف المشروع الحالي نهائياً؟")){ projs=projs.filter(p=>p!==curP); curP=projs[0]||'مشروع_1'; switchP(curP); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 window.onload = draw;
