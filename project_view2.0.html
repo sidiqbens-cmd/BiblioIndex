@@ -204,12 +204,22 @@ function openBiblioWindow() {
             let authorPart = r.author ? `<b>${r.author}</b>` : "";
             let idPart = `<span class="id-num">(${r.finalID})</span>`;
 
-            // بيان المسؤولية وفق القواعد الأخيرة
+            // --- الإصلاح الجوهري لمنع تكرار المؤلف ---
             let responsibilities = [];
-            let authorList = (r.author || "").split('،').map(s => s.trim()).filter(s => s);
-            if (authorList.length > 1) responsibilities.push(r.author);
+            let authorVal = (r.author || "").trim();
+            
+            // تقسيم المؤلفين بناءً على الفاصلة للتأكد من عددهم
+            let authorList = authorVal.split(/[،,]/).map(s => s.trim()).filter(s => s);
+
+            // قاعدة: يذكر المؤلف بعد العنوان فقط إذا كانوا 2 أو أكثر
+            if (authorList.length > 1) {
+                responsibilities.push(authorVal);
+            }
+
+            // المترجم والمشرف يضافان دائماً بفاصلة منقوطة
             if (r.translator) responsibilities.push("ترجمة " + r.translator);
             if (r.supervisor) responsibilities.push("إشراف " + r.supervisor);
+            
             let respStr = responsibilities.join(' ؛ ');
 
             let bibTail = "";
@@ -232,7 +242,6 @@ function openBiblioWindow() {
     });
     win.document.write(content + '</body></html>'); win.document.close();
 }
-
 function runAuthorIdx() {
     let m = {};
     recs.forEach(r => {
