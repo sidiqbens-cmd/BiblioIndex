@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نظام الفهرسة الشخصي</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Times New Roman', serif; margin: 0; background: #f0f2f5; font-size: 13pt; }
+        .fixed-header { position: fixed; top: 0; width: 100%; background: #2c3e50; color: white; padding: 10px; z-index: 1000; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .in-table { width: 100%; border-spacing: 5px; }
+        .in-table input { width: 100%; height: 28px; border-radius: 4px; border: 1px solid #ccc; padding: 0 5px; }
+        .btns { text-align: center; margin-top: 10px; }
+        .content { margin-top: 160px; padding: 15px; }
+        .main-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        .main-table th { background: #34495e; color: white; padding: 10px; }
+        .main-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        button { cursor: pointer; padding: 5px 15px; border-radius: 4px; border: none; background: #3498db; color: white; }
+        button:hover { background: #2980b9; }
+        .del-btn { background: #e74c3c; }
+    </style>
+</head>
+<body>
+
+<div class="fixed-header">
+    <form id="entryForm">
+        <table class="in-table">
+            <tr>
+                <td>رأس الموضوع: <input type="text" id="subject" class="in"></td>
+                <td>المؤلف: <input type="text" id="author" class="in"></td>
+                <td>العنوان: <input type="text" id="title" class="in"></td>
+            </tr>
+            <tr>
+                <td>إشراف/مترجم: <input type="text" id="resp" class="in"></td>
+                <td>البيانات التعليمية: <input type="text" id="details" class="in"></td>
+                <td>السنة: <input type="text" id="year" class="in"></td>
+                <td><button type="button" onclick="saveRecord()" style="background:#27ae60">حفظ السجل</button></td>
+            </tr>
+        </table>
+    </form>
+    <div class="btns">
+        <button onclick="exportToExcel()">تصدير Excel</button>
+        <button onclick="previewBiblio()">المعاينة الببليوغرافية</button>
+        <button onclick="clearAll()" class="del-btn">مسح الكل</button>
+    </div>
+</div>
+
+<div class="content">
+    <table class="main-table">
+        <thead>
+            <tr>
+                <th>ت</th>
+                <th>رأس الموضوع</th>
+                <th>المؤلف / العنوان</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody id="dataTable"></tbody>
+    </table>
+</div>
+
+<script>
+let recs = JSON.parse(localStorage.getItem('MY_RECORDS_DB') || "[]");
+
+// دالة التنظيف للترتيب الهجائي (تجاهل ال التعريف)
+function cleanSort(s) {
+    if (!s) return "";
+    return s.trim().replace(/^(ال)/, "");
+}
+
+function draw() {
+    // 1. فرز هجائي دائم بناءً على الرأس
+    recs.sort((a, b) => cleanSort(a.subject).localeCompare(cleanSort(b.subject), 'ar'));
+    
+    // 2. تحديث الترقيم التسلسلي ليكون 1، 2، 3 حسب الترتيب الجديد
+    recs.forEach((r, index) => r.displayID = index + 1);
+    
+    localStorage.setItem('MY_RECORDS_DB', JSON.stringify(recs));
+    
+    const tbody = document.getElementById('dataTable');
+    tbody.innerHTML = recs.map((r, i) => `
+        <tr>
+            <td>${r.displayID}</td>
+            <td><b>${r.subject}</b></td>
+            <td>${r.author}: ${r.title}</td>
+            <td><button class="del-btn" onclick="deleteRec(${i})">حذف</button></td>
+        </tr>
+    `).join('');
+}
+
+function saveRecord() {
+    let data = {};
+    document.querySelectorAll('.in').forEach(input => data[input.id] = input.value.trim());
+    
+    if (!data.subject || !data.title) {
+        alert("يرجى إدخال رأس الموضوع والعنوان على الأقل");
+        return;
+    }
+    
+    recs.push(data);
+    document.getElementById('entryForm').reset();
+    draw();
+}
+
+function deleteRec(i) {
+    if (confirm("هل أنت متأكد من حذف هذا السجل؟")) {
+        recs.splice(i, 1);
+        draw();
+    }
+}
+
+function previewBiblio() {
+    const win = window.open('', '_blank');
+    let html = `<html dir="rtl"><head><style>
+        body { font-family: 'Times New Roman', serif; padding: 50px; line-height: 1.6; }
+        .sub-head { background: #eee; text-align: center; padding: 10px; margin: 25px 0 10px 0; font-weight: bold; border: 1px solid #000; }
+        .entry { margin-bottom: 20px; text-align: justify; font-size: 14pt; }
+    </style></head><body>`;
+
+    let lastSub = "";
+    recs.forEach(r => {
+        if (r.subject !== lastSub) {
+            html += `<div class="sub-head">${r.subject}</div>`;
+            lastSub = r.subject;
+        }
+        
+        // تطبيق قواعد علامات الترقيم (الفاصلة المنقوطة للأدوار، الفاصلة للبيانات المماثلة)
+        let bibLine = `<b>${r.author} (${r.displayID})</b><br>${r.title}`;
+        
+        let meta = [];
+        if (r.resp) meta.push(` ؛ ${r.resp}`); // استخدام الفاصلة المنقوطة للأدوار المختلفة
+        if (r.details) meta.push(` . ـــ ${r.details}`);
+        if (r.year) meta.push(` ، ${r.year}`);
+
+        html += `<div class="entry">${bibLine}${meta.join('')}.</div>`;
+    });
+
+    win.document.write(html + "</body></html>");
+    win.document.close();
+}
+
+function exportToExcel() {
+    const ws = XLSX.utils.json_to_sheet(recs);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    XLSX.writeFile(wb, "My_Records.xlsx");
+}
+
+function clearAll() {
+    if(confirm("سيتم مسح كافة البيانات، هل أنت متأكد؟")) {
+        recs = [];
+        draw();
+    }
+}
+
+window.onload = draw;
+</script>
+</body>
+</html>
