@@ -119,7 +119,67 @@ function updateAllDatalists() {
     });
     container.innerHTML = html;
 }
+function openBiblioWindow() {
+    const win = window.open('', '_blank');
+    let content = `<html dir="rtl"><head><title>المعاينة</title><style>
+        body{font-family:'Times New Roman', serif;padding:40px;line-height:1.6; font-size: 14pt;}
+        .sub{background:#e0e0e0;text-align:center;padding:8px;margin:20px 0;font-weight:bold;border:1px solid #000;}
+        .see-also-line{margin:-15px 0 20px 0; font-weight:bold; text-align:right;}
+        .ent{margin-bottom:18px; border-bottom:1px solid #ddd; padding-bottom:12px; text-align:justify;}
+    </style></head><body>`;
 
+    // ترتيب السجلات هجائياً قبل العرض
+    recs.sort((a,b) => cleanSort(a.subject).localeCompare(cleanSort(b.subject), 'ar'));
+
+    const usedSubjects = new Set(recs.filter(r => r.title).map(r => r.subject.trim()));
+    let lastSub = '';
+    let globalCounter = 1; // العداد المتسلسل الذي طلبته
+
+    recs.forEach(r => {
+        // معالجة الإحالات (انظر)
+        if (!r.title && r.see) {
+            if (usedSubjects.has(r.see.trim())) { 
+                content += `<div class="sub">${r.subject} انظر: ${r.see}</div>`; 
+                lastSub = r.subject; 
+            }
+            return;
+        }
+
+        // معالجة رؤوس الموضوعات و (انظر أيضاً)
+        if (r.subject !== lastSub) {
+            content += `<div class="sub">${r.subject}</div>`; 
+            lastSub = r.subject;
+            let sa = recs.find(x => x.subject === r.subject && x.see_also);
+            if (sa && usedSubjects.has(sa.see_also.trim())) {
+                content += `<div class="see-also-line">انظر أيضاً: ${sa.see_also}</div>`;
+            }
+        }
+
+        // معالجة بيانات السجل (الرسائل الجامعية)
+        if (r.title) {
+            let details = [
+                r.supervisor ? "إشراف " + r.supervisor : "",
+                r.dept ? "قسم " + r.dept : "",
+                r.faculty ? "كلية " + r.faculty : "",
+                r.uni ? "جامعة " + r.uni : "",
+                r.year
+            ].filter(x => x).join(" ، ");
+
+            let line = `<b>${r.author || 'بدون مؤلف'} (${globalCounter})</b><br>${r.title}`;
+            
+            // دمج الحقول بالعلامات الترقيمية المطلوبة
+            let bibTail = "";
+            if (details) bibTail += ` . ـــ ${details}`;
+            if (r.material_type) bibTail += ` . — ${r.material_type}`;
+
+            content += `<div class="ent">${line}${bibTail}.</div>`;
+            globalCounter++; // زيادة الرقم هجائياً
+        }
+    });
+
+    win.document.write(content + '</body></html>'); 
+    win.document.close();
+}
 function save() { 
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value.trim()); 
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; } 
