@@ -17,8 +17,6 @@
         .admin-table td, th { border: 1px solid #ccc; padding: 5px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:80vh; overflow:auto; }
-        
-        /* تنسيق المعاينة - تقليل المسافات */
         .dewey-section { background: #f0f0f0; text-align: center; font-weight: bold; font-size: 14pt; padding: 5px; margin: 10px 0; border: 1px solid #ccc; }
         .entry-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 12pt; margin-top: 5px; }
         .entry-details { font-size: 12pt; line-height: 1.4; margin-bottom: 10px; text-align: justify; }
@@ -29,13 +27,14 @@
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:8px 15px; display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size: 18px;">كشاف المجلات الليبية المحكمة</strong>
-        <div style="display:flex; gap:5px;">
+        <div style="display:flex; gap:5px; align-items: center;">
             <button onclick="copyRec()" class="btn" style="background:#7f8c8d">نسخ</button>
             <button onclick="pasteRec()" class="btn" style="background:#95a5a6">لصق</button>
             <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد</button>
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
             <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
             <select id="pSel" style="width:130px; height:28px;" onchange="switchP(this.value)"></select>
+            <button onclick="deleteProj()" class="btn" style="background:#c0392b">حذف المشروع</button>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
         </div>
     </div>
@@ -49,18 +48,24 @@
             <tr>
                 <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
                 <td colspan="3"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in"></td>
-                <td><span class="field-label">التبعية</span><input type="text" id="affiliation" class="in"></td>
+                <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in" list="list_journal"></td>
+                <td><span class="field-label">التبعية</span><input type="text" id="affiliation" class="in" list="list_affiliation"></td>
             </tr>
             <tr>
                 <td><span class="field-label">مشاركون (فاصلة ،)</span><input type="text" id="collab" class="in"></td>
                 <td><span class="field-label">مترجمون (فاصلة ،)</span><input type="text" id="translator" class="in"></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" class="in"></td>
-                <td><span class="field-label">العدد</span><input type="text" id="issue" class="in"></td>
+                <td><span class="field-label">السنة</span><input type="text" id="year" class="in" list="list_year"></td>
+                <td><span class="field-label">العدد</span><input type="text" id="issue" class="in" list="list_issue"></td>
                 <td><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
                 <td><span class="field-label">ملاحظات</span><input type="text" id="notes" class="in"></td>
             </tr>
         </table>
+        
+        <datalist id="list_journal"></datalist>
+        <datalist id="list_affiliation"></datalist>
+        <datalist id="list_year"></datalist>
+        <datalist id="list_issue"></datalist>
+
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">المعاينة الببليوغرافية</button>
@@ -82,18 +87,17 @@
 </div>
 
 <script>
-// خلاصات ديوي العشرية الكاملة
 const deweyData = {
     "000 المعارف العامة": ["000 المعارف العامة", "010 الببليوجرافيات", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "060 المنظمات والمتاحف", "070 الإعلام والصحافة", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
     "100 الفلسفة وعلم النفس": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 المذاهب الفلسفية", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الحديثة"],
-    "200 الأديان": ["200 الأديان", "210 الفلسفة الدينية", "220 الكتاب المقدس", "230 اللاهوت المسيحي", "240 الشعائر المسيحية", "250 الرهبنة", "260 الكنيسة", "270 التاريخ الكنسي", "280 المذاهب المسيحية", "290 الإسلام والأديان الأخرى"],
+    "200 الأديان": ["200 الأديان", "210 الفلسفة الدينية", "290 الإسلام والأديان الأخرى"],
     "300 العلوم الاجتماعية": ["300 العلوم الاجتماعية", "310 الإحصاء العام", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 الخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة والمواصلات", "390 العادات والتقاليد"],
-    "400 اللغات": ["400 اللغات", "410 اللسانيات", "420 اللغة الإنجليزية", "430 اللغات الجرمانية", "440 اللغة الفرنسية", "450 اللغة الإيطالية", "460 اللغة الإسبانية", "470 اللغة اللاتينية", "480 اللغة اليونانية", "490 اللغات الأخرى والعربية"],
-    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علوم الأرض", "560 الأحافير", "570 الأحياء", "580 النباتات", "590 الحيوانات"],
-    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 الطب والصحة", "620 الهندسة", "630 الزراعة", "640 الاقتصاد المنزلي", "650 الإدارة والمحاسبة", "660 الهندسة الكيميائية", "670 الصناعات", "680 الصناعات الدقيقة", "690 الإنشاءات"],
-    "700 الفنون والترفيه": ["700 الفنون", "710 التخطيط العمراني", "720 العمارة", "730 النحت", "740 الرسم والتصميم", "750 التصوير الزيتي", "760 الفنون الجرافيكية", "770 التصوير الفوتوغرافي", "780 الموسيقى", "790 الألعاب والترفيه"],
-    "800 الآداب": ["800 الآداب", "810 الأدب الأمريكي", "820 الأدب الإنجليزي", "830 الأدب الألماني", "840 الأدب الفرنسي", "850 الأدب الإيطالي", "860 الأدب الإسباني", "870 الأدب اللاتيني", "880 الأدب اليوناني", "890 آداب اللغات الأخرى"],
-    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "920 التراجم", "930 التاريخ القديم", "940 تاريخ أوروبا", "950 تاريخ آسيا", "960 تاريخ أفريقيا", "970 تاريخ أمريكا الشمالية", "980 تاريخ أمريكا الجنوبية", "990 تاريخ المناطق الأخرى"]
+    "400 اللغات": ["400 اللغات", "410 اللسانيات", "420 اللغة الإنجليزية", "490 اللغات الأخرى والعربية"],
+    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علوم الأرض", "570 الأحياء", "580 النباتات", "590 الحيوانات"],
+    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 الطب والصحة", "620 الهندسة", "630 الزراعة", "650 الإدارة والمحاسبة", "660 الهندسة الكيميائية"],
+    "700 الفنون والترفيه": ["700 الفنون", "720 العمارة", "790 الألعاب والترفيه"],
+    "800 الآداب": ["800 الآداب", "890 آداب اللغات الأخرى"],
+    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "960 تاريخ أفريقيا (ليبيا)"]
 };
 
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['كشاف_المجلات'];
@@ -111,8 +115,16 @@ function flipName(n) {
 
 function updateDewey10() {
     let m = document.getElementById('dewey100').value;
-    let s = document.getElementById('dewey10');
-    s.innerHTML = (deweyData[m] || []).map(x => `<option value="${x}">${x}</option>`).join('');
+    document.getElementById('dewey10').innerHTML = (deweyData[m] || []).map(x => `<option value="${x}">${x}</option>`).join('');
+}
+
+// تحديث خيارات القوائم المنسدلة من البيانات الحالية
+function updateDataLists() {
+    const fields = ['journal', 'affiliation', 'year', 'issue'];
+    fields.forEach(f => {
+        const uniqueValues = [...new Set(recs.map(r => g(r[f])).filter(v => v))];
+        document.getElementById('list_' + f).innerHTML = uniqueValues.map(v => `<option value="${v}">`).join('');
+    });
 }
 
 function draw() {
@@ -123,10 +135,13 @@ function draw() {
     localStorage.setItem('L_A', curP);
     document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.finalID}</td><td>${g(r.dewey10)}</td><td style="text-align:right"><b>${g(r.author)}</b> - ${g(r.title)}</td><td><button onclick="edit(${i})">تعديل</button> <button onclick="del(${i})">حذف</button></td></tr>`).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+    updateDataLists();
 }
 
 function save() {
     let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
+    d.dewey100 = document.getElementById('dewey100').value;
+    d.dewey10 = document.getElementById('dewey10').value;
     if(!d.author || !d.title) return alert("المؤلف والعنوان مطلوبان");
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
     editIdx = -1; document.getElementById('bForm').reset(); updateDewey10(); draw();
@@ -140,38 +155,39 @@ function edit(i) {
     window.scrollTo(0,0);
 }
 
+function deleteProj() {
+    if(projs.length <= 1) return alert("لا يمكن حذف المشروع الوحيد");
+    if(confirm(`هل أنت متأكد من حذف مشروع "${curP}"؟`)) {
+        localStorage.removeItem('R_' + curP);
+        projs = projs.filter(p => p !== curP);
+        curP = projs[0];
+        recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+        draw();
+    }
+}
+
 function openBiblio() {
     const win = window.open('', '_blank');
     let html = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:40px;} .dewey-section{background:#f0f0f0; text-align:center; font-weight:bold; font-size:14pt; padding:5px; margin:10px 0; border:1px solid #ccc;} .entry-header{display:flex; justify-content:space-between; font-weight:bold; font-size:12pt; margin-top:5px;} .entry-details{font-size:12pt; line-height:1.4; margin-bottom:15px; text-align:justify;}</style></head><body>`;
     let lastD = "";
-    
     recs.forEach(r => {
-        if (g(r.dewey10) !== lastD) { 
-            html += `<div class="dewey-section">${g(r.dewey10)}</div>`; 
-            lastD = g(r.dewey10); 
-        }
+        if (g(r.dewey10) !== lastD) { html += `<div class="dewey-section">${g(r.dewey10)}</div>`; lastD = g(r.dewey10); }
         html += `<div class="entry-header"><span>${g(r.author)}</span><span>${r.finalID}</span></div>`;
-        
-        let collab = g(r.collab);
-        let trans = g(r.translator);
-        let resp = "";
+        let collab = g(r.collab), trans = g(r.translator), resp = "";
         if (collab !== "") {
             resp = ` / ${flipName(g(r.author))} ، ${collab}`;
             if (trans !== "") resp += ` ؛ ترجمة ${trans}`;
-        } else if (trans !== "") {
-            resp = ` / ترجمة ${trans}`;
-        }
-
+        } else if (trans !== "") { resp = ` / ترجمة ${trans}`; }
         let journalPart = g(r.journal) !== "" ? ` . ـــ ${g(r.journal)}` : "";
         let meta = [g(r.issue), g(r.year)].filter(x => x !== "").join(' ، ');
         let metaFinal = meta !== "" ? `، ${meta}` : "";
         let pagePart = g(r.pages) !== "" ? ` . ـــ ص ${g(r.pages)}` : "";
-
         html += `<div class="entry-details">${g(r.title)}${resp}${journalPart}${metaFinal}${pagePart}.</div>`;
     });
     win.document.write(html + "</body></html>"); win.document.close();
 }
 
+// بقية الدوال (كشاف، نسخ، استيراد)
 function runIdx(type) {
     let m = {};
     recs.forEach(r => {
@@ -183,31 +199,11 @@ function runIdx(type) {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function copyRec() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); localStorage.setItem('BC_CLIP', JSON.stringify(d)); }
-function pasteRec() { let d = JSON.parse(localStorage.getItem('BC_CLIP')); if(d) Object.keys(d).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d[k]; }); }
-function importX(e) {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-        const data = new Uint8Array(ev.target.result);
-        const wb = XLSX.read(data, {type:'array'});
-        recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        draw(); alert("تم الاستيراد بنجاح");
-    };
-    reader.readAsArrayBuffer(e.target.files[0]);
-}
-
-function journalList() {
-    let m = {}; recs.forEach(r => { if(g(r.journal)) m[g(r.journal)] = g(r.affiliation); });
-    document.getElementById('modalBody').innerHTML = `<h2>قائمة المجلات</h2>` + Object.keys(m).map(k => `<div><b>${k}</b> (${m[k]})</div>`).join('');
-    document.getElementById('modalOverlay').style.display='block';
-}
-
-function runSubjectIdx() {
-    let m = {}; recs.forEach(r => { if(g(r.dewey10)) { if(!m[g(r.dewey10)]) m[g(r.dewey10)]=[]; m[g(r.dewey10)].push(r.finalID); } });
-    document.getElementById('modalBody').innerHTML = `<h2>رؤوس الموضوعات</h2>` + Object.keys(m).map(k => { let n = m[k].sort((a,b)=>a-b); return `<div>${k} (${n.length>1?n[0]+'-'+n[n.length-1]:n[0]})</div>`; }).join('');
-    document.getElementById('modalOverlay').style.display='block';
-}
-
+function copyRec() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); d.dewey100 = document.getElementById('dewey100').value; d.dewey10 = document.getElementById('dewey10').value; localStorage.setItem('BC_CLIP', JSON.stringify(d)); }
+function pasteRec() { let d = JSON.parse(localStorage.getItem('BC_CLIP')); if(d) { document.getElementById('dewey100').value = d.dewey100; updateDewey10(); document.getElementById('dewey10').value = d.dewey10; Object.keys(d).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d[k]; }); } }
+function importX(e) { const reader = new FileReader(); reader.onload = (ev) => { const data = new Uint8Array(ev.target.result); const wb = XLSX.read(data, {type:'array'}); recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); alert("تم الاستيراد"); }; reader.readAsArrayBuffer(e.target.files[0]); }
+function journalList() { let m = {}; recs.forEach(r => { if(g(r.journal)) m[g(r.journal)] = g(r.affiliation); }); document.getElementById('modalBody').innerHTML = `<h2>قائمة المجلات</h2>` + Object.keys(m).map(k => `<div><b>${k}</b> (${m[k]})</div>`).join(''); document.getElementById('modalOverlay').style.display='block'; }
+function runSubjectIdx() { let m = {}; recs.forEach(r => { if(g(r.dewey10)) { if(!m[g(r.dewey10)]) m[g(r.dewey10)]=[]; m[g(r.dewey10)].push(r.finalID); } }); document.getElementById('modalBody').innerHTML = `<h2>رؤوس الموضوعات</h2>` + Object.keys(m).map(k => { let n = m[k].sort((a,b)=>a-b); return `<div>${k} (${n.length>1?n[0]+'-'+n[n.length-1]:n[0]})</div>`; }).join(''); document.getElementById('modalOverlay').style.display='block'; }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
