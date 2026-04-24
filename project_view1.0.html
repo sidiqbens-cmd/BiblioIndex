@@ -18,6 +18,9 @@
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
         #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:80vh; overflow:auto; }
         .dewey-section { background: #f0f0f0; text-align: center; font-weight: bold; font-size: 14pt; padding: 10px; margin: 30px 0; border: 1px solid #ccc; }
+        /* تنسيق الأسطر في المعاينة */
+        .entry-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 12pt; margin-top: 20px; }
+        .entry-details { font-size: 12pt; line-height: 1.5; margin-bottom: 25px; text-align: justify; }
     </style>
 </head>
 <body>
@@ -43,7 +46,7 @@
                 <td colspan="3"><span class="field-label">تصنيف العشرات</span><select id="dewey10" class="in"></select></td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف (مقلوب للكشاف)</span><input type="text" id="author" class="in"></td>
+                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
                 <td colspan="3"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
                 <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in"></td>
                 <td><span class="field-label">التبعية</span><input type="text" id="affiliation" class="in"></td>
@@ -78,17 +81,18 @@
 </div>
 
 <script>
+// بيانات ديوي المختصرة
 const deweyData = {
-    "000 المعارف العامة": ["000 المعارف العامة", "010 الببليوجرافيات", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "060 المنظمات والمتاحف", "070 الإعلام والصحافة", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
-    "100 الفلسفة وعلم النفس": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 المذاهب الفلسفية", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الحديثة"],
-    "200 الأديان": ["200 الأديان", "210 الفلسفة الدينية", "290 الإسلام والأديان الأخرى"],
-    "300 العلوم الاجتماعية": ["300 العلوم الاجتماعية", "310 الإحصاء العام", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 الخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة والمواصلات", "390 العادات والتقاليد"],
-    "400 اللغات": ["400 اللغات", "410 اللسانيات", "420 اللغة الإنجليزية", "490 اللغة العربية واللغات الأخرى"],
-    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علوم الأرض", "570 الأحياء"],
-    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 الطب والصحة", "620 الهندسة", "630 الزراعة", "650 الإدارة والمحاسبة"],
-    "700 الفنون والترفيه": ["700 الفنون", "720 العمارة", "790 الألعاب والرياضة"],
-    "800 الآداب": ["800 الآداب", "810 الأدب الأمريكي", "820 الأدب الإنجليزي", "890 الأدب العربي واللغات الأخرى"],
-    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "920 التراجم", "930 التاريخ القديم", "960 تاريخ أفريقيا (ليبيا)"]
+    "000 المعارف العامة": ["000 المعارف العامة", "010 الببليوجرافيات", "020 المكتبات والمعلومات", "070 الإعلام والصحافة"],
+    "100 الفلسفة وعلم النفس": ["100 الفلسفة", "150 علم النفس"],
+    "200 الأديان": ["200 الأديان", "297 الإسلام"],
+    "300 العلوم الاجتماعية": ["300 العلوم الاجتماعية", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "370 التربية"],
+    "400 اللغات": ["400 اللغات", "410 اللسانيات", "492 اللغة العربية"],
+    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات"],
+    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 الطب والصحة"],
+    "700 الفنون والترفيه": ["700 الفنون"],
+    "800 الآداب": ["800 الآداب", "892 الأدب العربي"],
+    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "961 تاريخ ليبيا"]
 };
 
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['كشاف_المجلات'];
@@ -98,7 +102,7 @@ let editIdx = -1;
 
 const g = (v) => (v && v !== 'undefined') ? v.toString().trim() : "";
 
-// دالة قلب الاسم برمجياً للكشاف (من "الاسم، اللقب" إلى "اللقب، الاسم")
+// دالة قلب الاسم برمجياً
 function flipName(n) {
     if(!n.includes('،')) return n;
     let parts = n.split('،');
@@ -107,7 +111,7 @@ function flipName(n) {
 
 function updateDewey10() {
     let m = document.getElementById('dewey100').value;
-    document.getElementById('dewey10').innerHTML = deweyData[m].map(x => `<option value="${x}">${x}</option>`).join('');
+    document.getElementById('dewey10').innerHTML = (deweyData[m] || []).map(x => `<option value="${x}">${x}</option>`).join('');
 }
 
 function draw() {
@@ -138,23 +142,56 @@ function openBiblio() {
     const win = window.open('', '_blank');
     let html = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:50px;} .dewey-section{background:#f9f9f9; text-align:center; font-weight:bold; font-size:14pt; padding:10px; margin:30px 0; border:1px solid #ddd;} .entry-header{display:flex; justify-content:space-between; font-weight:bold; font-size:12pt; margin-top:20px;} .entry-details{font-size:12pt; line-height:1.5; margin-bottom:25px; text-align:justify;}</style></head><body>`;
     let lastD = "";
+    
     recs.forEach(r => {
-        if (g(r.dewey10) !== lastD) { html += `<div class="dewey-section">${g(r.dewey10)}</div>`; lastD = g(r.dewey10); }
+        if (g(r.dewey10) !== lastD) { 
+            html += `<div class="dewey-section">${g(r.dewey10)}</div>`; 
+            lastD = g(r.dewey10); 
+        }
+        
+        // السطر الأول: المؤلف (يمين) والرقم (يسار)
         html += `<div class="entry-header"><span>${g(r.author)}</span><span>${r.finalID}</span></div>`;
         
-        // المؤلفون بشكل غير مقلوب بعد العنوان
-        let mainNormal = flipName(g(r.author));
+        // بناء منطق تكرار المؤلف والمشاركين
+        let title = g(r.title);
         let collab = g(r.collab);
-        let authorsPart = mainNormal + (collab ? " ، " + collab : "");
-        let resp = authorsPart + (g(r.translator) ? " ؛ ترجمة " + g(r.translator) : "");
+        let translator = g(r.translator);
+        let respStatement = "";
+
+        // القاعدة: لا يكرر الاسم الا إذا كان هناك مشاركون
+        if (collab !== "") {
+            let mainNormal = flipName(g(r.author));
+            respStatement = ` / ${mainNormal} ، ${collab}`;
+            if (translator !== "") respStatement += ` ؛ ترجمة ${translator}`;
+        } else if (translator !== "") {
+            // في حالة وجود مترجم فقط بدون مشاركين
+            respStatement = ` / ترجمة ${translator}`;
+        }
+
+        // بناء بيانات المجلة والترقيم المطلوب
+        let journal = g(r.journal);
+        let issue = g(r.issue);
+        let year = g(r.year);
+        let pages = g(r.pages);
+
+        // التعديل هنا: علامة المجلة . ـــ
+        let journalPart = journal !== "" ? ` . ـــ ${journal}` : "";
         
-        let meta = [g(r.journal), g(r.issue), g(r.year)].filter(x=>x).join('، ');
-        let pages = g(r.pages) ? " . ـــ ص " + g(r.pages) : "";
-        html += `<div class="entry-details">${g(r.title)} / ${resp} . ـــ ${meta}${pages}.</div>`;
+        // تجميع العدد والسنة
+        let meta = [issue, year].filter(x => x !== "").join(' ، ');
+        let metaFinal = meta !== "" ? `، ${meta}` : "";
+        
+        // تجميع الصفحات
+        let pagePart = pages !== "" ? ` . ـــ ص ${pages}` : "";
+
+        html += `<div class="entry-details">${title}${respStatement}${journalPart}${metaFinal}${pagePart}.</div>`;
     });
-    win.document.write(html + "</body></html>"); win.document.close();
+    
+    win.document.write(html + "</body></html>"); 
+    win.document.close();
 }
 
+// الدوال المساعدة (كشاف، نسخ، استيراد)
 function runIdx(type) {
     let m = {};
     recs.forEach(r => {
@@ -174,7 +211,7 @@ function importX(e) {
         const data = new Uint8Array(ev.target.result);
         const wb = XLSX.read(data, {type:'array'});
         recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        draw(); alert("تم استيراد " + recs.length + " سجلاً");
+        draw(); alert("تم الاستيراد بنجاح");
     };
     reader.readAsArrayBuffer(e.target.files[0]);
 }
