@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشاف المجلات الليبية</title>
+    <title>الفهرس الليبي الموحد - الترقيم المتسلسل</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; overflow: hidden; }
@@ -145,14 +145,23 @@ function flipName(name) {
 }
 
 function openBiblio() {
+    // 1. ترتيب كافة السجلات هجائياً بالعنوان أولاً لضمان تسلسل منطقي
+    let sortedRecs = [...recs].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar'));
+    
+    // 2. تجميع السجلات حسب التصنيف مع الحفاظ على الترتيب الهجائي المسبق
     let grouped = {};
-    recs.forEach(r => { if(!grouped[r.dewey10]) grouped[r.dewey10] = []; grouped[r.dewey10].push(r); });
+    sortedRecs.forEach(r => { 
+        if(!grouped[r.dewey10]) grouped[r.dewey10] = []; 
+        grouped[r.dewey10].push(r); 
+    });
+
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    let globalCounter = 1; // عداد مسلسل عام لا يتأثر برأس التصنيف
+
     Object.keys(grouped).sort().forEach(cls => {
         html += `<div style="background:#d3d3d3; text-align:center; font-weight:bold; padding:5px; margin:15px 0; border:1px solid #999;">${cls}</div>`;
-        grouped[cls].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar')).forEach((r, idx) => {
-            
-            // القاعدة المطلوبة: لا تكرار للمؤلف إلا بوجود مشاركين أو مترجمين
+        
+        grouped[cls].forEach((r) => {
             let showAuthorAfterTitle = (r.collab && r.collab.trim() !== "") || (r.translator && r.translator.trim() !== "");
             let responsLine = "";
             if (showAuthorAfterTitle) {
@@ -162,9 +171,10 @@ function openBiblio() {
             }
 
             html += `<div style="margin-bottom:15px; line-height:1.6;">
-                <div style="display:flex; justify-content:space-between;"><b>${r.author}</b> <span>(${idx+1})</span></div>
+                <div style="display:flex; justify-content:space-between;"><b>${r.author}</b> <span>(${globalCounter})</span></div>
                 <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
             </div>`;
+            globalCounter++; // زيادة العداد بغض النظر عن التصنيف
         });
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
