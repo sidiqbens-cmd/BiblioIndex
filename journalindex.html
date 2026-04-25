@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>نظام الإدخال الببليوغرافي المتقدم</title>
+    <title>الفهرس الليبي الموحد - النسخة الكاملة</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; overflow: hidden; }
@@ -16,8 +16,8 @@
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
-        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:80vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
-        .bib-class-header { background: #d3d3d3; text-align: center; font-size: 14px; font-weight: bold; padding: 5px; margin: 10px 0; border: 1px solid #999; }
+        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
+        .bib-class-header { background: #d3d3d3; text-align: center; font-size: 14pt; font-weight: bold; padding: 5px; margin: 15px 0; border: 1px solid #999; }
     </style>
 </head>
 <body>
@@ -86,16 +86,16 @@
 
 <script>
 const deweyData = {
-    "000 المعارف العامة": ["000 العموميات", "001 المعرفة", "002 الكتاب", "003 النظم", "004 علم الحاسوب", "005 البرامج و البيانات", "010 الببليوجرافيا", "020 علوم المكتبات و المعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "070 الصحافة والنشر", "090 المخطوطات"],
-    "100 الفلسفة وعلم النفس": ["100 الفلسفة", "150 علم النفس", "160 المنطق", "170 الأخلاق"],
-    "200 الأديان": ["210 الإسلام وعلومه", "220 القرآن", "230 الحديث", "239 السيرة النبوية", "250 الفقه وأصوله", "260 التصوف"],
-    "300 العلوم الاجتماعية": ["310 الإحصاء", "320 السياسة", "330 الاقتصاد", "340 القانون", "350 الإدارة العامة", "370 التربية والتعليم", "380 التجارة والاتصالات"],
-    "400 اللغات": ["410 اللغة العربية", "415 قواعد العربية", "420 الإنجليزية"],
-    "500 العلوم الطبيعية": ["510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء"],
-    "600 العلوم التطبيقية": ["610 الطب", "620 الهندسة", "630 الزراعة", "650 إدارة الأعمال", "657 المحاسبة"],
-    "700 الفنون": ["720 العمارة", "750 التصوير", "780 الموسيقى"],
-    "800 الآداب": ["810 الأدب العربي", "811 الشعر", "813 القصص"],
-    "900 التاريخ والجغرافيا": ["910 الجغرافيا", "920 التراجم", "953 تاريخ العرب", "961 ليبيا وتونس"]
+    "000 المعارف العامة": ["000 العموميات", "001 المعرفة", "002 الكتاب", "003 النظم", "004 معالجة البيانات ،علم الحاسوب", "005 برمجة الحاسوب ،البرامج و البيانات", "006 طرق حاسوبية خاصة", "010 الببليوجرافيا", "011 الببليوجرافيات العامة", "012 ببليوجرافيات الأفراد", "013 ببليوجرافيات الأعمال لفئات معينة من المؤلفين", "014 ببليوجرافيات الأعمال مجهولة المؤلف", "015 ببليوجرافيات الأعمال المكانية", "016 الببليوجرافيات الموضوعية", "017 الفهارس الموضوعية العامة", "018 الفهارس المرتبة بالمؤلف أو التاريخ", "019 الفهارس القاموسية", "020 علوم المكتبات و المعلومات", "021 العلاقات بين المكتبات و الأرشيفات و مراكز المعلومات", "022 إدارة المبنى", "023 إدارة العاملين", "025 العمليات الفنية المكتبية", "026 المكتبات لموضوعات معينة", "027 المكتبات العمومية", "028 القراءة و إستخدام وسائط المعلومات الأخرى", "030 الأعمال الموسوعية العامة", "031 الموسوعات العربية", "032 الموسوعات الإنجليزية", "050 الأعمال الدورية العامة", "060 المنظمات العامة و علم المتاحف", "070 الرسائل الإخبارية ، الصحافة ، النشر", "080 المجموعات العامة", "090 المخطوطات و الكتب النادرة"],
+    "100 الفلسفة وعلم النفس": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 مدارس فلسفية", "150 علم النفس", "160 علم المنطق", "170 علم الأخلاق", "180 الفلسفات القديمة", "190 الفلسفة الحديثة"],
+    "200 الأديان": ["200 الأديان", "210 الدين الإسلامي و علومه", "211 القواعد و التعاليم الإسلامية", "212 الأخلاقيات و الأداب الأسلامية", "213 الدعوة الإسلامية", "214 الثقافة الإسلامية", "215 المساجد و المزارات", "220 القرأن الكريم", "230 الحديث الشريف", "239 السيرة النبوية", "240 علم أصول الدين", "250 الفقة الإسلامى و أصوله", "260 التصوف الإسلامي", "270 المسيحية", "280 الكنائس و الطوائف المسيحية", "290 الدين المقارن", "296 اليهودية"],
+    "300 العلوم الاجتماعية": ["300 العلوم الاجتماعية", "310 الإحصاء", "320 علم السياسة", "330 علم الاقتصاد", "340 القانون", "350 الإدارة العامة و العلوم العسكرية", "360 المشكلات و الخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة ، الاتصالات ، النقل", "390 العادات والتقاليد"],
+    "400 اللغات": ["400 اللغات", "410 اللغة العربية", "411 الكتابة و الأصوات", "413 المعاجم العربية", "414 علم البلاغة العربية", "415 قواعد اللغة العربية", "420 اللغة الإنجليزية", "430 اللغات الجرمانية", "440 اللغات الرومانسية", "450 اللغات الإيطالية", "460 الأسبانية و البرتغالية", "470 اللغات اللاتينية", "480 اللغات اليونانية", "490 اللغات الأفرو أسيوية السامية"],
+    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علم الأرض", "560 علم الحفريات", "570 علوم الحياة ، الأحياء", "580 النباتات", "590 الحيوانات"],
+    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 العلوم الطبية - الطب", "620 الهندسة", "630 الزراعة", "640 الاقتصاد المنزلي", "650 إدارة الأعمال والخدمات المساعدة", "657 المحاسبة", "658 إدارة الأعمال", "660 الهندسة الكيميائية", "670 الصناعات", "680 الصناعات لأغراض معينة", "686 الطباعة و الأنشطة ذات العلاقة", "690 المباني"],
+    "700 الفنون": ["700 الفنون", "710 التصميم العمراني", "720 العمارة", "730 الفنون التشكيلية", "740 الرسم و الفنون الزخرفية", "750 التصوير و اللوحات", "770 التصوير الفوتوغرافي", "780 الموسيقى", "790 الفنون الترفيهية"],
+    "800 الآداب": ["800 الآداب", "810 الأدب العربي", "811 الشعر العربي", "812 الدراما العربية", "813 القصص العربي", "820 الأداب الناطقة بالإنجليزية", "830 أداب اللغة الجرمانية", "840 أداب اللغة الرومانسية", "850 أداب اللغات الإيطالية", "860 الأداب الأسبانية", "870 الأداب الإيطالية القديمة", "880 الأدب اليوناني الكلاسيكي", "890 أداب اللغات الأخري"],
+    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "910 الجغرافيا و الرحلات", "920 التراجم و الأنساب", "930 تاريخ العالم القديم", "940 تاريخ أوروبا العام", "950 تاريخ أسيا العام", "953 التاريخ العام للعرب و المسلمين", "960 تاريخ أفريقيا العام", "961 تونس و ليبيا", "970 تاريخ أمريكا الشمالية", "980 تاريخ أمريكا الجنوبية", "990 التاريخ العام للمناطق الأخري"]
 };
 
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
@@ -103,7 +103,6 @@ let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
 
-// دالة تنظيف ال التعريف للترتيب الهجائي
 function cleanAL(txt) {
     if(!txt) return "";
     let t = txt.trim();
@@ -160,15 +159,15 @@ function openBiblio() {
     let grouped = {};
     recs.forEach(r => { if(!grouped[r.dewey10]) grouped[r.dewey10] = []; grouped[r.dewey10].push(r); });
     
-    let html = `<div style="font-family:'Times New Roman'; padding:20px; direction:rtl;">`;
+    let html = `<div style="font-family:'Times New Roman'; direction:rtl;">`;
     Object.keys(grouped).sort().forEach(cls => {
         html += `<div class="bib-class-header">${cls}</div>`;
-        grouped[cls].sort((a,b) => cleanAL(a.author).localeCompare(cleanAL(b.author), 'ar')).forEach((r, idx) => {
+        grouped[cls].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar')).forEach((r, idx) => {
             let hasCollab = r.collab && r.collab.trim() !== "";
             let authorAfterTitle = hasCollab ? ` / ${flipName(r.author)}${r.collab ? '، ' + r.collab : ''}${r.translator ? '؛ ترجمة ' + r.translator : ''}` : (r.translator ? ` / ترجمة ${r.translator}` : "");
             
-            html += `<div style="margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between;">
+            html += `<div style="margin-bottom:15px; page-break-inside: avoid;">
+                <div style="display:flex; justify-content:space-between; align-items: baseline;">
                     <b style="font-size:12pt;">${r.author}</b>
                     <span style="font-size:12pt;">(${idx+1})</span>
                 </div>
@@ -199,12 +198,13 @@ function runIdx(type) {
         });
     });
     let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
-    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${type}</h3>` + 
+    let titleMap = {author:'المؤلفين', title:'العناوين', dewey:'التصنيف', journal:'المجلات'};
+    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${titleMap[type]}</h3>` + 
         sorted.map(k=>`<div style="margin-bottom:5px;">${k} (${map[k].join(', ')})</div>`).join('');
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function deleteP() { if(projs.length > 1 && confirm("حذف المشروع الحالي؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
+function deleteP() { if(projs.length > 1 && confirm("هل أنت متأكد من حذف المشروع الحالي نهائياً؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
 function copyRec() { clipboard = {}; document.querySelectorAll('.in').forEach(i => clipboard[i.id] = i.value); }
 function pasteRec() { if(clipboard) document.querySelectorAll('.in').forEach(i => i.value = clipboard[i.id] || ""); }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
