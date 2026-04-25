@@ -17,17 +17,17 @@
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
         #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
-        .search-input { height: 24px; font-size: 11px; border: 1px solid #fff; border-radius: 3px; padding: 0 5px; background: #f9f9f9; }
+        .search-tool { height: 24px; font-size: 11px; border: 1px solid #fff; border-radius: 3px; padding: 0 5px; background: #fdfdfd; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">نظام الإدخال الببليوغرافي</strong>
+        <strong style="font-size: 14px;">نظام إدارة المدخلات</strong>
         <div style="display:flex; gap:5px; align-items: center;">
-            <input type="text" id="idSearch" placeholder="رقم التسلسلي (ت)" class="search-input" style="width:100px;" oninput="draw()">
-            <input type="text" id="globalSearch" placeholder="بحث في البيانات..." class="search-input" style="width:150px;" oninput="draw()">
+            <input type="text" id="idSearch" placeholder="استرجاع بالرقم (ت)" class="search-tool" style="width:100px;" oninput="draw()">
+            <input type="text" id="globalSearch" placeholder="بحث عام..." class="search-tool" style="width:150px;" oninput="draw()">
             
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
@@ -41,7 +41,7 @@
         <table class="input-table">
             <tr>
                 <td colspan="2"><span class="field-label">تصنيف المئات</span><input list="list_dewey100" id="dewey100" class="in"></td>
-                <td colspan="4"><span class="field-label">تصنيف العشرات (رقم التصنيف العشري)</span><input list="list_dewey10" id="dewey10" class="in"></td>
+                <td colspan="4"><span class="field-label">تصنيف العشرات (رقم التصنيف)</span><input list="list_dewey10" id="dewey10" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">المؤلف (مقلوب)</span><input list="list_author" id="author" class="in"></td>
@@ -77,7 +77,10 @@
     </form>
 </div>
 
-<div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
+<div id="modalOverlay">
+    <div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div>
+    <div id="modalBody"></div>
+</div>
 
 <div class="scroll-area">
     <table class="admin-table">
@@ -111,23 +114,14 @@ function updateDataLists() {
 function draw() {
     let gTerm = document.getElementById('globalSearch').value.toLowerCase();
     let idTerm = document.getElementById('idSearch').value.trim();
-    
-    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1}))
-        .filter(r => {
-            let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
-            let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
-            return matchG && matchID;
-        });
-
+    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1})).filter(r => {
+        let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
+        let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
+        return matchG && matchID;
+    });
     document.getElementById('adminBody').innerHTML = filtered.map(r => `
-        <tr>
-            <td>${r.originalIdx}</td>
-            <td>${r.dewey10 || ""}</td>
-            <td style="text-align:right"><b>${r.author}</b></td>
-            <td style="text-align:right">${r.title}</td>
-            <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td>
-        </tr>`).join('');
-    
+        <tr><td>${r.originalIdx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author}</b></td><td style="text-align:right">${r.title}</td>
+        <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td></tr>`).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
     updateDataLists();
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
@@ -138,16 +132,10 @@ function draw() {
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
-    if(!d.author || !d.title) return alert("يجب إدخال المؤلف والعنوان");
-    
-    if(editIdx > -1) {
-        recs[editIdx] = d;
-    } else {
-        recs.push(d);
-    }
-    
+    if(!d.author || !d.title) return alert("المؤلف والعنوان مطلوبان");
+    if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
     editIdx = -1;
-    document.getElementById('bForm').reset(); // تفريغ الحقول تماماً بعد الحفظ كما طلبت
+    document.getElementById('bForm').reset(); // تفريغ الحقول عند الحفظ
     draw();
 }
 
@@ -160,14 +148,15 @@ function flipName(name) {
 function openBiblio() {
     let grouped = {};
     recs.forEach(r => { if(!grouped[r.dewey10]) grouped[r.dewey10] = []; grouped[r.dewey10].push(r); });
-    let html = `<div style="direction:rtl; padding:15px; font-family:'Times New Roman';">`;
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     Object.keys(grouped).sort().forEach(cls => {
         html += `<div style="background:#d3d3d3; text-align:center; font-weight:bold; padding:5px; margin:15px 0; border:1px solid #999;">${cls}</div>`;
         grouped[cls].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar')).forEach((r, idx) => {
             let authorLine = ` / ${flipName(r.author)}${r.collab ? '، ' + r.collab : ''}${r.translator ? '؛ ترجمة ' + r.translator : ''}`;
-            html += `<div style="margin-bottom:15px;">
+            // تم إضافة r.issue (العدد) هنا لضمان ظهوره في المعاينة
+            html += `<div style="margin-bottom:15px; line-height:1.6;">
                 <div style="display:flex; justify-content:space-between;"><b>${r.author}</b> <span>(${idx+1})</span></div>
-                <div>${r.title}${authorLine}${r.journal?' . ـــ '+r.journal:''}${r.year?' . ـــ '+r.year:''}.</div>
+                <div style="font-size:12pt;">${r.title}${authorLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
             </div>`;
         });
     });
@@ -181,9 +170,7 @@ function runIdx(type) {
         let val = r[type] || "";
         let keys = type==='author' ? [r.author, ...(r.collab||"").split('،')] : [val];
         keys.filter(k=>k && k.trim()).forEach(k => {
-            let cleanK = k.trim();
-            if(!map[cleanK]) map[cleanK]=[]; 
-            map[cleanK].push(i+1);
+            let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
         });
     });
     let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
@@ -192,16 +179,16 @@ function runIdx(type) {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function deleteP() { if(projs.length > 1 && confirm("حذف المشروع الحالي؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
+function deleteP() { if(projs.length > 1 && confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
 function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
-function del(i) { if(confirm("حذف السجل؟")) { recs.splice(i,1); draw(); } }
-function newP() { let n = prompt("اسم المشروع الجديد:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
+function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function copyRec() { clipboard = {}; document.querySelectorAll('.in').forEach(i => clipboard[i.id] = i.value); }
 function pasteRec() { if(clipboard) document.querySelectorAll('.in').forEach(i => i.value = clipboard[i.id] || ""); }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
-function importX() { let input = document.createElement('input'); input.type = 'file'; input.onchange = e => { let reader = new FileReader(); reader.onload = ev => { let wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'}); recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
+function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
 
 window.onload = draw;
 </script>
