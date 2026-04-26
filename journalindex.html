@@ -2,219 +2,212 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشاف المجلات الليبية المحكمة</title>
+    <title>كشاف المجلات الليبية</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; }
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; overflow: hidden; }
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
-        .input-table { width: 100%; background: #cfcfcf; padding: 5px; table-layout: fixed; border-spacing: 2px; }
-        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 2px; }
-        input, select { width: 100%; height: 26px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
-        .actions { background: #cfcfcf; text-align: center; padding: 8px; display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
-        .btn { padding: 5px 12px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 12px; font-weight: bold; }
-        .scroll-area { margin-top: 250px; height: calc(100vh - 260px); overflow-y: auto; padding: 10px; }
+        .input-table { width: 100%; background: #cfcfcf; padding: 2px; table-layout: fixed; border-spacing: 2px; }
+        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
+        input { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .actions { background: #cfcfcf; text-align: center; padding: 5px; display: flex; justify-content: center; gap: 4px; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow-y: auto; padding: 5px; }
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
-        .admin-table td, th { border: 1px solid #ccc; padding: 5px; font-size: 12px; text-align: center; }
-        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; }
-        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:80vh; overflow:auto; }
-        .dewey-section { background: #f0f0f0; text-align: center; font-weight: bold; font-size: 14pt; padding: 5px; margin: 10px 0; border: 1px solid #ccc; }
-        .entry-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 12pt; margin-top: 5px; }
-        .entry-details { font-size: 12pt; line-height: 1.4; margin-bottom: 10px; text-align: justify; }
+        .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
+        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
+        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
+        .search-tool { height: 24px; font-size: 11px; border: 1px solid #fff; border-radius: 3px; padding: 0 5px; background: #fdfdfd; }
     </style>
 </head>
 <body>
 
 <div class="fixed-header">
-    <div style="background:#34495e; color:white; padding:8px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 18px;">كشاف المجلات الليبية المحكمة</strong>
+    <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
         <div style="display:flex; gap:5px; align-items: center;">
-            <button onclick="copyRec()" class="btn" style="background:#7f8c8d">نسخ</button>
-            <button onclick="pasteRec()" class="btn" style="background:#95a5a6">لصق</button>
-            <button onclick="document.getElementById('xlIn').click()" class="btn" style="background:#e67e22">استيراد</button>
-            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير</button>
-            <input type="file" id="xlIn" style="display:none" onchange="importX(event)">
-            <select id="pSel" style="width:130px; height:28px;" onchange="switchP(this.value)"></select>
-            <button onclick="deleteProj()" class="btn" style="background:#c0392b">حذف المشروع</button>
+            <input type="text" id="idSearch" placeholder="استرجاع بالرقم (ت)" class="search-tool" style="width:100px;" oninput="draw()">
+            <input type="text" id="globalSearch" placeholder="بحث عام..." class="search-tool" style="width:150px;" oninput="draw()">
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
+            <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
+            <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
+            <button onclick="deleteP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
 
     <form id="bForm">
         <table class="input-table">
-            <tr style="background:#b3b3b3;">
-                <td colspan="3"><span class="field-label">تصنيف المئات</span><select id="dewey100" class="in" onchange="updateDewey10()"></select></td>
-                <td colspan="3"><span class="field-label">تصنيف العشرات</span><select id="dewey10" class="in"></select></td>
+            <tr>
+                <td colspan="2"><span class="field-label">تصنيف المئات</span><input list="list_dewey100" id="dewey100" class="in"></td>
+                <td colspan="4"><span class="field-label">تصنيف العشرات (رقم التصنيف)</span><input list="list_dewey10" id="dewey10" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف (مقلوب)</span><input type="text" id="author" class="in"></td>
-                <td colspan="3"><span class="field-label">العنوان</span><input type="text" id="title" class="in"></td>
-                <td><span class="field-label">المجلة</span><input type="text" id="journal" class="in" list="list_journal"></td>
-                <td><span class="field-label">التبعية</span><input type="text" id="affiliation" class="in" list="list_affiliation"></td>
+                <td><span class="field-label">المؤلف (مقلوب)</span><input list="list_author" id="author" class="in"></td>
+                <td colspan="2"><span class="field-label">العنوان</span><input list="list_title" id="title" class="in"></td>
+                <td><span class="field-label">المجلة</span><input list="list_journal" id="journal" class="in"></td>
+                <td><span class="field-label">التبعية</span><input list="list_affiliation" id="affiliation" class="in"></td>
+                <td><span class="field-label">مترجمون</span><input list="list_translator" id="translator" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">مشاركون (فاصلة ،)</span><input type="text" id="collab" class="in"></td>
-                <td><span class="field-label">مترجمون (فاصلة ،)</span><input type="text" id="translator" class="in"></td>
-                <td><span class="field-label">السنة</span><input type="text" id="year" class="in" list="list_year"></td>
-                <td><span class="field-label">العدد</span><input type="text" id="issue" class="in" list="list_issue"></td>
-                <td><span class="field-label">الصفحات</span><input type="text" id="pages" class="in"></td>
-                <td><span class="field-label">ملاحظات</span><input type="text" id="notes" class="in"></td>
+                <td><span class="field-label">مشاركون (بفاصلة ،)</span><input list="list_collab" id="collab" class="in"></td>
+                <td><span class="field-label">السنة</span><input list="list_year" id="year" class="in"></td>
+                <td><span class="field-label">العدد</span><input list="list_issue" id="issue" class="in"></td>
+                <td><span class="field-label">الصفحات</span><input list="list_pages" id="pages" class="in"></td>
+                <td colspan="2"><span class="field-label">ملاحظات</span><input list="list_notes" id="notes" class="in"></td>
             </tr>
         </table>
         
-        <datalist id="list_journal"></datalist>
-        <datalist id="list_affiliation"></datalist>
-        <datalist id="list_year"></datalist>
-        <datalist id="list_issue"></datalist>
+        <datalist id="list_dewey100"></datalist><datalist id="list_dewey10"></datalist>
+        <datalist id="list_author"></datalist><datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
+        <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_collab"></datalist>
+        <datalist id="list_year"></datalist><datalist id="list_issue"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
 
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
-            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">المعاينة الببليوغرافية</button>
+            <button type="button" class="btn" style="background:#34495e" onclick="copyRec()">نسخ</button>
+            <button type="button" class="btn" style="background:#34495e" onclick="pasteRec()">لصق</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">معاينة الببليوغرافيا</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author')">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#16a085" onclick="journalList()">قائمة المجلات</button>
-            <button type="button" class="btn" style="background:#2980b9" onclick="runSubjectIdx()">رؤوس الموضوعات</button>
+            <button type="button" class="btn" style="background:#e67e22" onclick="runIdx('journal')">كشاف المجلات</button>
+            <button type="button" class="btn" style="background:#7f8c8d" onclick="runIdx('dewey10')">كشاف التصنيف</button>
         </div>
     </form>
 </div>
 
-<div id="modalOverlay"><div style="padding:10px;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
+<div id="modalOverlay">
+    <div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div>
+    <div id="modalBody"></div>
+</div>
 
 <div class="scroll-area">
     <table class="admin-table">
-        <thead><tr><th>ت</th><th>التصنيف</th><th>المؤلف / العنوان</th><th>إجراء</th></tr></thead>
+        <thead><tr><th>ت</th><th>التصنيف</th><th>المؤلف</th><th>العنوان</th><th>إجراء</th></tr></thead>
         <tbody id="adminBody"></tbody>
     </table>
 </div>
 
 <script>
-const deweyData = {
-    "000 المعارف العامة": ["000 المعارف العامة", "010 الببليوجرافيات", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "060 المنظمات والمتاحف", "070 الإعلام والصحافة", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
-    "100 الفلسفة وعلم النفس": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 المذاهب الفلسفية", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الحديثة"],
-    "200 الأديان": ["200 الأديان", "210 الفلسفة الدينية", "290 الإسلام والأديان الأخرى"],
-    "300 العلوم الاجتماعية": ["300 العلوم الاجتماعية", "310 الإحصاء العام", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 الخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة والمواصلات", "390 العادات والتقاليد"],
-    "400 اللغات": ["400 اللغات", "410 اللسانيات", "420 اللغة الإنجليزية", "490 اللغات الأخرى والعربية"],
-    "500 العلوم الطبيعية": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علوم الأرض", "570 الأحياء", "580 النباتات", "590 الحيوانات"],
-    "600 العلوم التطبيقية": ["600 العلوم التطبيقية", "610 الطب والصحة", "620 الهندسة", "630 الزراعة", "650 الإدارة والمحاسبة", "660 الهندسة الكيميائية"],
-    "700 الفنون والترفيه": ["700 الفنون", "720 العمارة", "790 الألعاب والترفيه"],
-    "800 الآداب": ["800 الآداب", "890 آداب اللغات الأخرى"],
-    "900 التاريخ والجغرافيا": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "960 تاريخ أفريقيا (ليبيا)"]
-};
-
-let projs = JSON.parse(localStorage.getItem('L_P')) || ['كشاف_المجلات'];
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-let editIdx = -1;
+let editIdx = -1, clipboard = null;
 
-const g = (v) => (v && v !== 'undefined') ? v.toString().trim() : "";
-
-function flipName(n) {
-    if(!n.includes('،')) return n;
-    let parts = n.split('،');
-    return parts[1].trim() + " " + parts[0].trim();
+function cleanAL(txt) {
+    if(!txt) return "";
+    let t = txt.trim();
+    if(t.startsWith("الـ")) t = t.substring(3);
+    else if(t.startsWith("ال")) t = t.substring(2);
+    return t;
 }
 
-function updateDewey10() {
-    let m = document.getElementById('dewey100').value;
-    document.getElementById('dewey10').innerHTML = (deweyData[m] || []).map(x => `<option value="${x}">${x}</option>`).join('');
-}
-
-// تحديث خيارات القوائم المنسدلة من البيانات الحالية
 function updateDataLists() {
-    const fields = ['journal', 'affiliation', 'year', 'issue'];
+    const fields = ['dewey100', 'dewey10', 'author', 'title', 'journal', 'affiliation', 'translator', 'collab', 'year', 'issue', 'pages', 'notes'];
     fields.forEach(f => {
-        const uniqueValues = [...new Set(recs.map(r => g(r[f])).filter(v => v))];
-        document.getElementById('list_' + f).innerHTML = uniqueValues.map(v => `<option value="${v}">`).join('');
+        let unique = [...new Set(recs.map(r => r[f]).filter(v => v))];
+        document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
     });
 }
 
 function draw() {
-    recs.sort((a,b) => g(a.dewey10).localeCompare(g(b.dewey10)) || g(a.author).localeCompare(g(b.author), 'ar'));
-    recs.forEach((r, i) => r.finalID = i + 1);
+    let gTerm = document.getElementById('globalSearch').value.toLowerCase();
+    let idTerm = document.getElementById('idSearch').value.trim();
+    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1})).filter(r => {
+        let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
+        let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
+        return matchG && matchID;
+    });
+    document.getElementById('adminBody').innerHTML = filtered.map(r => `
+        <tr><td>${r.originalIdx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author}</b></td><td style="text-align:right">${r.title}</td>
+        <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td></tr>`).join('');
+    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+    updateDataLists();
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
-    document.getElementById('adminBody').innerHTML = recs.map((r, i) => `<tr><td>${r.finalID}</td><td>${g(r.dewey10)}</td><td style="text-align:right"><b>${g(r.author)}</b> - ${g(r.title)}</td><td><button onclick="edit(${i})">تعديل</button> <button onclick="del(${i})">حذف</button></td></tr>`).join('');
-    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
-    updateDataLists();
 }
 
 function save() {
-    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
-    d.dewey100 = document.getElementById('dewey100').value;
-    d.dewey10 = document.getElementById('dewey10').value;
+    let d = {}; 
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
     if(!d.author || !d.title) return alert("المؤلف والعنوان مطلوبان");
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
-    editIdx = -1; document.getElementById('bForm').reset(); updateDewey10(); draw();
+    editIdx = -1;
+    document.getElementById('bForm').reset();
+    draw();
 }
 
-function edit(i) {
-    editIdx = i; let r = recs[i];
-    document.getElementById('dewey100').value = r.dewey100; updateDewey10();
-    document.getElementById('dewey10').value = r.dewey10;
-    document.querySelectorAll('.in').forEach(inp => { if(r[inp.id]) inp.value = r[inp.id]; });
-    window.scrollTo(0,0);
-}
-
-function deleteProj() {
-    if(projs.length <= 1) return alert("لا يمكن حذف المشروع الوحيد");
-    if(confirm(`هل أنت متأكد من حذف مشروع "${curP}"؟`)) {
-        localStorage.removeItem('R_' + curP);
-        projs = projs.filter(p => p !== curP);
-        curP = projs[0];
-        recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-        draw();
-    }
+function flipName(name) {
+    if(!name || !name.includes('،')) return name;
+    let parts = name.split('،');
+    return parts[1].trim() + " " + parts[0].trim();
 }
 
 function openBiblio() {
-    const win = window.open('', '_blank');
-    let html = `<html dir="rtl"><head><style>body{font-family:'Times New Roman'; padding:40px;} .dewey-section{background:#f0f0f0; text-align:center; font-weight:bold; font-size:14pt; padding:5px; margin:10px 0; border:1px solid #ccc;} .entry-header{display:flex; justify-content:space-between; font-weight:bold; font-size:12pt; margin-top:5px;} .entry-details{font-size:12pt; line-height:1.4; margin-bottom:15px; text-align:justify;}</style></head><body>`;
-    let lastD = "";
-    recs.forEach(r => {
-        if (g(r.dewey10) !== lastD) { html += `<div class="dewey-section">${g(r.dewey10)}</div>`; lastD = g(r.dewey10); }
-        html += `<div class="entry-header"><span>${g(r.author)}</span><span>${r.finalID}</span></div>`;
-        let collab = g(r.collab), trans = g(r.translator), resp = "";
-        if (collab !== "") {
-            resp = ` / ${flipName(g(r.author))} ، ${collab}`;
-            if (trans !== "") resp += ` ؛ ترجمة ${trans}`;
-        } else if (trans !== "") { resp = ` / ترجمة ${trans}`; }
-        let journalPart = g(r.journal) !== "" ? ` . ـــ ${g(r.journal)}` : "";
-        let meta = [g(r.issue), g(r.year)].filter(x => x !== "").join(' ، ');
-        let metaFinal = meta !== "" ? `، ${meta}` : "";
-        let pagePart = g(r.pages) !== "" ? ` . ـــ ص ${g(r.pages)}` : "";
-        html += `<div class="entry-details">${g(r.title)}${resp}${journalPart}${metaFinal}${pagePart}.</div>`;
+    // 1. ترتيب كافة السجلات هجائياً بالعنوان أولاً لضمان تسلسل منطقي
+    let sortedRecs = [...recs].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar'));
+    
+    // 2. تجميع السجلات حسب التصنيف مع الحفاظ على الترتيب الهجائي المسبق
+    let grouped = {};
+    sortedRecs.forEach(r => { 
+        if(!grouped[r.dewey10]) grouped[r.dewey10] = []; 
+        grouped[r.dewey10].push(r); 
     });
-    win.document.write(html + "</body></html>"); win.document.close();
-}
 
-// بقية الدوال (كشاف، نسخ، استيراد)
-function runIdx(type) {
-    let m = {};
-    recs.forEach(r => {
-        let items = (type === 'author') ? [g(r.author), ...g(r.collab).split('،'), ...g(r.translator).split('،')].map(n=>n.trim()).filter(n=>n) : [g(r[type])];
-        items.forEach(n => { if(!m[n]) m[n]=[]; if(!m[n].includes(r.finalID)) m[n].push(r.finalID); });
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    let globalCounter = 1; // عداد مسلسل عام لا يتأثر برأس التصنيف
+
+    Object.keys(grouped).sort().forEach(cls => {
+        html += `<div style="background:#d3d3d3; text-align:center; font-weight:bold; padding:5px; margin:15px 0; border:1px solid #999;">${cls}</div>`;
+        
+        grouped[cls].forEach((r) => {
+            let showAuthorAfterTitle = (r.collab && r.collab.trim() !== "") || (r.translator && r.translator.trim() !== "");
+            let responsLine = "";
+            if (showAuthorAfterTitle) {
+                responsLine = ` / ${flipName(r.author)}${r.collab ? '، ' + r.collab : ''}${r.translator ? '؛ ترجمة ' + r.translator : ''}`;
+            } else if (r.translator && r.translator.trim() !== "") {
+                responsLine = ` / ترجمة ${r.translator}`;
+            }
+
+            html += `<div style="margin-bottom:15px; line-height:1.6;">
+                <div style="display:flex; justify-content:space-between;"><b>${r.author}</b> <span>(${globalCounter})</span></div>
+                <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+            </div>`;
+            globalCounter++; // زيادة العداد بغض النظر عن التصنيف
+        });
     });
-    let k = Object.keys(m).sort((a,b)=>a.localeCompare(b,'ar'));
-    document.getElementById('modalBody').innerHTML = `<h2>كشاف ${type==='author'?'المؤلفين':'العناوين'}</h2><div style="column-count:2">` + k.map(x=>`<div>${x} (${m[x].join(', ')})</div>`).join('') + `</div>`;
+    document.getElementById('modalBody').innerHTML = html + "</div>";
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function copyRec() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); d.dewey100 = document.getElementById('dewey100').value; d.dewey10 = document.getElementById('dewey10').value; localStorage.setItem('BC_CLIP', JSON.stringify(d)); }
-function pasteRec() { let d = JSON.parse(localStorage.getItem('BC_CLIP')); if(d) { document.getElementById('dewey100').value = d.dewey100; updateDewey10(); document.getElementById('dewey10').value = d.dewey10; Object.keys(d).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = d[k]; }); } }
-function importX(e) { const reader = new FileReader(); reader.onload = (ev) => { const data = new Uint8Array(ev.target.result); const wb = XLSX.read(data, {type:'array'}); recs = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); alert("تم الاستيراد"); }; reader.readAsArrayBuffer(e.target.files[0]); }
-function journalList() { let m = {}; recs.forEach(r => { if(g(r.journal)) m[g(r.journal)] = g(r.affiliation); }); document.getElementById('modalBody').innerHTML = `<h2>قائمة المجلات</h2>` + Object.keys(m).map(k => `<div><b>${k}</b> (${m[k]})</div>`).join(''); document.getElementById('modalOverlay').style.display='block'; }
-function runSubjectIdx() { let m = {}; recs.forEach(r => { if(g(r.dewey10)) { if(!m[g(r.dewey10)]) m[g(r.dewey10)]=[]; m[g(r.dewey10)].push(r.finalID); } }); document.getElementById('modalBody').innerHTML = `<h2>رؤوس الموضوعات</h2>` + Object.keys(m).map(k => { let n = m[k].sort((a,b)=>a-b); return `<div>${k} (${n.length>1?n[0]+'-'+n[n.length-1]:n[0]})</div>`; }).join(''); document.getElementById('modalOverlay').style.display='block'; }
-function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
-function newP() { let n = prompt("المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
-function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
-function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
+function runIdx(type) {
+    let map = {};
+    recs.forEach((r, i) => {
+        let val = r[type] || "";
+        let keys = type==='author' ? [r.author, ...(r.collab||"").split('،')] : [val];
+        keys.filter(k=>k && k.trim()).forEach(k => {
+            let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
+        });
+    });
+    let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    document.getElementById('modalBody').innerHTML = `<div style="direction:rtl; padding:10px;">` + 
+        sorted.map(k=>`<div style="border-bottom:1px solid #eee; padding:3px;">${k} ............ (${map[k].join(', ')})</div>`).join('') + `</div>`;
+    document.getElementById('modalOverlay').style.display='block';
+}
 
-window.onload = () => { 
-    let m = document.getElementById('dewey100');
-    m.innerHTML = Object.keys(deweyData).map(x => `<option value="${x}">${x}</option>`).join('');
-    updateDewey10(); draw(); 
-};
+function deleteP() { if(projs.length > 1 && confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
+function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
+function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
+function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function closeM() { document.getElementById('modalOverlay').style.display='none'; }
+function copyRec() { clipboard = {}; document.querySelectorAll('.in').forEach(i => clipboard[i.id] = i.value); }
+function pasteRec() { if(clipboard) document.querySelectorAll('.in').forEach(i => i.value = clipboard[i.id] || ""); }
+function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
+function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
+
+window.onload = draw;
 </script>
 </body>
 </html>
