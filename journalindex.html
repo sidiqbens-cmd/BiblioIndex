@@ -24,7 +24,7 @@
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
+        <strong style="font-size: 14px;">كشاف المجلات الليبي</strong>
         <div style="display:flex; gap:5px; align-items: center;">
             <input type="text" id="idSearch" placeholder="رقم (ت)" class="search-tool" style="width:80px;" oninput="draw()">
             <input type="text" id="globalSearch" placeholder="بحث..." class="search-tool" style="width:130px;" oninput="draw()">
@@ -52,35 +52,111 @@
             <tr>
                 <td><span class="field-label">التبعية</span><input list="list_affiliation" id="affiliation" class="in"></td>
                 <td><span class="field-label">السنة</span><input list="list_year" id="year" class="in"></td>
-                <td><span class="field-label">العدد</span><input list="list_issue" id="issue" class="in"></td>
+                <td><span class="field-label">العدد</span><input list="issue" id="issue" class="in"></td>
                 <td><span class="field-label">الصفحات</span><input list="list_pages" id="pages" class="in"></td>
                 <td colspan="2"><span class="field-label">ملاحظات</span><input list="list_notes" id="notes" class="in"></td>
             </tr>
         </table>
         
         <datalist id="list_dewey100">
-            <option value="000 المعارف العامة">
-            <option value="100 الفلسفة وعلم النفس">
-            <option value="200 الأديان">
-            <option value="300 العلوم الاجتماعية">
-            <option value="400 اللغات">
-            <option value="500 العلوم البحتة">
-            <option value="600 العلوم التطبيقية">
-            <option value="700 الفنون">
-            <option value="800 الآداب">
-            <option value="900 الجغرافيا والتاريخ">
+            <option value="000 المعارف العامة"> <option value="100 الفلسفة وعلم النفس"> <option value="200 الأديان"> 
+            <option value="300 العلوم الاجتماعية"> <option value="400 اللغات"> <option value="500 العلوم البحتة"> 
+            <option value="600 العلوم التطبيقية"> <option value="700 الفنون"> <option value="800 الآداب"> <option value="900 الجغرافيا والتاريخ">
         </datalist>
+
         <datalist id="list_dewey10">
-            <option value="010 الببليوغرافيا">
-            <option value="020 المكتبات والمعلومات">
-            <option value="070 الصحافة والنشر">
+            <option value="010 الببليوجرافيا">
+            <option value="020 علوم المكتبات والمعلومات">
+            <option value="030 الأعمال الموسوعية العامة">
+            <option value="050 الأعمال الدورية العامة">
+            <option value="060 المنظمات العامة وعلم المتاحف">
+            <option value="070 الرسائل الإخبارية، الصحافة، النشر">
+            <option value="080 المجموعات العامة">
+            <option value="090 المخطوطات والكتب النادرة">
+            <option value="110 الميتافيزيقا (ما وراء الطبيعة)">
+            <option value="120 نظرية المعرفة، السببية، الجنس البشري">
+            <option value="130 الظواهر الخارقة">
+            <option value="140 مدارس فلسفية معينة">
+            <option value="150 علم النفس">
+            <option value="160 علم المنطق">
+            <option value="170 علم الأخلاق والفلسفة الأخلاقية">
+            <option value="180 الفلسفات القديمة، والوسيطة والشرقية">
+            <option value="190 الفلسفة الحديثة والمعاصرة">
+            <option value="210 الدين الإسلامي وعلومه">
+            <option value="220 القرآن الكريم">
+            <option value="230 الحديث الشريف">
+            <option value="240 علم أصول الدين (التوحيد أو علم الكلام)">
+            <option value="250 الفقه الإسلامي وأصوله">
+            <option value="260 التصوف الإسلامي">
+            <option value="270 المباحث العامة في المسيحية">
+            <option value="280 الكنائس والطوائف والمذاهب المسيحية">
+            <option value="290 الدين المقارن">
+            <option value="310 مجموعة الإحصاءات العامة">
+            <option value="320 علم السياسة">
+            <option value="330 علم الاقتصاد">
             <option value="340 القانون">
-            <option value="410 اللسانيات">
-            <option value="492 اللغات السامية">
+            <option value="350 الإدارة العامة والعلوم العسكرية">
+            <option value="360 المشكلات والخدمات الاجتماعية، الاتحادات والجمعيات">
+            <option value="370 التربية والتعليم">
+            <option value="380 التجارة، الاتصالات، النقل">
+            <option value="390 العادات، الإتيكيت، الفلكلور">
+            <option value="410 اللغة العربية">
+            <option value="420 اللغة الإنجليزية الحديثة والقديمة">
+            <option value="430 اللغات الجرمانية الألمانية">
+            <option value="440 اللغات الرومانسية الفرنسية">
+            <option value="450 اللغات الإيطالية الرومانية">
+            <option value="460 اللغتان الإسبانية والبرتغالية">
+            <option value="470 اللغات الإيطالية القديمة - اللاتينية">
+            <option value="480 اللغات الهيلنية - اللغات اليونانية الكلاسيكية">
+            <option value="490 اللغات الأخرى">
+            <option value="510 الرياضيات">
+            <option value="520 الفلك والعلوم ذات العلاقة">
+            <option value="530 الفيزياء">
+            <option value="550 علم الأرض">
+            <option value="560 علم الحفريات - علم الحفريات الحيوانية">
+            <option value="570 علوم الحياة، الأحياء">
+            <option value="580 النباتات">
+            <option value="590 الحيوانات">
+            <option value="610 العلوم الطبية - الطب">
+            <option value="620 الهندسة والعمليات ذات العلاقة">
+            <option value="630 الزراعة والتكنولوجيات ذات العلاقة">
+            <option value="641 الأطعمة والأشربة">
+            <option value="650 إدارة الأعمال والخدمات المساعدة">
+            <option value="660 الهندسة الكيميائية">
+            <option value="670 الصناعات">
+            <option value="680 الصناعات لأغراض معينة">
+            <option value="690 المباني">
+            <option value="710 الفن المدني والخلوي">
+            <option value="720 العمارة">
+            <option value="730 الفنون التشكيلية - النحت">
+            <option value="739 أشغال المعادن الفنية">
+            <option value="740 الرسوم والفنون الزخرفية">
+            <option value="750 التصوير الزيتي والصور الزيتية">
+            <option value="760 الفنون التخطيطية">
+            <option value="770 التصوير الفوتوغرافي">
+            <option value="780 الموسيقي">
+            <option value="790 الفنون الترويحية والتمثيلية">
+            <option value="810 الأدب العربي">
+            <option value="820 الآداب الناطقة بالإنجليزية">
+            <option value="830 آداب اللغة الجرمانية">
+            <option value="840 آداب اللغة الرومانسية">
+            <option value="850 آداب اللغات الإيطالية والرومانية">
+            <option value="860 الآداب الإسبانية والبرتغالية">
+            <option value="870 الآداب الإيطالية القديمة">
+            <option value="890 آداب اللغات الأخرى">
             <option value="910 الجغرافيا والرحلات">
+            <option value="920 التراجم والأنساب والشارات">
+            <option value="930 تاريخ العالم القديم">
+            <option value="940 تاريخ أوروبا العام">
+            <option value="950 تاريخ أسيا العام">
+            <option value="960 تاريخ أفريقيا العام">
+            <option value="970 تاريخ أمريكا الشمالية">
+            <option value="980 تاريخ أمريكا الجنوبية">
+            <option value="990 التاريخ العام للمناطق الأخرى">
         </datalist>
+
         <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist><datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
-        <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_year"></datalist><datalist id="list_issue"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
+        <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_year"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
 
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
@@ -125,7 +201,8 @@ function updateDataLists() {
     const fields = ['author', 'co_authors', 'title', 'journal', 'affiliation', 'translator', 'year', 'issue', 'pages', 'notes'];
     fields.forEach(f => {
         let unique = [...new Set(recs.map(r => r[f]).filter(v => v))];
-        document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
+        let dl = document.getElementById('list_' + f);
+        if(dl) dl.innerHTML = unique.map(v => `<option value="${v}">`).join('');
     });
 }
 
