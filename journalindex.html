@@ -57,7 +57,28 @@
                 <td colspan="2"><span class="field-label">ملاحظات</span><input list="list_notes" id="notes" class="in"></td>
             </tr>
         </table>
-        <datalist id="list_dewey100"></datalist><datalist id="list_dewey10"></datalist>
+        
+        <datalist id="list_dewey100">
+            <option value="000 المعارف العامة">
+            <option value="100 الفلسفة وعلم النفس">
+            <option value="200 الأديان">
+            <option value="300 العلوم الاجتماعية">
+            <option value="400 اللغات">
+            <option value="500 العلوم البحتة">
+            <option value="600 العلوم التطبيقية">
+            <option value="700 الفنون">
+            <option value="800 الآداب">
+            <option value="900 الجغرافيا والتاريخ">
+        </datalist>
+        <datalist id="list_dewey10">
+            <option value="010 الببليوغرافيا">
+            <option value="020 المكتبات والمعلومات">
+            <option value="070 الصحافة والنشر">
+            <option value="340 القانون">
+            <option value="410 اللسانيات">
+            <option value="492 اللغات السامية">
+            <option value="910 الجغرافيا والرحلات">
+        </datalist>
         <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist><datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
         <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_year"></datalist><datalist id="list_issue"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
 
@@ -101,7 +122,7 @@ function cleanAL(txt) {
 }
 
 function updateDataLists() {
-    const fields = ['dewey100', 'dewey10', 'author', 'co_authors', 'title', 'journal', 'affiliation', 'translator', 'year', 'issue', 'pages', 'notes'];
+    const fields = ['author', 'co_authors', 'title', 'journal', 'affiliation', 'translator', 'year', 'issue', 'pages', 'notes'];
     fields.forEach(f => {
         let unique = [...new Set(recs.map(r => r[f]).filter(v => v))];
         document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
@@ -153,7 +174,6 @@ function openBiblio() {
     Object.keys(grouped).sort().forEach(cls => {
         html += `<div style="background:#d3d3d3; text-align:center; font-weight:bold; padding:5px; margin:15px 0; border:1px solid #999;">${cls}</div>`;
         grouped[cls].forEach((r) => {
-            // تكرار المؤلفين بعد العنوان فقط في حال وجود مشاركين أو مترجمين
             let hasCollab = r.co_authors && r.co_authors.trim() !== "";
             let hasTrans = r.translator && r.translator.trim() !== "";
             let responsLine = "";
@@ -186,7 +206,6 @@ function runIdx(type) {
         } else {
             keys.push(r[type] || "");
         }
-        
         keys.filter(k=>k && k.trim()).forEach(k => {
             let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
         });
