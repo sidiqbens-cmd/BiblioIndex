@@ -156,8 +156,18 @@ function openBiblio() {
         let responsLine = "";
 
         if (hasCollabs) {
-            responsLine = " / " + fixFlipped(r.author) + "، " + r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
-        }
+    // 1. نقوم بتقسيم الأسماء بالفاصلة العربية
+    let namesArray = r.co_authors.split('،');
+    
+    // 2. نقوم بتنظيف كل اسم من المسافات الجانبية أولاً، ثم نعدله
+    let fixedNames = namesArray.map(n => {
+        let cleanName = n.trim(); // تنظيف الاسم من أي مسافة زائدة حول الفاصلة الكبرى
+        return fixFlipped(cleanName); // عدل الاسم (اللقب، الاسم -> الاسم اللقب)
+    });
+
+    // 3. ندمج المؤلف الرئيسي (بعد عدله) مع المشاركين المعدولين
+    responsLine = " / " + fixFlipped(r.author) + "، " + fixedNames.join('، ');
+}
         if (r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
 
         html += `<div style="margin-bottom:12px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #eee; padding-bottom: 8px;">
