@@ -17,6 +17,17 @@
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
         #modalBody { background:white; width:95%; margin:10px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
+        
+        /* تنسيق رأس التصنيف العشري */
+        .dewey-header { 
+            text-align: center; 
+            background-color: #f0f0f0; 
+            font-size: 14pt; 
+            font-weight: bold; 
+            padding: 8px; 
+            margin: 20px 0 10px 0; 
+            border: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
@@ -83,7 +94,6 @@ function cleanSort(txt) {
     return txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); 
 }
 
-// دالة الفرز الموحدة: مئوي -> عشري -> هجائي
 function sortRecords(arr) {
     return arr.sort((a, b) => {
         let m1 = (a.dewey100 || "").padStart(5, '0');
@@ -106,8 +116,6 @@ function fixFlipped(name) {
 
 function draw() {
     let g = document.getElementById('globalSearch').value.toLowerCase();
-    
-    // فرز السجلات حسب القاعدة الهيكلية
     recs = sortRecords(recs);
     
     let filtered = recs.map((r, i) => ({...r, bibIndex: i + 1}))
@@ -134,7 +142,16 @@ function draw() {
 
 function openBiblio() {
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    let lastDewey = null;
+
     recs.forEach((r, i) => {
+        // إذا تغير التصنيف العشري، نضع رأساً جديداً
+        let currentDewey = r.dewey10 || "بدون تصنيف";
+        if (currentDewey !== lastDewey) {
+            html += `<div class="dewey-header">${currentDewey}</div>`;
+            lastDewey = currentDewey;
+        }
+
         let hasCollabs = r.co_authors && r.co_authors.trim() !== "";
         let responsLine = "";
 
@@ -143,10 +160,10 @@ function openBiblio() {
         }
         if (r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
 
-        html += `<div style="margin-bottom:15px; padding:0 40px; line-height:1.6;">
-            <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed #ccc;">
+        html += `<div style="margin-bottom:12px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #eee; padding-bottom: 8px;">
+            <div style="display:flex; justify-content:space-between;">
                 <b>${r.author || r.title}</b> 
-                <span>[${r.dewey100 || ''} / ${r.dewey10 || ''}] (${i+1})</span>
+                <span>(${i+1})</span>
             </div>
             <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
         </div>`;
