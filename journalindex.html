@@ -108,15 +108,14 @@ let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
 
-// دالة تنظيف صارمة لتجاهل "ال" التعريف بكافة أشكالها عند المقارنة الهجائية
-function cleanAL(txt) {
+// دالة التطهير لتجاهل ال التعريف عند الترتيب
+function cleanSort(txt) {
     if (!txt) return "";
     let t = txt.trim();
-    // إزالة أشكال ال التعريف من البداية فقط
     return t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
 }
 
-// دالة لقلب الاسم (من: لقب، اسم -> إلى: اسم لقب)
+// دالة قلب الاسم
 function flipName(name) {
     if(!name || !name.includes('،')) return name;
     let parts = name.split('،');
@@ -159,7 +158,7 @@ function draw() {
 function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
-    if(!d.author || !d.title) return alert("المؤلف والعنوان مطلوبان");
+    if(!d.author && !d.title) return alert("المؤلف أو العنوان مطلوب");
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
     editIdx = -1;
     document.getElementById('bForm').reset();
@@ -167,19 +166,16 @@ function save() {
 }
 
 function openBiblio() {
-    // الترتيب الهجائي للعناوين مع تجاهل ال التعريف
-    let sortedRecs = [...recs].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar'));
-    let grouped = {};
-    sortedRecs.forEach(r => { 
-        if(!grouped[r.dewey100]) grouped[r.dewey100] = {};
-        if(!grouped[r.dewey100][r.dewey10]) grouped[r.dewey100][r.dewey10] = [];
-        grouped[r.dewey100][r.dewey10+r.originalIdx] = r; // استخدام معرف فريد لمنع التداخل
+    // الترتيب بناءً على المدخل الرئيسي (المؤلف أولاً ثم العنوان) مع تجاهل ال التعريف
+    let sortedRecs = [...recs].sort((a, b) => {
+        let entryA = a.author ? a.author : a.title;
+        let entryB = b.author ? b.author : b.title;
+        return cleanSort(entryA).localeCompare(cleanSort(entryB), 'ar');
     });
-
+    
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     let globalCounter = 1;
 
-    // إعادة تجميع البيانات حسب التصنيف للعرض
     let finalGroups = {};
     sortedRecs.forEach(r => {
         if(!finalGroups[r.dewey100]) finalGroups[r.dewey100] = {};
@@ -201,9 +197,14 @@ function openBiblio() {
                 } else if (hasTrans) {
                     responsLine = ` / ترجمة ${r.translator}`;
                 }
+                
+                // عرض المدخل الرئيسي بالخط الغامق
+                let mainEntryDisplay = r.author ? `<b>${r.author}</b>` : `<b>${r.title}</b>`;
+                let titlePart = r.author ? r.title : ""; // إذا كان العنوان هو المدخل فلا نكرره بالأسفل
+
                 html += `<div style="margin-bottom:15px; line-height:1.6; padding:0 60px;">
-                    <div style="display:flex; justify-content:space-between;"><b>${r.author}</b> <span>(${globalCounter})</span></div>
-                    <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+                    <div style="display:flex; justify-content:space-between;">${mainEntryDisplay} <span>(${globalCounter})</span></div>
+                    <div style="font-size:12pt;">${titlePart}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
                 </div>`;
                 globalCounter++;
             });
@@ -218,9 +219,7 @@ function runIdx(type) {
     recs.forEach((r, i) => {
         let keys = [];
         if(type === 'author') {
-            // قلب اسم المؤلف الرئيسي
-            keys.push(flipName(r.author));
-            // قلب أسماء المؤلفين المشاركين
+            if(r.author) keys.push(flipName(r.author));
             if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(flipName(n.trim())));
         } else { keys.push(r[type] || ""); }
         
@@ -229,8 +228,7 @@ function runIdx(type) {
         });
     });
     
-    // ترتيب الكشاف هجائياً مع تجاهل ال التعريف
-    let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
+    let sorted = Object.keys(map).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b),'ar'));
     
     let content = sorted.map(k => {
         let nums = map[k].sort((a,b)=>a-b);
