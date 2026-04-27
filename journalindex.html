@@ -32,25 +32,24 @@
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
             <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
-            <button onclick="deleteP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
 
     <form id="bForm">
         <table class="input-table">
             <tr>
-                <td colspan="2"><span class="field-label">تصنيف المئات</span><input list="list_dewey100" id="dewey100" class="in" onchange="filterTens()"></td>
+                <td colspan="2"><span class="field-label">تصنيف المئات</span><input list="list_dewey100" id="dewey100" class="in"></td>
                 <td colspan="4"><span class="field-label">تصنيف العشرات (رقم التصنيف)</span><input list="list_dewey10" id="dewey10" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input list="list_author" id="author" class="in"></td>
                 <td><span class="field-label">مؤلفون مشاركون (مقلوب)</span><input list="list_co_authors" id="co_authors" class="in"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input list="list_title" id="title" class="in"></td>
-                <td><span class="field-label">المجلة</span><input list="list_journal" id="journal" class="in"></td>
+                <td><span class="field-label">المجلة</span><input list="list_journal" id="journal" class="in" oninput="autoFillAffiliation(this.value)"></td>
                 <td><span class="field-label">مترجمون</span><input list="list_translator" id="translator" class="in"></td>
             </tr>
             <tr>
-                <td><span class="field-label">التبعية</span><input list="list_affiliation" id="affiliation" class="in"></td>
+                <td><span class="field-label">التبعية (الجهة التابعة)</span><input list="list_affiliation" id="affiliation" class="in"></td>
                 <td><span class="field-label">السنة</span><input list="list_year" id="year" class="in"></td>
                 <td><span class="field-label">العدد</span><input list="list_issue" id="issue" class="in"></td>
                 <td><span class="field-label">الصفحات</span><input list="list_pages" id="pages" class="in"></td>
@@ -58,101 +57,62 @@
             </tr>
         </table>
         
-        <datalist id="list_dewey100"></datalist><datalist id="list_dewey10"></datalist>
-        <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist><datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
-        <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_year"></datalist><datalist id="list_issue"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
-
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ السجل</button>
             <button type="button" class="btn" style="background:#34495e" onclick="copyRec()">نسخ</button>
             <button type="button" class="btn" style="background:#34495e" onclick="pasteRec()">لصق</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">معاينة الببليوغرافيا</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author')">كشاف المؤلفين</button>
-            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#e67e22" onclick="runIdx('journal')">كشاف المجلات</button>
-            <button type="button" class="btn" style="background:#7f8c8d" onclick="runIdx('dewey100')">كشاف المئات</button>
-            <button type="button" class="btn" style="background:#7f8c8d" onclick="runIdx('dewey10')">كشاف العشرات</button>
         </div>
     </form>
 </div>
 
 <div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
 
-<div class="scroll-area">
-    <table class="admin-table">
-        <thead><tr><th>ت</th><th>التصنيف</th><th>المؤلف الرئيسي</th><th>العنوان</th><th>إجراء</th></tr></thead>
-        <tbody id="adminBody"></tbody>
-    </table>
-</div>
+<div class="scroll-area"><table class="admin-table"><thead><tr><th>ت</th><th>التصنيف</th><th>المدخل</th><th>العنوان</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
+const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
-// دالة التطهير المتقدمة للترتيب
-function cleanSort(txt) {
-    if (!txt) return "";
-    let t = txt.trim();
-    // إزالة ال التعريف بكافة أشكالها من البداية
-    t = t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
-    return t;
+function cleanSort(txt) { return txt ? txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "") : ""; }
+
+// دالة لـ "تعديل" الاسم المقلوب (من لقب، اسم إلى اسم لقب)
+function fixFlipped(name) {
+    if(!name || !name.includes('،')) return name;
+    let p = name.split('،');
+    return p[1].trim() + " " + p[0].trim();
 }
 
-// أداة المقارنة العربية لضمان الترتيب الصحيح
-const arabicCollator = new Intl.Collator('ar', { sensitivity: 'accent', usage: 'sort' });
-
-function flipName(name) {
-    if(!name || !name.includes('،')) return name;
-    let parts = name.split('،');
-    return parts[1].trim() + " " + parts[0].trim();
+function autoFillAffiliation(val) {
+    let r = recs.find(x => x.journal === val && x.affiliation);
+    if(r) document.getElementById('affiliation').value = r.affiliation;
 }
 
 function openBiblio() {
-    // 1. الترتيب بناءً على المدخل الرئيسي (المؤلف أولاً، ثم العنوان) مع تنظيف ال التعريف
-    let sortedRecs = [...recs].sort((a, b) => {
-        let entryA = cleanSort(a.author ? a.author : a.title);
-        let entryB = cleanSort(b.author ? b.author : b.title);
-        return arabicCollator.compare(entryA, entryB);
-    });
-
-    // 2. تجميع البيانات حسب التصنيف للعرض
-    let finalGroups = {};
-    sortedRecs.forEach(r => {
-        if(!finalGroups[r.dewey100]) finalGroups[r.dewey100] = {};
-        if(!finalGroups[r.dewey100][r.dewey10]) finalGroups[r.dewey100][r.dewey10] = [];
-        finalGroups[r.dewey100][r.dewey10].push(r);
-    });
-
+    let sorted = [...recs].sort((a,b) => collator.compare(cleanSort(a.author||a.title), cleanSort(b.author||b.title)));
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
-    let globalCounter = 1;
+    let counter = 1;
 
-    Object.keys(finalGroups).sort().forEach(m100 => {
-        html += `<div style="background:#e0e0e0; text-align:center; font-weight:bold; font-size:16pt; padding:8px; margin:20px 0; border:1px solid #999;">${m100}</div>`;
-        Object.keys(finalGroups[m100]).sort().forEach(m10 => {
-            html += `<div style="background:#f2f2f2; text-align:center; font-weight:bold; font-size:14pt; padding:5px; margin:10px 40px; border:1px solid #ccc;">${m10}</div>`;
-            finalGroups[m100][m10].forEach((r) => {
-                let hasCollab = r.co_authors && r.co_authors.trim() !== "";
-                let hasTrans = r.translator && r.translator.trim() !== "";
-                let responsLine = "";
-                if (hasCollab) {
-                    let allAuthors = [flipName(r.author), ...r.co_authors.split('،').map(n => flipName(n.trim()))];
-                    responsLine = ` / ${allAuthors.join('، ')}${hasTrans ? '؛ ترجمة ' + r.translator : ''}`;
-                } else if (hasTrans) {
-                    responsLine = ` / ترجمة ${r.translator}`;
-                }
-                
-                let mainEntryDisplay = r.author ? `<b>${r.author}</b>` : `<b>${r.title}</b>`;
-                let titlePart = r.author ? r.title : ""; 
+    sorted.forEach(r => {
+        let hasCollab = r.co_authors && r.co_authors.trim() !== "";
+        let respons = "";
+        if(hasCollab) {
+            // في المتن: المؤلف الرئيسي والمشاركون يتم تعديلهم ليظهروا (الاسم اللقب)
+            let mainFixed = fixFlipped(r.author);
+            let collabsFixed = r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
+            respons = ` / ${mainFixed}، ${collabsFixed}`;
+        }
+        if(r.translator) respons += (respons ? "؛ " : " / ") + "ترجمة " + r.translator;
 
-                html += `<div style="margin-bottom:15px; line-height:1.6; padding:0 60px;">
-                    <div style="display:flex; justify-content:space-between;">${mainEntryDisplay} <span>(${globalCounter})</span></div>
-                    <div style="font-size:12pt;">${titlePart}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
-                </div>`;
-                globalCounter++;
-            });
-        });
+        html += `<div style="margin-bottom:15px; padding:0 40px;">
+            <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b> <span>(${counter++})</span></div>
+            <div style="font-size:12pt;">${r.author ? r.title : ""}${respons}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+        </div>`;
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
     document.getElementById('modalOverlay').style.display='block';
@@ -163,51 +123,36 @@ function runIdx(type) {
     recs.forEach((r, i) => {
         let keys = [];
         if(type === 'author') {
-            if(r.author) keys.push(flipName(r.author));
-            // قلب أسماء المؤلفين المشاركين تلقائياً في الكشاف
-            if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(flipName(n.trim())));
+            // في الكشاف: الأسماء تبقى مقلوبة كما أُدخلت (اللقب، الاسم)
+            if(r.author) keys.push(r.author);
+            if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(n.trim()));
+        } else if(type === 'journal') {
+            keys.push(r.journal + (r.affiliation ? ` (${r.affiliation})` : ""));
         } else { keys.push(r[type] || ""); }
         
-        keys.filter(k=>k && k.trim()).forEach(k => {
+        keys.filter(k=>k).forEach(k => {
             let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
         });
     });
     
-    // ترتيب الكشاف مع تجاهل ال التعريف واستخدام المنسق العربي
-    let sorted = Object.keys(map).sort((a,b)=> arabicCollator.compare(cleanSort(a), cleanSort(b)));
-    
-    let content = sorted.map(k => {
-        let nums = map[k].sort((a,b)=>a-b);
-        let range = (type === 'dewey100' || type === 'dewey10') ? (nums[0] + " - " + nums[nums.length-1]) : nums.join('، ');
-        return `<div style="border-bottom:1px solid #eee; padding:5px;">${k} (${range})</div>`;
-    }).join('');
-
+    let sorted = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
+    let content = sorted.map(k => `<div style="border-bottom:1px solid #eee; padding:5px;">${k} (${map[k].sort((a,b)=>a-b).join('، ')})</div>`).join('');
     document.getElementById('modalBody').innerHTML = `<div style="direction:rtl; padding:10px;">${content}</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
 
-// الدوال المساعدة (Draw, Save, Import, Export)
 function draw() {
-    let gTerm = document.getElementById('globalSearch').value.toLowerCase();
-    let idTerm = document.getElementById('idSearch').value.trim();
-    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1})).filter(r => {
-        let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
-        let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
-        return matchG && matchID;
-    });
-    document.getElementById('adminBody').innerHTML = filtered.map(r => `
-        <tr><td>${r.originalIdx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author||r.title}</b></td><td style="text-align:right">${r.title}</td>
-        <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td></tr>`).join('');
+    let g = document.getElementById('globalSearch').value.toLowerCase();
+    let filtered = recs.map((r, i) => ({...r, idx: i+1})).filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
+    document.getElementById('adminBody').innerHTML = filtered.map(r => `<tr><td>${r.idx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author||r.title}</b></td><td style="text-align:right">${r.title}</td><td><button onclick="edit(${r.idx-1})">تعديل</button> <button onclick="del(${r.idx-1})">حذف</button></td></tr>`).join('');
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
 }
-// باقي الدوال الأساسية...
-const deweyData = { "000 المعارف العامة": ["010 الببليوجرافيا", "020 علوم المكتبات والمعلومات"], "100 الفلسفة وعلم النفس": ["150 علم النفس"], "200 الأديان": ["210 الإسلام"], "300 العلوم الاجتماعية": ["340 القانون"] };
-function filterTens() { let val = document.getElementById('dewey100').value; let list = deweyData[val] || []; document.getElementById('list_dewey10').innerHTML = list.map(v => `<option value="${v}">`).join(''); }
+
 function save() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); if(editIdx > -1) recs[editIdx] = d; else recs.push(d); editIdx = -1; document.getElementById('bForm').reset(); draw(); }
-function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); filterTens(); }
+function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
 function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
 function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
@@ -216,7 +161,7 @@ function copyRec() { clipboard = {}; document.querySelectorAll('.in').forEach(i 
 function pasteRec() { if(clipboard) document.querySelectorAll('.in').forEach(i => i.value = clipboard[i.id] || ""); }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
 function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
-window.onload = () => { document.getElementById('list_dewey100').innerHTML = Object.keys(deweyData).map(v => `<option value="${v}">`).join(''); draw(); };
+window.onload = draw;
 </script>
 </body>
 </html>
