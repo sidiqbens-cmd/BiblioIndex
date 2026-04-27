@@ -1,72 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>كشاف المجلات الليبية</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; overflow: hidden; }
+        .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
+        .input-table { width: 100%; background: #cfcfcf; padding: 2px; table-layout: fixed; border-spacing: 2px; }
+        .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
+        input { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        .actions { background: #cfcfcf; text-align: center; padding: 5px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow-y: auto; padding: 5px; }
+        .admin-table { width: 100%; border-collapse: collapse; background: white; }
+        .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
+        #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
+        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
+    </style>
+</head>
+<body>
+
+<div class="fixed-header">
+    <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size: 14px;">نظام إدارة المدخلات - كشاف المجلات الليبية</strong>
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="globalSearch" placeholder="بحث..." style="width:130px; height:24px; font-size:11px;" oninput="draw()">
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
+            <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
+            <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
+            <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
+        </div>
+    </div>
+
+    <form id="bForm">
+        <table class="input-table">
+            <tr>
+                <td colspan="2"><span class="field-label">تصنيف المئات</span><input id="dewey100" class="in"></td>
+                <td colspan="4"><span class="field-label">تصنيف العشرات</span><input id="dewey10" class="in"></td>
+            </tr>
+            <tr>
+                <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input id="author" class="in"></td>
+                <td><span class="field-label">مؤلفون مشاركون (مقلوب)</span><input id="co_authors" class="in"></td>
+                <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in"></td>
+                <td><span class="field-label">المجلة</span><input id="journal" class="in"></td>
+                <td><span class="field-label">مترجمون</span><input id="translator" class="in"></td>
+            </tr>
+            <tr>
+                <td><span class="field-label">التبعية</span><input id="affiliation" class="in"></td>
+                <td><span class="field-label">السنة</span><input id="year" class="in"></td>
+                <td><span class="field-label">العدد</span><input id="issue" class="in"></td>
+                <td><span class="field-label">الصفحات</span><input id="pages" class="in"></td>
+                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in"></td>
+            </tr>
+        </table>
+        
+        <div class="actions">
+            <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
+            <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">الببليوغرافيا</button>
+            <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author')">كشاف المؤلفين</button>
+            <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title')">كشاف العناوين</button>
+            <button type="button" class="btn" style="background:#e67e22" onclick="runIdx('journal')">كشاف المجلات</button>
+            <button type="button" class="btn" style="background:#7f8c8d" onclick="runIdx('dewey10')">كشاف التصنيف</button>
+        </div>
+    </form>
+</div>
+
+<div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
+
+<div class="scroll-area"><table class="admin-table"><thead><tr><th>ت</th><th>التصنيف</th><th>المدخل</th><th>العنوان</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
+
+<script>
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
+let curP = localStorage.getItem('L_A') || projs[0];
+let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+let editIdx = -1;
+const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
+
+function cleanSort(txt) { return txt ? txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "") : ""; }
+
+function fixFlipped(name) {
+    if(!name || !name.includes('،')) return name;
+    let parts = name.split('،');
+    return parts[1].trim() + " " + parts[0].trim();
+}
+
 function draw() {
     let g = document.getElementById('globalSearch').value.toLowerCase();
-    
-    // 1. فرز السجلات هجائياً أولاً لضمان مطابقة الجدول للببليوغرافيا والكشاف
-    let sortedForDisplay = [...recs].sort((a, b) => 
-        collator.compare(cleanSort(a.author || a.title), cleanSort(b.author || b.title))
-    );
+    let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
+                       .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
 
-    // 2. فلترة النتائج بناءً على البحث
-    let filtered = sortedForDisplay.filter(r => 
-        Object.values(r).some(v => String(v).toLowerCase().includes(g))
-    );
-
-    // 3. عرض الجدول مع أرقام تسلسلية تطابق ترتيب المتن
-    document.getElementById('adminBody').innerHTML = filtered.map((r, i) => {
-        // نوجد موقع السجل الأصلي في مصفوفة recs للتمكن من تعديله أو حذفه
-        let originalIndex = recs.indexOf(r);
-        return `<tr>
-            <td>${i + 1}</td> 
+    document.getElementById('adminBody').innerHTML = filtered.map(r => `
+        <tr>
+            <td>${r.originalIdx + 1}</td>
             <td>${r.dewey10 || ""}</td>
             <td style="text-align:right"><b>${r.author || r.title}</b></td>
             <td style="text-align:right">${r.title}</td>
             <td>
-                <button onclick="edit(${originalIndex})">تعديل</button> 
-                <button onclick="del(${originalIndex})">حذف</button>
+                <button onclick="edit(${r.originalIdx})">تعديل</button> 
+                <button onclick="del(${r.originalIdx})">حذف</button>
             </td>
-        </tr>`;
-    }).join('');
+        </tr>`).join('');
 
     document.getElementById('pSel').innerHTML = projs.map(p => `<option ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
-    
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
 }
 
-// دالة الكشاف المعدلة لضمان مطابقة أرقام الجدول والمتن
+function openBiblio() {
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    recs.forEach((r, i) => {
+        let mainFix = fixFlipped(r.author);
+        let collabsFix = (r.co_authors && r.co_authors.trim() !== "") ? 
+                         r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ') : "";
+        
+        let responsLine = "";
+        if(mainFix || collabsFix) {
+            responsLine = " / " + mainFix + (collabsFix ? "، " + collabsFix : "");
+        }
+        if(r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
+
+        html += `<div style="margin-bottom:15px; padding:0 40px; line-height:1.6;">
+            <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b> <span>(${i+1})</span></div>
+            <div style="font-size:12pt;">${r.author ? r.title : ""}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+        </div>`;
+    });
+    document.getElementById('modalBody').innerHTML = html + "</div>";
+    document.getElementById('modalOverlay').style.display='block';
+}
+
 function runIdx(type) {
     let map = {};
-    let sortedForIdx = [...recs].sort((a, b) => 
-        collator.compare(cleanSort(a.author || a.title), cleanSort(b.author || b.title))
-    );
-
-    sortedForIdx.forEach((r, i) => {
+    recs.forEach((r, i) => {
         let keys = [];
-        let currentBibNumber = i + 1; 
-
-        if (type === 'author') {
-            if (r.author) keys.push(r.author.trim());
-            if (r.co_authors) r.co_authors.split('،').forEach(n => { if (n.trim()) keys.push(n.trim()); });
-        } else if (type === 'journal') {
-            if (r.journal) keys.push(r.journal.trim() + (r.affiliation ? ` (${r.affiliation.trim()})` : ""));
-        } else { 
-            if (r[type]) keys.push(String(r[type]).trim()); 
+        let currentNum = i + 1;
+        if(type === 'author') {
+            if(r.author) keys.push(r.author.trim());
+            if(r.co_authors) r.co_authors.split('،').forEach(n => { if(n.trim()) keys.push(n.trim()); });
+        } else if(type === 'journal') {
+            if(r.journal) keys.push(r.journal.trim() + (r.affiliation ? ` (${r.affiliation.trim()})` : ""));
+        } else {
+            if(r[type]) keys.push(String(r[type]).trim());
         }
         
-        keys.filter(k => k).forEach(k => {
+        keys.forEach(k => {
             let ck = k.trim();
-            if (!map[ck]) map[ck] = new Set();
-            map[ck].add(currentBibNumber);
+            if(!map[ck]) map[ck] = new Set();
+            map[ck].add(currentNum);
         });
     });
     
-    let sortedKeys = Object.keys(map).sort((a, b) => collator.compare(cleanSort(a), cleanSort(b)));
+    let sortedKeys = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
     let content = sortedKeys.map(k => {
-        let nums = Array.from(map[k]).sort((a, b) => a - b).join('، ');
+        let nums = Array.from(map[k]).sort((a,b)=>a-b).join('، ');
         return `<div style="border-bottom:1px solid #eee; padding:5px; font-size:12pt;">${k} (${nums})</div>`;
     }).join('');
-
-    document.getElementById('modalBody').innerHTML = `<div style="direction:rtl; padding:10px;"><h3>كشاف ${type}</h3>${content}</div>`;
-    document.getElementById('modalOverlay').style.display = 'block';
+    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${type}</h3>${content}`;
+    document.getElementById('modalOverlay').style.display='block';
 }
+
+function save() { 
+    let d = {}; 
+    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
+    if(editIdx > -1) recs[editIdx] = d; else recs.push(d); 
+    editIdx = -1; 
+    document.getElementById('bForm').reset(); 
+    draw(); 
+}
+
+function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
+function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
+function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
+function closeM() { document.getElementById('modalOverlay').style.display='none'; }
+function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
+function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
+window.onload = draw;
+</script>
+</body>
+</html>
