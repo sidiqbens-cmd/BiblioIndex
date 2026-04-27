@@ -11,13 +11,12 @@
         .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
         input { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         .actions { background: #cfcfcf; text-align: center; padding: 5px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
-        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; margin: 2px; }
+        .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
         .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow-y: auto; padding: 5px; }
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
         #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
-        .search-tool { height: 24px; font-size: 11px; border: 1px solid #fff; border-radius: 3px; padding: 0 5px; background: #fdfdfd; }
     </style>
 </head>
 <body>
@@ -25,9 +24,8 @@
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size: 14px;">نظام إدارة المدخلات - كشاف المجلات الليبية</strong>
-        <div style="display:flex; gap:5px; align-items: center;">
-            <input type="text" id="idSearch" placeholder="رقم (ت)" class="search-tool" style="width:80px;" oninput="draw()">
-            <input type="text" id="globalSearch" placeholder="بحث..." class="search-tool" style="width:130px;" oninput="draw()">
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="globalSearch" placeholder="بحث..." style="width:130px; height:24px; font-size:11px;" oninput="draw()">
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
             <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
@@ -38,8 +36,8 @@
     <form id="bForm">
         <table class="input-table">
             <tr>
-                <td colspan="2"><span class="field-label">تصنيف المئات</span><input list="list_dewey100" id="dewey100" class="in"></td>
-                <td colspan="4"><span class="field-label">تصنيف العشرات (رقم التصنيف)</span><input list="list_dewey10" id="dewey10" class="in"></td>
+                <td colspan="2"><span class="field-label">تصنيف المئات</span><input id="dewey100" class="in"></td>
+                <td colspan="4"><span class="field-label">تصنيف العشرات</span><input id="dewey10" class="in"></td>
             </tr>
             <tr>
                 <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input id="author" class="in"></td>
@@ -62,7 +60,6 @@
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">الببليوغرافيا</button>
             <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author')">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title')">كشاف العناوين</button>
-            <button type="button" class="btn" style="background:#16a085" onclick="runIdx('translator')">كشاف المترجمين</button>
             <button type="button" class="btn" style="background:#e67e22" onclick="runIdx('journal')">كشاف المجلات</button>
             <button type="button" class="btn" style="background:#7f8c8d" onclick="runIdx('dewey10')">كشاف التصنيف</button>
         </div>
@@ -99,24 +96,20 @@ function openBiblio() {
     let counter = 1;
 
     sorted.forEach(r => {
-        let respons = "";
-        let mainAuthorFixed = r.author ? fixFlipped(r.author) : "";
+        // في المتن: المؤلف الرئيسي والمشاركون يتم عدلهم آلياً
+        let mainFix = r.author ? fixFlipped(r.author) : "";
+        let collabsFix = (r.co_authors && r.co_authors.trim() !== "") ? 
+                         r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ') : "";
         
-        // معالجة كل المؤلفين المشاركين وقلبهم في المتن
-        let collabsFixed = "";
-        if(r.co_authors && r.co_authors.trim() !== "") {
-            collabsFixed = r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
+        let responsLine = "";
+        if(mainFix || collabsFix) {
+            responsLine = " / " + mainFix + (collabsFix ? "، " + collabsFix : "");
         }
+        if(r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
 
-        if(mainAuthorFixed || collabsFixed) {
-            respons = " / " + mainAuthorFixed + (collabsFixed ? "، " + collabsFixed : "");
-        }
-        
-        if(r.translator) respons += (respons ? "؛ " : " / ") + "ترجمة " + r.translator;
-
-        html += `<div style="margin-bottom:15px; padding:0 40px;">
+        html += `<div style="margin-bottom:15px; padding:0 40px; line-height:1.6;">
             <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b> <span>(${counter++})</span></div>
-            <div style="font-size:12pt;">${r.author ? r.title : ""}${respons}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+            <div style="font-size:12pt;">${r.author ? r.title : ""}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
         </div>`;
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
@@ -128,28 +121,24 @@ function runIdx(type) {
     recs.forEach((r, i) => {
         let keys = [];
         if(type === 'author') {
-            if(r.author) keys.push(r.author); // يبقى مقلوباً في الكشاف
-            if(r.co_authors) {
-                // تكرار على كل مؤلف مشارك لإضافته للكشاف بشكل مستقل
-                r.co_authors.split('،').forEach(n => {
-                    if(n.trim()) keys.push(n.trim());
-                });
-            }
+            if(r.author) keys.push(r.author.trim()); // يبقى مقلوباً في الكشاف
+            if(r.co_authors) r.co_authors.split('،').forEach(n => { if(n.trim()) keys.push(n.trim()); });
         } else if(type === 'journal') {
             keys.push(r.journal + (r.affiliation ? ` (${r.affiliation})` : ""));
-        } else { 
-            keys.push(r[type] || ""); 
-        }
+        } else { keys.push(r[type] || ""); }
         
-        keys.filter(k => k && k.trim() !== "").forEach(k => {
-            let ck = k.trim(); 
-            if(!map[ck]) map[ck]=[]; 
+        keys.filter(k => k).forEach(k => {
+            let ck = k.trim();
+            if(!map[ck]) map[ck]=[];
             map[ck].push(i+1);
         });
     });
     
     let sorted = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
-    let content = sorted.map(k => `<div style="border-bottom:1px solid #eee; padding:5px;">${k} (${[...new Set(map[k])].sort((a,b)=>a-b).join('، ')})</div>`).join('');
+    let content = sorted.map(k => {
+        let nums = [...new Set(map[k])].sort((a,b)=>a-b).join('، ');
+        return `<div style="border-bottom:1px solid #eee; padding:5px; font-size:12pt;">${k} (${nums})</div>`;
+    }).join('');
     document.getElementById('modalBody').innerHTML = `<div style="direction:rtl; padding:10px;"><h3>كشاف ${type}</h3>${content}</div>`;
     document.getElementById('modalOverlay').style.display='block';
 }
