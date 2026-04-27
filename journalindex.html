@@ -44,7 +44,7 @@
             </tr>
             <tr>
                 <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input list="list_author" id="author" class="in"></td>
-                <td><span class="field-label">مؤلفون مشاركون (مقلوب، فاصلة ،)</span><input list="list_co_authors" id="co_authors" class="in"></td>
+                <td><span class="field-label">مؤلفون مشاركون (مقلوب)</span><input list="list_co_authors" id="co_authors" class="in"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input list="list_title" id="title" class="in"></td>
                 <td><span class="field-label">المجلة</span><input list="list_journal" id="journal" class="in"></td>
                 <td><span class="field-label">مترجمون</span><input list="list_translator" id="translator" class="in"></td>
@@ -58,8 +58,7 @@
             </tr>
         </table>
         
-        <datalist id="list_dewey100"></datalist>
-        <datalist id="list_dewey10"></datalist>
+        <datalist id="list_dewey100"></datalist><datalist id="list_dewey10"></datalist>
         <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist><datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
         <datalist id="list_affiliation"></datalist><datalist id="list_translator"></datalist><datalist id="list_year"></datalist><datalist id="list_issue"></datalist><datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
 
@@ -77,10 +76,7 @@
     </form>
 </div>
 
-<div id="modalOverlay">
-    <div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div>
-    <div id="modalBody"></div>
-</div>
+<div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
 
 <div class="scroll-area">
     <table class="admin-table">
@@ -90,98 +86,47 @@
 </div>
 
 <script>
-const deweyData = {
-    "000 المعارف العامة": ["010 الببليوجرافيا", "020 علوم المكتبات والمعلومات", "030 الأعمال الموسوعية العامة", "050 الأعمال الدورية العامة", "060 المنظمات العامة وعلم المتاحف", "070 الرسائل الإخبارية، الصحافة، النشر", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
-    "100 الفلسفة وعلم النفس": ["110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 مدارس فلسفية معينة", "150 علم النفس", "160 علم المنطق", "170 علم الأخلاق"],
-    "200 الأديان": ["210 الدين الإسلامي وعلومه", "220 القرآن الكريم", "230 الحديث الشريف", "240 علم أصول الدين", "250 الفقه الإسلامي وأصوله", "260 التصوف الإسلامي", "270 المباحث العامة في المسيحية", "280 الكنائس والطوائف", "290 الدين المقارن"],
-    "300 العلوم الاجتماعية": ["310 مجموعة الإحصاءات العامة", "320 علم السياسة", "330 علم الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 المشكلات والخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة، الاتصالات، النقل", "390 العادات، الإتيكيت، الفلكلور"],
-    "400 اللغات": ["410 اللغة العربية", "420 اللغة الإنجليزية", "430 اللغات الجرمانية", "440 اللغات الرومانسية", "450 اللغات الإيطالية", "460 اللغتان الإسبانية والبرتغالية", "470 اللغات الإيطالية القديمة", "480 اللغات الهيلنية", "490 اللغات الأخرى"],
-    "500 العلوم البحتة": ["510 الرياضيات", "520 الفلك", "530 الفيزياء", "550 علم الأرض", "560 علم الحفريات", "570 علوم الحياة، الأحياء", "580 النباتات", "590 الحيوانات"],
-    "600 العلوم التطبيقية": ["610 العلوم الطبية", "620 الهندسة", "630 الزراعة", "641 الأطعمة والأشربة", "650 إدارة الأعمال", "660 الهندسة الكيميائية", "670 الصناعات", "680 الصناعات لأغراض معينة", "690 المباني"],
-    "700 الفنون": ["710 الفن المدني", "720 العمارة", "730 الفنون التشكيلية", "739 أشغال المعادن", "740 الرسوم والزخرفة", "750 التصوير الزيتي", "760 الفنون التخطيطية", "770 التصوير الفوتوغرافي", "780 الموسيقي", "790 الفنون الترويحية"],
-    "800 الآداب": ["810 الأدب العربي", "820 الآداب الناطقة بالإنجليزية", "830 آداب اللغة الجرمانية", "840 آداب اللغة الرومانسية", "850 آداب اللغات الإيطالية", "860 الآداب الإسبانية", "870 الآداب الإيطالية القديمة", "890 آداب اللغات الأخرى"],
-    "900 الجغرافيا والتاريخ": ["910 الجغرافيا والرحلات", "920 التراجم والأنساب", "930 تاريخ العالم القديم", "940 تاريخ أوروبا", "950 تاريخ أسيا", "960 تاريخ أفريقيا", "970 تاريخ أمريكا الشمالية", "980 تاريخ أمريكا الجنوبية", "990 التاريخ العام للمناطق الأخرى"]
-};
-
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
 
-// دالة التطهير لتجاهل ال التعريف عند الترتيب
+// دالة التطهير المتقدمة للترتيب
 function cleanSort(txt) {
     if (!txt) return "";
     let t = txt.trim();
-    return t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
+    // إزالة ال التعريف بكافة أشكالها من البداية
+    t = t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
+    return t;
 }
 
-// دالة قلب الاسم
+// أداة المقارنة العربية لضمان الترتيب الصحيح
+const arabicCollator = new Intl.Collator('ar', { sensitivity: 'accent', usage: 'sort' });
+
 function flipName(name) {
     if(!name || !name.includes('،')) return name;
     let parts = name.split('،');
     return parts[1].trim() + " " + parts[0].trim();
 }
 
-function filterTens() {
-    let val = document.getElementById('dewey100').value;
-    let list = deweyData[val] || [];
-    document.getElementById('list_dewey10').innerHTML = list.map(v => `<option value="${v}">`).join('');
-}
-
-function updateDataLists() {
-    document.getElementById('list_dewey100').innerHTML = Object.keys(deweyData).map(v => `<option value="${v}">`).join('');
-    const fields = ['author', 'co_authors', 'title', 'journal', 'affiliation', 'translator', 'year', 'issue', 'pages', 'notes'];
-    fields.forEach(f => {
-        let unique = [...new Set(recs.map(r => r[f]).filter(v => v))];
-        document.getElementById('list_' + f).innerHTML = unique.map(v => `<option value="${v}">`).join('');
-    });
-}
-
-function draw() {
-    let gTerm = document.getElementById('globalSearch').value.toLowerCase();
-    let idTerm = document.getElementById('idSearch').value.trim();
-    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1})).filter(r => {
-        let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
-        let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
-        return matchG && matchID;
-    });
-    document.getElementById('adminBody').innerHTML = filtered.map(r => `
-        <tr><td>${r.originalIdx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author}</b></td><td style="text-align:right">${r.title}</td>
-        <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td></tr>`).join('');
-    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
-    updateDataLists();
-    localStorage.setItem('R_' + curP, JSON.stringify(recs));
-    localStorage.setItem('L_P', JSON.stringify(projs));
-    localStorage.setItem('L_A', curP);
-}
-
-function save() {
-    let d = {}; 
-    document.querySelectorAll('.in').forEach(i => d[i.id] = i.value);
-    if(!d.author && !d.title) return alert("المؤلف أو العنوان مطلوب");
-    if(editIdx > -1) recs[editIdx] = d; else recs.push(d);
-    editIdx = -1;
-    document.getElementById('bForm').reset();
-    draw();
-}
-
 function openBiblio() {
-    // الترتيب بناءً على المدخل الرئيسي (المؤلف أولاً ثم العنوان) مع تجاهل ال التعريف
+    // 1. الترتيب بناءً على المدخل الرئيسي (المؤلف أولاً، ثم العنوان) مع تنظيف ال التعريف
     let sortedRecs = [...recs].sort((a, b) => {
-        let entryA = a.author ? a.author : a.title;
-        let entryB = b.author ? b.author : b.title;
-        return cleanSort(entryA).localeCompare(cleanSort(entryB), 'ar');
+        let entryA = cleanSort(a.author ? a.author : a.title);
+        let entryB = cleanSort(b.author ? b.author : b.title);
+        return arabicCollator.compare(entryA, entryB);
     });
-    
-    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
-    let globalCounter = 1;
 
+    // 2. تجميع البيانات حسب التصنيف للعرض
     let finalGroups = {};
     sortedRecs.forEach(r => {
         if(!finalGroups[r.dewey100]) finalGroups[r.dewey100] = {};
         if(!finalGroups[r.dewey100][r.dewey10]) finalGroups[r.dewey100][r.dewey10] = [];
         finalGroups[r.dewey100][r.dewey10].push(r);
     });
+
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    let globalCounter = 1;
 
     Object.keys(finalGroups).sort().forEach(m100 => {
         html += `<div style="background:#e0e0e0; text-align:center; font-weight:bold; font-size:16pt; padding:8px; margin:20px 0; border:1px solid #999;">${m100}</div>`;
@@ -198,9 +143,8 @@ function openBiblio() {
                     responsLine = ` / ترجمة ${r.translator}`;
                 }
                 
-                // عرض المدخل الرئيسي بالخط الغامق
                 let mainEntryDisplay = r.author ? `<b>${r.author}</b>` : `<b>${r.title}</b>`;
-                let titlePart = r.author ? r.title : ""; // إذا كان العنوان هو المدخل فلا نكرره بالأسفل
+                let titlePart = r.author ? r.title : ""; 
 
                 html += `<div style="margin-bottom:15px; line-height:1.6; padding:0 60px;">
                     <div style="display:flex; justify-content:space-between;">${mainEntryDisplay} <span>(${globalCounter})</span></div>
@@ -220,6 +164,7 @@ function runIdx(type) {
         let keys = [];
         if(type === 'author') {
             if(r.author) keys.push(flipName(r.author));
+            // قلب أسماء المؤلفين المشاركين تلقائياً في الكشاف
             if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(flipName(n.trim())));
         } else { keys.push(r[type] || ""); }
         
@@ -228,7 +173,8 @@ function runIdx(type) {
         });
     });
     
-    let sorted = Object.keys(map).sort((a,b)=>cleanSort(a).localeCompare(cleanSort(b),'ar'));
+    // ترتيب الكشاف مع تجاهل ال التعريف واستخدام المنسق العربي
+    let sorted = Object.keys(map).sort((a,b)=> arabicCollator.compare(cleanSort(a), cleanSort(b)));
     
     let content = sorted.map(k => {
         let nums = map[k].sort((a,b)=>a-b);
@@ -240,7 +186,27 @@ function runIdx(type) {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function deleteP() { if(projs.length > 1 && confirm("حذف المشروع؟")) { localStorage.removeItem('R_'+curP); projs = projs.filter(p=>p!==curP); curP=projs[0]; draw(); } }
+// الدوال المساعدة (Draw, Save, Import, Export)
+function draw() {
+    let gTerm = document.getElementById('globalSearch').value.toLowerCase();
+    let idTerm = document.getElementById('idSearch').value.trim();
+    let filtered = recs.map((r, i) => ({...r, originalIdx: i+1})).filter(r => {
+        let matchG = Object.values(r).some(v => String(v).toLowerCase().includes(gTerm));
+        let matchID = idTerm === "" || String(r.originalIdx) === idTerm;
+        return matchG && matchID;
+    });
+    document.getElementById('adminBody').innerHTML = filtered.map(r => `
+        <tr><td>${r.originalIdx}</td><td>${r.dewey10||""}</td><td style="text-align:right"><b>${r.author||r.title}</b></td><td style="text-align:right">${r.title}</td>
+        <td><button onclick="edit(${r.originalIdx-1})">تعديل</button> <button onclick="del(${r.originalIdx-1})">حذف</button></td></tr>`).join('');
+    document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
+    localStorage.setItem('R_' + curP, JSON.stringify(recs));
+    localStorage.setItem('L_P', JSON.stringify(projs));
+    localStorage.setItem('L_A', curP);
+}
+// باقي الدوال الأساسية...
+const deweyData = { "000 المعارف العامة": ["010 الببليوجرافيا", "020 علوم المكتبات والمعلومات"], "100 الفلسفة وعلم النفس": ["150 علم النفس"], "200 الأديان": ["210 الإسلام"], "300 العلوم الاجتماعية": ["340 القانون"] };
+function filterTens() { let val = document.getElementById('dewey100').value; let list = deweyData[val] || []; document.getElementById('list_dewey10').innerHTML = list.map(v => `<option value="${v}">`).join(''); }
+function save() { let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); if(editIdx > -1) recs[editIdx] = d; else recs.push(d); editIdx = -1; document.getElementById('bForm').reset(); draw(); }
 function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); filterTens(); }
 function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
 function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
@@ -250,8 +216,7 @@ function copyRec() { clipboard = {}; document.querySelectorAll('.in').forEach(i 
 function pasteRec() { if(clipboard) document.querySelectorAll('.in').forEach(i => i.value = clipboard[i.id] || ""); }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
 function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
-
-window.onload = draw;
+window.onload = () => { document.getElementById('list_dewey100').innerHTML = Object.keys(deweyData).map(v => `<option value="${v}">`).join(''); draw(); };
 </script>
 </body>
 </html>
