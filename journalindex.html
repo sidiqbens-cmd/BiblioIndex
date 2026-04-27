@@ -111,19 +111,24 @@ function draw() {
 function openBiblio() {
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     recs.forEach((r, i) => {
-        let mainFix = fixFlipped(r.author);
-        let collabsFix = (r.co_authors && r.co_authors.trim() !== "") ? 
-                         r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ') : "";
-        
+        let hasCollabs = r.co_authors && r.co_authors.trim() !== "";
         let responsLine = "";
-        if(mainFix || collabsFix) {
-            responsLine = " / " + mainFix + (collabsFix ? "، " + collabsFix : "");
+
+        // القاعدة: لا يكرر المؤلف الرئيسي إلا إذا وجد مشاركون
+        if (hasCollabs) {
+            let mainFix = fixFlipped(r.author);
+            let collabsFix = r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
+            responsLine = " / " + mainFix + "، " + collabsFix;
         }
-        if(r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
+
+        // إضافة المترجم بفاصلة منقوطة إذا وجد بيان مسؤولية سابق، أو مائلة إذا لم يوجد
+        if (r.translator) {
+            responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
+        }
 
         html += `<div style="margin-bottom:15px; padding:0 40px; line-height:1.6;">
             <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b> <span>(${i+1})</span></div>
-            <div style="font-size:12pt;">${r.author ? r.title : ""}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
+            <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
         </div>`;
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
