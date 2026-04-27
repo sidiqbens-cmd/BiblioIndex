@@ -9,25 +9,15 @@
         .fixed-header { position: fixed; top: 0; left: 0; right: 0; background: #2c3e50; z-index: 1000; border-bottom: 2px solid #000; }
         .input-table { width: 100%; background: #cfcfcf; padding: 2px; table-layout: fixed; border-spacing: 2px; }
         .field-label { font-size: 11px; font-weight: bold; color: #333; display: block; margin-bottom: 1px; }
-        input { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
+        input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         .actions { background: #cfcfcf; text-align: center; padding: 5px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        .scroll-area { margin-top: 175px; height: calc(100vh - 180px); overflow-y: auto; padding: 5px; }
+        .scroll-area { margin-top: 175px; height: 35vh; overflow-y: auto; padding: 5px; background: #fff; border-top: 2px solid #2c3e50; }
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
-        .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
+        .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 11px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
         #modalBody { background:white; width:95%; margin:10px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
-        
-        /* تنسيق رأس التصنيف العشري المطلوب */
-        .dewey-header { 
-            text-align: center; 
-            background-color: #e0e0e0; 
-            font-size: 14pt; 
-            font-weight: bold; 
-            padding: 10px; 
-            margin: 25px 0 15px 0; 
-            border: 1px solid #bbb;
-        }
+        .dewey-header { text-align: center; background-color: #e0e0e0; font-size: 14pt; font-weight: bold; padding: 10px; margin: 25px 0 15px 0; border: 1px solid #bbb; }
     </style>
 </head>
 <body>
@@ -39,21 +29,41 @@
             <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
-            <select id="pSel" style="height:24px; font-size:11px; font-weight: bold;" onchange="switchP(this.value)"></select>
+            <select id="pSel" style="height:24px; font-size:11px; width: auto;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
-            <button onclick="delP()" class="btn" style="background:#c0392b">حذف مشروع</button>
+            <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
         </div>
     </div>
 
     <form id="bForm">
         <table class="input-table">
             <tr>
-                <td colspan="2"><span class="field-label">تصنيف المئات</span><input id="dewey100" class="in"></td>
-                <td colspan="4"><span class="field-label">تصنيف العشرات</span><input id="dewey10" class="in"></td>
+                <td colspan="2">
+                    <span class="field-label">تصنيف المئات</span>
+                    <select id="dewey100" class="in" onchange="updateDewey10()">
+                        <option value="">اختر المئة...</option>
+                        <option value="000">000 - حاسبات ومعلومات عامة</option>
+                        <option value="100">100 - الفلسفة وعلم النفس</option>
+                        <option value="200">200 - الأديان</option>
+                        <option value="300">300 - العلوم الاجتماعية</option>
+                        <option value="400">400 - اللغات</option>
+                        <option value="500">500 - العلوم الطبيعية</option>
+                        <option value="600">600 - العلوم التطبيقية</option>
+                        <option value="700">700 - الفنون</option>
+                        <option value="800">800 - الآداب</option>
+                        <option value="900">900 - التاريخ والجغرافيا</option>
+                    </select>
+                </td>
+                <td colspan="4">
+                    <span class="field-label">تصنيف العشرات</span>
+                    <select id="dewey10" class="in">
+                        <option value="">اختر المئة أولاً...</option>
+                    </select>
+                </td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف الرئيسي (اللقب، الاسم)</span><input id="author" class="in"></td>
-                <td><span class="field-label">مشاركون (افصل بـ /)</span><input id="co_authors" class="in"></td>
+                <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in"></td>
+                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in"></td>
                 <td><span class="field-label">المجلة</span><input id="journal" class="in"></td>
                 <td><span class="field-label">مترجمون</span><input id="translator" class="in"></td>
@@ -80,19 +90,54 @@
 
 <div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
 
-<div class="scroll-area"><table class="admin-table"><thead><tr><th>ت</th><th>المئات</th><th>العشرات</th><th>المدخل</th><th>العنوان</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
+<div class="scroll-area">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ت</th><th>مئات</th><th>عشرات</th><th>المؤلف</th><th>العنوان</th><th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+    </table>
+</div>
 
 <script>
+const deweyData = {
+    "000": ["000 المعارف العامة", "010 الببليوغرافيا", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "040 (غير مستخدم)", "050 الدوريات العامة", "060 المنظمات والمتاحف", "070 الإعلام والصحافة", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
+    "100": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 المدارس الفلسفية", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الحديثة"],
+    "200": ["200 الأديان", "210 الفلسفة والنظرية", "220 الإنجيل", "230 اللاهوت المسيحي", "240 الأخلاق اللاهوتية", "250 الكنيسة", "260 اللاهوت الاجتماعي", "270 تاريخ الكنيسة", "280 الطوائف المسيحية", "290 الأديان الأخرى (الإسلام)"],
+    "300": ["300 العلوم الاجتماعية", "310 الإحصاء", "320 العلوم السياسية", "330 الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 المشاكل والخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة والاتصالات", "390 العادات والتقاليد"],
+    "400": ["400 اللغات", "410 اللسانيات", "420 اللغة الإنجليزية", "430 اللغات الجرمانية", "440 اللغة الفرنسية", "450 اللغة الإيطالية", "460 اللغة الإسبانية", "470 اللغة اللاتينية", "480 اللغة اليونانية", "490 اللغات الأخرى (العربية)"],
+    "500": ["500 العلوم الطبيعية", "510 الرياضيات", "520 الفلك", "530 الفيزياء", "540 الكيمياء", "550 علوم الأرض", "560 الأحافير", "570 العلوم الحياتية", "580 النباتات", "590 الحيوانات"],
+    "600": ["600 العلوم التطبيقية", "610 الطب", "620 الهندسة", "630 الزراعة", "640 الاقتصاد المنزلي", "650 إدارة الأعمال", "660 الصناعات الكيميائية", "670 التصنيع", "680 الصناعات المتخصصة", "690 البناء والإشادة"],
+    "700": ["700 الفنون", "710 التخطيط العمراني", "720 العمارة", "730 النحت", "740 الرسم والتصميم", "750 التصوير الزيتي", "760 الفنون الجرافيكية", "770 التصوير الفوتوغرافي", "780 الموسيقى", "790 الألعاب والترفيه"],
+    "800": ["800 الآداب", "810 الأدب الأمريكي", "820 الأدب الإنجليزي", "830 الأدب الألماني", "840 الأدب الفرنسي", "850 الأدب الإيطالي", "860 الأدب الإسباني", "870 الأدب اللاتيني", "880 الأدب اليوناني", "890 آداب اللغات الأخرى (العربي)"],
+    "900": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "920 التراجم والأنساب", "930 تاريخ العالم القديم", "940 تاريخ أوروبا", "950 تاريخ آسيا", "960 تاريخ أفريقيا", "970 تاريخ أمريكا الشمالية", "980 تاريخ أمريكا الجنوبية", "990 تاريخ المناطق الأخرى"]
+};
+
+function updateDewey10(selectedVal = "") {
+    let m = document.getElementById('dewey100').value;
+    let d10 = document.getElementById('dewey10');
+    d10.innerHTML = '<option value="">اختر العشرات...</option>';
+    if(deweyData[m]) {
+        deweyData[m].forEach(item => {
+            let code = item.substring(0, 3);
+            let opt = document.createElement('option');
+            opt.value = code;
+            opt.text = item;
+            if(code === selectedVal) opt.selected = true;
+            d10.appendChild(opt);
+        });
+    }
+}
+
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1;
 const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
-function cleanSort(txt) { 
-    if(!txt) return "";
-    return txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); 
-}
+function cleanSort(txt) { return (txt || "").trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); }
 
 function sortRecords(arr) {
     return arr.sort((a, b) => {
@@ -123,17 +168,15 @@ function draw() {
             <td>${r.bibIndex}</td>
             <td>${r.dewey100 || ""}</td>
             <td>${r.dewey10 || ""}</td>
-            <td style="text-align:right"><b>${r.author || r.title}</b></td>
-            <td style="text-align:right">${r.title}</td>
+            <td style="text-align:right"><b>${r.author || ""}</b></td>
+            <td style="text-align:right">${r.title || ""}</td>
             <td>
                 <button onclick="prepareEdit(${r.bibIndex - 1})">تعديل</button> 
                 <button onclick="del(${r.bibIndex - 1})">حذف</button>
             </td>
         </tr>`).join('');
 
-    let pSel = document.getElementById('pSel');
-    pSel.innerHTML = projs.map(p => `<option value="${p}" ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
-    
+    document.getElementById('pSel').innerHTML = projs.map(p => `<option value="${p}" ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
@@ -148,21 +191,16 @@ function openBiblio() {
             html += `<div class="dewey-header">${currentDewey}</div>`;
             lastDewey = currentDewey;
         }
-
         let hasCollabs = r.co_authors && r.co_authors.trim() !== "";
         let responsLine = "";
-
         if (hasCollabs) {
             let collabsArray = r.co_authors.split('/').map(n => fixFlipped(n.trim()));
             responsLine = " / " + fixFlipped(r.author) + "، " + collabsArray.join('، ');
         }
         if (r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
 
-        html += `<div style="margin-bottom:12px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #eee; padding-bottom: 8px;">
-            <div style="display:flex; justify-content:space-between;">
-                <b>${r.author || r.title}</b> 
-                <span>(${i+1})</span>
-            </div>
+        html += `<div style="margin-bottom:12px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #eee;">
+            <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b><span>(${i+1})</span></div>
             <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
         </div>`;
     });
@@ -170,45 +208,27 @@ function openBiblio() {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-function runIdx(type) {
-    let map = {};
-    recs.forEach((r, i) => {
-        let keys = [];
-        if(type === 'author') {
-            if(r.author) keys.push(r.author.trim());
-            if(r.co_authors) r.co_authors.split('/').forEach(n => { if(n.trim()) keys.push(n.trim()); });
-        } else if(type === 'journal') {
-            if(r.journal) keys.push(r.journal.trim() + (r.affiliation ? ` (${r.affiliation.trim()})` : ""));
-        } else if(type === 'dewey10') {
-            if(r.dewey10) keys.push(r.dewey10.trim());
-        } else {
-            if(r[type]) keys.push(String(r[type]).trim());
-        }
-        keys.forEach(k => {
-            if (!map[k.trim()]) map[k.trim()] = new Set();
-            map[k.trim()].add(i + 1);
-        });
-    });
-    let sortedKeys = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
-    let content = sortedKeys.map(k => `<div style="border-bottom:1px solid #eee; padding:5px; font-size:12pt;">${k} (${Array.from(map[k]).sort((a,b)=>a-b).join('، ')})</div>`).join('');
-    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${type}</h3>${content}`;
-    document.getElementById('modalOverlay').style.display='block';
-}
-
 function save() { 
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d); 
-    editIdx = -1; 
-    document.getElementById('bForm').reset(); 
-    draw(); 
+    editIdx = -1; document.getElementById('bForm').reset(); draw(); 
 }
 
-function prepareEdit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
-function del(i) { if(confirm("حذف السجل؟")) { recs.splice(i,1); draw(); } }
+function prepareEdit(i) { 
+    editIdx = i; 
+    let r = recs[i]; 
+    document.getElementById('dewey100').value = r.dewey100 || "";
+    updateDewey10(r.dewey10); // تحديث قائمة العشرات بناءً على المئة المخزنة
+    document.querySelectorAll('.in').forEach(inp => {
+        if(inp.id !== 'dewey100' && inp.id !== 'dewey10') inp.value = r[inp.id] || "";
+    });
+}
+
+function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
 function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
-function newP() { let n = prompt("اسم المشروع الجديد:"); if(n && !projs.includes(n)) { projs.push(n); curP = n; recs = []; draw(); } }
-function delP() { if(projs.length <= 1) return alert("لا يمكن حذف المشروع الوحيد"); if(confirm(`حذف مشروع "${curP}"؟`)) { localStorage.removeItem('R_' + curP); projs = projs.filter(p => p !== curP); curP = projs[0]; recs = JSON.parse(localStorage.getItem('R_' + curP)) || []; draw(); } }
+function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
+function delP() { if(projs.length > 1 && confirm("حذف؟")) { localStorage.removeItem('R_' + curP); projs = projs.filter(p => p !== curP); curP = projs[0]; draw(); } }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
 function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
