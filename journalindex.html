@@ -93,7 +93,7 @@
 const deweyData = {
     "000 المعارف العامة": ["010 الببليوجرافيا", "020 علوم المكتبات والمعلومات", "030 الأعمال الموسوعية العامة", "050 الأعمال الدورية العامة", "060 المنظمات العامة وعلم المتاحف", "070 الرسائل الإخبارية، الصحافة، النشر", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
     "100 الفلسفة وعلم النفس": ["110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 مدارس فلسفية معينة", "150 علم النفس", "160 علم المنطق", "170 علم الأخلاق"],
-    "200 الديانات": ["210 الدين الإسلامي وعلومه", "220 القرآن الكريم", "230 الحديث الشريف", "240 علم أصول الدين", "250 الفقه الإسلامي وأصوله", "260 التصوف الإسلامي", "270 المباحث العامة في المسيحية", "280 الكنائس والطوائف", "290 الدين المقارن"],
+    "200 الأديان": ["210 الدين الإسلامي وعلومه", "220 القرآن الكريم", "230 الحديث الشريف", "240 علم أصول الدين", "250 الفقه الإسلامي وأصوله", "260 التصوف الإسلامي", "270 المباحث العامة في المسيحية", "280 الكنائس والطوائف", "290 الدين المقارن"],
     "300 العلوم الاجتماعية": ["310 مجموعة الإحصاءات العامة", "320 علم السياسة", "330 علم الاقتصاد", "340 القانون", "350 الإدارة العامة", "360 المشكلات والخدمات الاجتماعية", "370 التربية والتعليم", "380 التجارة، الاتصالات، النقل", "390 العادات، الإتيكيت، الفلكلور"],
     "400 اللغات": ["410 اللغة العربية", "420 اللغة الإنجليزية", "430 اللغات الجرمانية", "440 اللغات الرومانسية", "450 اللغات الإيطالية", "460 اللغتان الإسبانية والبرتغالية", "470 اللغات الإيطالية القديمة", "480 اللغات الهيلنية", "490 اللغات الأخرى"],
     "500 العلوم البحتة": ["510 الرياضيات", "520 الفلك", "530 الفيزياء", "550 علم الأرض", "560 علم الحفريات", "570 علوم الحياة، الأحياء", "580 النباتات", "590 الحيوانات"],
@@ -108,18 +108,19 @@ let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
 
+// دالة تنظيف متطورة لتجاهل "ال" التعريف بكافة صورها
+function cleanAL(txt) {
+    if (!txt) return "";
+    let t = txt.trim();
+    // إزالة "الـ" أو "ال" أو "أل" أو "الأ" من بداية الكلمة
+    t = t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
+    return t;
+}
+
 function filterTens() {
     let val = document.getElementById('dewey100').value;
     let list = deweyData[val] || [];
     document.getElementById('list_dewey10').innerHTML = list.map(v => `<option value="${v}">`).join('');
-}
-
-function cleanAL(txt) {
-    if(!txt) return "";
-    let t = txt.trim();
-    if(t.startsWith("الـ")) t = t.substring(3);
-    else if(t.startsWith("ال")) t = t.substring(2);
-    return t;
 }
 
 function updateDataLists() {
@@ -145,6 +146,8 @@ function draw() {
     document.getElementById('pSel').innerHTML = projs.map(p=>`<option ${p===curP?'selected':''}>${p}</option>`).join('');
     updateDataLists();
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
+    localStorage.setItem('L_P', JSON.stringify(projs));
+    localStorage.setItem('L_A', curP);
 }
 
 function save() {
@@ -164,6 +167,7 @@ function flipName(name) {
 }
 
 function openBiblio() {
+    // تطبيق الترتيب الهجائي مع تجاهل "ال" التعريف
     let sortedRecs = [...recs].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar'));
     let grouped = {};
     sortedRecs.forEach(r => { 
@@ -213,6 +217,7 @@ function runIdx(type) {
             let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
         });
     });
+    // ترتيب الكشافات أيضاً مع تجاهل "ال" التعريف
     let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
     
     let content = sorted.map(k => {
