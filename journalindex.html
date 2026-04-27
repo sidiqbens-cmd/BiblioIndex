@@ -24,7 +24,7 @@
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
+        <strong style="font-size: 14px;">نظام إدارة المدخلات - كشاف المجلات الليبية</strong>
         <div style="display:flex; gap:5px; align-items: center;">
             <input type="text" id="idSearch" placeholder="رقم (ت)" class="search-tool" style="width:80px;" oninput="draw()">
             <input type="text" id="globalSearch" placeholder="بحث..." class="search-tool" style="width:130px;" oninput="draw()">
@@ -108,13 +108,19 @@ let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1, clipboard = null;
 
-// دالة تنظيف متطورة لتجاهل "ال" التعريف بكافة صورها
+// دالة تنظيف صارمة لتجاهل "ال" التعريف بكافة أشكالها عند المقارنة الهجائية
 function cleanAL(txt) {
     if (!txt) return "";
     let t = txt.trim();
-    // إزالة "الـ" أو "ال" أو "أل" أو "الأ" من بداية الكلمة
-    t = t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
-    return t;
+    // إزالة أشكال ال التعريف من البداية فقط
+    return t.replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "");
+}
+
+// دالة لقلب الاسم (من: لقب، اسم -> إلى: اسم لقب)
+function flipName(name) {
+    if(!name || !name.includes('،')) return name;
+    let parts = name.split('،');
+    return parts[1].trim() + " " + parts[0].trim();
 }
 
 function filterTens() {
@@ -160,30 +166,32 @@ function save() {
     draw();
 }
 
-function flipName(name) {
-    if(!name || !name.includes('،')) return name;
-    let parts = name.split('،');
-    return parts[1].trim() + " " + parts[0].trim();
-}
-
 function openBiblio() {
-    // تطبيق الترتيب الهجائي مع تجاهل "ال" التعريف
+    // الترتيب الهجائي للعناوين مع تجاهل ال التعريف
     let sortedRecs = [...recs].sort((a,b) => cleanAL(a.title).localeCompare(cleanAL(b.title), 'ar'));
     let grouped = {};
     sortedRecs.forEach(r => { 
         if(!grouped[r.dewey100]) grouped[r.dewey100] = {};
         if(!grouped[r.dewey100][r.dewey10]) grouped[r.dewey100][r.dewey10] = [];
-        grouped[r.dewey100][r.dewey10].push(r); 
+        grouped[r.dewey100][r.dewey10+r.originalIdx] = r; // استخدام معرف فريد لمنع التداخل
     });
 
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     let globalCounter = 1;
 
-    Object.keys(grouped).sort().forEach(m100 => {
+    // إعادة تجميع البيانات حسب التصنيف للعرض
+    let finalGroups = {};
+    sortedRecs.forEach(r => {
+        if(!finalGroups[r.dewey100]) finalGroups[r.dewey100] = {};
+        if(!finalGroups[r.dewey100][r.dewey10]) finalGroups[r.dewey100][r.dewey10] = [];
+        finalGroups[r.dewey100][r.dewey10].push(r);
+    });
+
+    Object.keys(finalGroups).sort().forEach(m100 => {
         html += `<div style="background:#e0e0e0; text-align:center; font-weight:bold; font-size:16pt; padding:8px; margin:20px 0; border:1px solid #999;">${m100}</div>`;
-        Object.keys(grouped[m100]).sort().forEach(m10 => {
+        Object.keys(finalGroups[m100]).sort().forEach(m10 => {
             html += `<div style="background:#f2f2f2; text-align:center; font-weight:bold; font-size:14pt; padding:5px; margin:10px 40px; border:1px solid #ccc;">${m10}</div>`;
-            grouped[m100][m10].forEach((r) => {
+            finalGroups[m100][m10].forEach((r) => {
                 let hasCollab = r.co_authors && r.co_authors.trim() !== "";
                 let hasTrans = r.translator && r.translator.trim() !== "";
                 let responsLine = "";
@@ -210,14 +218,18 @@ function runIdx(type) {
     recs.forEach((r, i) => {
         let keys = [];
         if(type === 'author') {
-            keys.push(r.author);
-            if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(n.trim()));
+            // قلب اسم المؤلف الرئيسي
+            keys.push(flipName(r.author));
+            // قلب أسماء المؤلفين المشاركين
+            if(r.co_authors) r.co_authors.split('،').forEach(n => keys.push(flipName(n.trim())));
         } else { keys.push(r[type] || ""); }
+        
         keys.filter(k=>k && k.trim()).forEach(k => {
             let ck = k.trim(); if(!map[ck]) map[ck]=[]; map[ck].push(i+1);
         });
     });
-    // ترتيب الكشافات أيضاً مع تجاهل "ال" التعريف
+    
+    // ترتيب الكشاف هجائياً مع تجاهل ال التعريف
     let sorted = Object.keys(map).sort((a,b)=>cleanAL(a).localeCompare(cleanAL(b),'ar'));
     
     let content = sorted.map(k => {
