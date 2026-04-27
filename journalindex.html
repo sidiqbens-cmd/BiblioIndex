@@ -30,6 +30,7 @@
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
             <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
+            <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
         </div>
     </div>
 
@@ -77,7 +78,10 @@ let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1;
 const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
-function cleanSort(txt) { return txt ? txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "") : ""; }
+function cleanSort(txt) { 
+    if(!txt) return "";
+    return txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); 
+}
 
 function fixFlipped(name) {
     if(!name || !name.includes('،')) return name;
@@ -114,14 +118,12 @@ function openBiblio() {
         let hasCollabs = r.co_authors && r.co_authors.trim() !== "";
         let responsLine = "";
 
-        // القاعدة: لا يكرر المؤلف الرئيسي إلا إذا وجد مشاركون
         if (hasCollabs) {
             let mainFix = fixFlipped(r.author);
             let collabsFix = r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
             responsLine = " / " + mainFix + "، " + collabsFix;
         }
 
-        // إضافة المترجم بفاصلة منقوطة إذا وجد بيان مسؤولية سابق، أو مائلة إذا لم يوجد
         if (r.translator) {
             responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
         }
@@ -156,12 +158,16 @@ function runIdx(type) {
         });
     });
     
+    // الترتيب الهجائي السليم للكشاف مع تجاهل (الـ)
     let sortedKeys = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
+    
     let content = sortedKeys.map(k => {
         let nums = Array.from(map[k]).sort((a,b)=>a-b).join('، ');
         return `<div style="border-bottom:1px solid #eee; padding:5px; font-size:12pt;">${k} (${nums})</div>`;
     }).join('');
-    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${type}</h3>${content}`;
+    
+    let titleMap = { 'author': 'المؤلفين', 'title': 'العناوين', 'journal': 'المجلات', 'dewey10': 'التصنيف' };
+    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${titleMap[type] || type}</h3>${content}`;
     document.getElementById('modalOverlay').style.display='block';
 }
 
@@ -175,8 +181,20 @@ function save() {
 }
 
 function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
-function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
-function newP() { let n = prompt("الاسم:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function del(i) { if(confirm("حذف السجل؟")) { recs.splice(i,1); draw(); } }
+
+function delP() {
+    if(projs.length <= 1) return alert("لا يمكن حذف المشروع الوحيد");
+    if(confirm(`هل أنت متأكد من حذف مشروع "${curP}" نهائياً؟`)) {
+        localStorage.removeItem('R_' + curP);
+        projs = projs.filter(p => p !== curP);
+        curP = projs[0];
+        recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+        draw();
+    }
+}
+
+function newP() { let n = prompt("اسم المشروع الجديد:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
