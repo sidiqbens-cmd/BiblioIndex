@@ -178,7 +178,7 @@ function runIdx(type) {
         let keys = [];
         if(type === 'author') {
             if(r.author) keys.push(r.author.trim());
-            if(r.co_authors) r.co_authors.split('،').forEach(n => { if(n.trim()) keys.push(n.trim()); });
+            if(r.co_authors) r.co_authors.split('/').forEach(n => { if(n.trim()) keys.push(n.trim()); });
         } else if(type === 'journal') {
             if(r.journal) keys.push(r.journal.trim() + (r.affiliation ? ` (${r.affiliation.trim()})` : ""));
         } else {
