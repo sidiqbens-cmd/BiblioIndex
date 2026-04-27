@@ -16,7 +16,7 @@
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 12px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
-        #modalBody { background:white; width:90%; margin:20px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
+        #modalBody { background:white; width:95%; margin:10px auto; padding:20px; height:85vh; overflow:auto; border-radius:8px; border: 2px solid #34495e; }
     </style>
 </head>
 <body>
@@ -30,7 +30,7 @@
             <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
             <select id="pSel" style="height:24px; font-size:11px;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
-            <button onclick="delP()" class="btn" style="background:#c0392b">حذف المشروع</button>
+            <button onclick="delP()" class="btn" style="background:#c0392b">حذف مشروع</button>
         </div>
     </div>
 
@@ -69,7 +69,7 @@
 
 <div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
 
-<div class="scroll-area"><table class="admin-table"><thead><tr><th>ت</th><th>التصنيف</th><th>المدخل</th><th>العنوان</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
+<div class="scroll-area"><table class="admin-table"><thead><tr><th>ت</th><th>المئات</th><th>العشرات</th><th>المدخل</th><th>العنوان</th><th>إجراء</th></tr></thead><tbody id="adminBody"></tbody></table></div>
 
 <script>
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
@@ -83,6 +83,21 @@ function cleanSort(txt) {
     return txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); 
 }
 
+// دالة الفرز الموحدة: مئوي -> عشري -> هجائي
+function sortRecords(arr) {
+    return arr.sort((a, b) => {
+        let m1 = (a.dewey100 || "").padStart(5, '0');
+        let m2 = (b.dewey100 || "").padStart(5, '0');
+        if (m1 !== m2) return m1.localeCompare(m2);
+        
+        let d1 = (a.dewey10 || "").padStart(5, '0');
+        let d2 = (b.dewey10 || "").padStart(5, '0');
+        if (d1 !== d2) return d1.localeCompare(d2);
+
+        return collator.compare(cleanSort(a.author || a.title), cleanSort(b.author || b.title));
+    });
+}
+
 function fixFlipped(name) {
     if(!name || !name.includes('،')) return name;
     let parts = name.split('،');
@@ -91,18 +106,23 @@ function fixFlipped(name) {
 
 function draw() {
     let g = document.getElementById('globalSearch').value.toLowerCase();
-    let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
+    
+    // فرز السجلات حسب القاعدة الهيكلية
+    recs = sortRecords(recs);
+    
+    let filtered = recs.map((r, i) => ({...r, bibIndex: i + 1}))
                        .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
 
     document.getElementById('adminBody').innerHTML = filtered.map(r => `
         <tr>
-            <td>${r.originalIdx + 1}</td>
+            <td>${r.bibIndex}</td>
+            <td>${r.dewey100 || ""}</td>
             <td>${r.dewey10 || ""}</td>
             <td style="text-align:right"><b>${r.author || r.title}</b></td>
             <td style="text-align:right">${r.title}</td>
             <td>
-                <button onclick="edit(${r.originalIdx})">تعديل</button> 
-                <button onclick="del(${r.originalIdx})">حذف</button>
+                <button onclick="prepareEdit(${r.bibIndex - 1})">تعديل</button> 
+                <button onclick="del(${r.bibIndex - 1})">حذف</button>
             </td>
         </tr>`).join('');
 
@@ -119,17 +139,15 @@ function openBiblio() {
         let responsLine = "";
 
         if (hasCollabs) {
-            let mainFix = fixFlipped(r.author);
-            let collabsFix = r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
-            responsLine = " / " + mainFix + "، " + collabsFix;
+            responsLine = " / " + fixFlipped(r.author) + "، " + r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ');
         }
-
-        if (r.translator) {
-            responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
-        }
+        if (r.translator) responsLine += (responsLine ? "؛ " : " / ") + "ترجمة " + r.translator;
 
         html += `<div style="margin-bottom:15px; padding:0 40px; line-height:1.6;">
-            <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b> <span>(${i+1})</span></div>
+            <div style="display:flex; justify-content:space-between; border-bottom: 1px dashed #ccc;">
+                <b>${r.author || r.title}</b> 
+                <span>[${r.dewey100 || ''} / ${r.dewey10 || ''}] (${i+1})</span>
+            </div>
             <div style="font-size:12pt;">${r.title}${responsLine}${r.journal?' . ـــ '+r.journal:''}${r.issue?' . ـــ '+r.issue:''}${r.year?' . ـــ '+r.year:''}${r.pages?' . ـــ ص '+r.pages:''}.</div>
         </div>`;
     });
@@ -141,7 +159,6 @@ function runIdx(type) {
     let map = {};
     recs.forEach((r, i) => {
         let keys = [];
-        let currentNum = i + 1;
         if(type === 'author') {
             if(r.author) keys.push(r.author.trim());
             if(r.co_authors) r.co_authors.split('،').forEach(n => { if(n.trim()) keys.push(n.trim()); });
@@ -150,24 +167,17 @@ function runIdx(type) {
         } else {
             if(r[type]) keys.push(String(r[type]).trim());
         }
-        
         keys.forEach(k => {
-            let ck = k.trim();
-            if(!map[ck]) map[ck] = new Set();
-            map[ck].add(currentNum);
+            if (!map[k.trim()]) map[k.trim()] = new Set();
+            map[k.trim()].add(i + 1);
         });
     });
     
-    // الترتيب الهجائي السليم للكشاف مع تجاهل (الـ)
     let sortedKeys = Object.keys(map).sort((a,b)=> collator.compare(cleanSort(a), cleanSort(b)));
+    let content = sortedKeys.map(k => `${k} (${Array.from(map[k]).sort((a,b)=>a-b).join('، ')})`)
+                            .map(line => `<div style="border-bottom:1px solid #eee; padding:5px;">${line}</div>`).join('');
     
-    let content = sortedKeys.map(k => {
-        let nums = Array.from(map[k]).sort((a,b)=>a-b).join('، ');
-        return `<div style="border-bottom:1px solid #eee; padding:5px; font-size:12pt;">${k} (${nums})</div>`;
-    }).join('');
-    
-    let titleMap = { 'author': 'المؤلفين', 'title': 'العناوين', 'journal': 'المجلات', 'dewey10': 'التصنيف' };
-    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${titleMap[type] || type}</h3>${content}`;
+    document.getElementById('modalBody').innerHTML = `<h3>كشاف ${type}</h3>${content}`;
     document.getElementById('modalOverlay').style.display='block';
 }
 
@@ -180,12 +190,12 @@ function save() {
     draw(); 
 }
 
-function edit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
+function prepareEdit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
 function del(i) { if(confirm("حذف السجل؟")) { recs.splice(i,1); draw(); } }
 
 function delP() {
     if(projs.length <= 1) return alert("لا يمكن حذف المشروع الوحيد");
-    if(confirm(`هل أنت متأكد من حذف مشروع "${curP}" نهائياً؟`)) {
+    if(confirm(`حذف مشروع "${curP}"؟`)) {
         localStorage.removeItem('R_' + curP);
         projs = projs.filter(p => p !== curP);
         curP = projs[0];
@@ -194,7 +204,7 @@ function delP() {
     }
 }
 
-function newP() { let n = prompt("اسم المشروع الجديد:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
+function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP=n; recs=[]; draw(); } }
 function switchP(v) { curP=v; recs=JSON.parse(localStorage.getItem('R_'+v))||[]; draw(); }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
