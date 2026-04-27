@@ -43,7 +43,7 @@
                 <td><span class="field-label">المؤلف الرئيسي (مقلوب)</span><input id="author" class="in"></td>
                 <td><span class="field-label">مؤلفون مشاركون (مقلوب)</span><input id="co_authors" class="in"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in"></td>
-                <td><span class="field-label">المجلة</span><input id="journal" class="in" oninput="autoFillAffiliation(this.value)"></td>
+                <td><span class="field-label">المجلة</span><input id="journal" class="in"></td>
                 <td><span class="field-label">مترجمون</span><input id="translator" class="in"></td>
             </tr>
             <tr>
@@ -79,15 +79,16 @@ const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
 function cleanSort(txt) { return txt ? txt.trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, "") : ""; }
 
+// الدالة المحسنة لعدل الأسماء المقلوبة
 function fixFlipped(name) {
-    if(!name || !name.includes('،')) return name;
-    let p = name.split('،');
-    return p[1].trim() + " " + p[0].trim();
-}
-
-function autoFillAffiliation(val) {
-    let r = recs.find(x => x.journal === val && x.affiliation);
-    if(r) document.getElementById('affiliation').value = r.affiliation;
+    if(!name) return "";
+    let trimmed = name.trim();
+    if(!trimmed.includes('،')) return trimmed;
+    let parts = trimmed.split('،');
+    if(parts.length >= 2) {
+        return parts[1].trim() + " " + parts[0].trim();
+    }
+    return trimmed;
 }
 
 function openBiblio() {
@@ -96,10 +97,14 @@ function openBiblio() {
     let counter = 1;
 
     sorted.forEach(r => {
-        // في المتن: المؤلف الرئيسي والمشاركون يتم عدلهم آلياً
-        let mainFix = r.author ? fixFlipped(r.author) : "";
-        let collabsFix = (r.co_authors && r.co_authors.trim() !== "") ? 
-                         r.co_authors.split('،').map(n => fixFlipped(n.trim())).join('، ') : "";
+        // عدل المؤلف الرئيسي
+        let mainFix = fixFlipped(r.author);
+        
+        // عدل المشاركين (فصلهم، قلب كل واحد، إعادة تجميعهم)
+        let collabsFix = "";
+        if(r.co_authors && r.co_authors.trim() !== "") {
+            collabsFix = r.co_authors.split('،').map(n => fixFlipped(n)).filter(n => n).join('، ');
+        }
         
         let responsLine = "";
         if(mainFix || collabsFix) {
@@ -121,7 +126,7 @@ function runIdx(type) {
     recs.forEach((r, i) => {
         let keys = [];
         if(type === 'author') {
-            if(r.author) keys.push(r.author.trim()); // يبقى مقلوباً في الكشاف
+            if(r.author) keys.push(r.author.trim()); // يبقى مقلوباً للكشاف
             if(r.co_authors) r.co_authors.split('،').forEach(n => { if(n.trim()) keys.push(n.trim()); });
         } else if(type === 'journal') {
             keys.push(r.journal + (r.affiliation ? ` (${r.affiliation})` : ""));
