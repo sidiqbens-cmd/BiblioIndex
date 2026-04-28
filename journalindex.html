@@ -42,18 +42,26 @@
                 <td colspan="4"><span class="field-label">تصنيف العشرات</span><select id="dewey10" class="in"></select></td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" autocomplete="off"></td>
-                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in" autocomplete="off"></td>
-                <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in" autocomplete="off"></td>
-                <td><span class="field-label">المجلة</span><input id="journal" class="in" autocomplete="off"></td>
-                <td><span class="field-label">مترجمون</span><input id="translator" class="in" autocomplete="off"></td>
+            <tr>
+                <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" list="list_author"></td>
+                <td><span class="field-label">مشاركون</span><input id="co_authors" class="in" list="list_co_authors"></td>
+                <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in" list="list_title"></td>
+                <td><span class="field-label">المجلة</span><input id="journal" class="in" list="list_journal"></td>
+                <td><span class="field-label">مترجمون</span><input id="translator" class="in" list="list_translator"></td>
             </tr>
             <tr>
-                <td><span class="field-label">التبعية</span><input id="affiliation" class="in" autocomplete="off"></td>
-                <td><span class="field-label">السنة</span><input id="year" class="in" autocomplete="off"></td>
-                <td><span class="field-label">العدد</span><input id="issue" class="in" autocomplete="off"></td>
-                <td><span class="field-label">الصفحات</span><input id="pages" class="in" autocomplete="off"></td>
-                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in" autocomplete="off"></td>
+                <td><span class="field-label">التبعية</span><input id="affiliation" class="in" list="list_affiliation"></td>
+                <td><span class="field-label">السنة</span><input id="year" class="in" list="list_year"></td>
+                <td><span class="field-label">العدد</span><input id="issue" class="in" list="list_issue"></td>
+                <td><span class="field-label">الصفحات</span><input id="pages" class="in" list="list_pages"></td>
+                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in" list="list_notes"></td>
+            </tr>
+    </table>
+    <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist>
+    <datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
+    <datalist id="list_translator"></datalist><datalist id="list_affiliation"></datalist>
+    <datalist id="list_year"></datalist><datalist id="list_issue"></datalist>
+    <datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
             </tr>
         </table>
         <div class="actions">
