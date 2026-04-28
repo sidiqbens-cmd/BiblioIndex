@@ -42,18 +42,18 @@
                 <td colspan="4"><span class="field-label">تصنيف العشرات</span><select id="dewey10" class="in"></select></td>
             </tr>
             <tr>
-                <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in"></td>
-                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in"></td>
-                <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in"></td>
-                <td><span class="field-label">المجلة</span><input id="journal" class="in"></td>
-                <td><span class="field-label">مترجمون</span><input id="translator" class="in"></td>
+                <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" autocomplete="off"></td>
+                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in" autocomplete="off"></td>
+                <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in" autocomplete="off"></td>
+                <td><span class="field-label">المجلة</span><input id="journal" class="in" autocomplete="off"></td>
+                <td><span class="field-label">مترجمون</span><input id="translator" class="in" autocomplete="off"></td>
             </tr>
             <tr>
-                <td><span class="field-label">التبعية</span><input id="affiliation" class="in"></td>
-                <td><span class="field-label">السنة</span><input id="year" class="in"></td>
-                <td><span class="field-label">العدد</span><input id="issue" class="in"></td>
-                <td><span class="field-label">الصفحات</span><input id="pages" class="in"></td>
-                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in"></td>
+                <td><span class="field-label">التبعية</span><input id="affiliation" class="in" autocomplete="off"></td>
+                <td><span class="field-label">السنة</span><input id="year" class="in" autocomplete="off"></td>
+                <td><span class="field-label">العدد</span><input id="issue" class="in" autocomplete="off"></td>
+                <td><span class="field-label">الصفحات</span><input id="pages" class="in" autocomplete="off"></td>
+                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in" autocomplete="off"></td>
             </tr>
         </table>
         <div class="actions">
@@ -81,7 +81,6 @@
 </div>
 
 <script>
-// بيانات ديوي العشري
 const deweyData = {
     "000": ["000 المعارف العامة", "010 الببليوغرافيا", "020 المكتبات والمعلومات", "030 الموسوعات العامة", "050 الدوريات العامة", "060 المنظمات والمتاحف", "070 الإعلام والصحافة", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
     "100": ["100 الفلسفة", "110 الميتافيزيقا", "120 نظرية المعرفة", "130 الظواهر الخارقة", "140 المدارس الفلسفية", "150 علم النفس", "160 المنطق", "170 الأخلاق", "180 الفلسفة القديمة", "190 الفلسفة الحديثة"],
@@ -95,45 +94,52 @@ const deweyData = {
     "900": ["900 التاريخ والجغرافيا", "910 الجغرافيا والرحلات", "920 التراجم والأنساب", "930 تاريخ العالم القديم", "940 تاريخ أوروبا", "950 تاريخ آسيا", "960 تاريخ أفريقيا", "970 تاريخ أمريكا الشمالية", "980 تاريخ أمريكا الجنوبية", "990 تاريخ المناطق الأخرى"]
 };
 
-// تهيئة القوائم المنسدلة
 function initDewey() {
     let d100 = document.getElementById('dewey100');
     d100.innerHTML = '<option value="">اختر المئة...</option>';
     Object.keys(deweyData).forEach(k => {
         let opt = document.createElement('option');
-        opt.value = deweyData[k][0];
-        opt.text = deweyData[k][0];
+        opt.value = deweyData[k][0]; opt.text = deweyData[k][0];
         d100.appendChild(opt);
     });
 }
 
-function updateDewey10(selectedVal = "") {
+function updateDewey10(selectedFullText = "") {
     let fullVal = document.getElementById('dewey100').value;
     if(!fullVal) return;
-    let key = fullVal.substring(0, 3);
+    let codeKey = fullVal.substring(0, 3);
     let d10 = document.getElementById('dewey10');
     d10.innerHTML = '<option value="">اختر العشرات...</option>';
-    if(deweyData[key]) {
-        deweyData[key].forEach(item => {
+    if(deweyData[codeKey]) {
+        deweyData[codeKey].forEach(item => {
             let opt = document.createElement('option');
-            opt.value = item;
-            opt.text = item;
-            if(item === selectedVal) opt.selected = true;
+            opt.value = item; opt.text = item;
+            if(item === selectedFullText) opt.selected = true;
             d10.appendChild(opt);
         });
     }
 }
 
-// المتغيرات الأساسية
 let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
 let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1;
 const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
-// دوال العرض والرسم
+function cleanSort(txt) { return (txt || "").trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); }
+
+function sortRecords(arr) {
+    return arr.sort((a, b) => {
+        let d1 = (a.dewey10 || "").substring(0,3).padStart(3, '0');
+        let d2 = (b.dewey10 || "").substring(0,3).padStart(3, '0');
+        if (d1 !== d2) return d1.localeCompare(d2);
+        return collator.compare(cleanSort(a.author || a.title), cleanSort(b.author || b.title));
+    });
+}
+
 function draw() {
     let g = document.getElementById('globalSearch').value.toLowerCase();
+    recs = sortRecords(recs);
     let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
                        .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
     
@@ -156,7 +162,6 @@ function draw() {
     localStorage.setItem('L_A', curP);
 }
 
-// عمليات الحفظ والتعديل
 function save() { 
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
@@ -174,7 +179,6 @@ function prepareEdit(i) {
     });
 }
 
-// الدوال الببليوغرافية والكشافات
 function openBiblio() {
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     let lastDewey = null;
@@ -209,27 +213,13 @@ function runIdx(type) {
     document.getElementById('modalOverlay').style.display='block';
 }
 
-// إدارة المشاريع والملفات
 function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
 function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
 function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
 function delP() { if(projs.length > 1 && confirm("حذف؟")) { localStorage.removeItem('R_' + curP); projs = projs.filter(p => p !== curP); curP = projs[0]; draw(); } }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
 function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
-function importX() { 
-    let input = document.createElement('input'); 
-    input.type='file'; 
-    input.onchange=e=>{ 
-        let reader=new FileReader(); 
-        reader.onload=ev=>{ 
-            let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); 
-            recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); 
-            draw(); 
-        }; 
-        reader.readAsArrayBuffer(e.target.files[0]); 
-    }; 
-    input.click(); 
-}
+function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
 
 window.onload = () => { initDewey(); draw(); };
 </script>
