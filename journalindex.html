@@ -42,9 +42,8 @@
                 <td colspan="4"><span class="field-label">تصنيف العشرات</span><select id="dewey10" class="in"></select></td>
             </tr>
             <tr>
-            <tr>
                 <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" list="list_author"></td>
-                <td><span class="field-label">مشاركون</span><input id="co_authors" class="in" list="list_co_authors"></td>
+                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in" list="list_co_authors"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in" list="list_title"></td>
                 <td><span class="field-label">المجلة</span><input id="journal" class="in" list="list_journal"></td>
                 <td><span class="field-label">مترجمون</span><input id="translator" class="in" list="list_translator"></td>
@@ -56,14 +55,14 @@
                 <td><span class="field-label">الصفحات</span><input id="pages" class="in" list="list_pages"></td>
                 <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in" list="list_notes"></td>
             </tr>
-    </table>
-    <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist>
-    <datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
-    <datalist id="list_translator"></datalist><datalist id="list_affiliation"></datalist>
-    <datalist id="list_year"></datalist><datalist id="list_issue"></datalist>
-    <datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
-            </tr>
         </table>
+        
+        <datalist id="list_author"></datalist><datalist id="list_co_authors"></datalist>
+        <datalist id="list_title"></datalist><datalist id="list_journal"></datalist>
+        <datalist id="list_translator"></datalist><datalist id="list_affiliation"></datalist>
+        <datalist id="list_year"></datalist><datalist id="list_issue"></datalist>
+        <datalist id="list_pages"></datalist><datalist id="list_notes"></datalist>
+
         <div class="actions">
             <button type="button" class="btn" style="background:#27ae60" onclick="save()">حفظ</button>
             <button type="button" class="btn" style="background:#8e44ad" onclick="openBiblio()">الببليوغرافيا</button>
@@ -134,20 +133,18 @@ let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1;
 const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
 
-function cleanSort(txt) { return (txt || "").trim().replace(/^(الـ|ال|أل|الأ|الإ|آل)/, ""); }
-
-function sortRecords(arr) {
-    return arr.sort((a, b) => {
-        let d1 = (a.dewey10 || "").substring(0,3).padStart(3, '0');
-        let d2 = (b.dewey10 || "").substring(0,3).padStart(3, '0');
-        if (d1 !== d2) return d1.localeCompare(d2);
-        return collator.compare(cleanSort(a.author || a.title), cleanSort(b.author || b.title));
+// الدالة المسؤولة عن تغذية القوائم بما يتم إدخاله
+function updateDataLists() {
+    const fields = ['author', 'co_authors', 'title', 'journal', 'translator', 'affiliation', 'year', 'issue', 'pages', 'notes'];
+    fields.forEach(field => {
+        const uniqueValues = [...new Set(recs.map(r => r[field]).filter(v => v))];
+        const dl = document.getElementById('list_' + field);
+        if (dl) dl.innerHTML = uniqueValues.map(v => `<option value="${v}">`).join('');
     });
 }
 
 function draw() {
     let g = document.getElementById('globalSearch').value.toLowerCase();
-    recs = sortRecords(recs);
     let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
                        .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
     
@@ -168,6 +165,8 @@ function draw() {
     localStorage.setItem('R_' + curP, JSON.stringify(recs));
     localStorage.setItem('L_P', JSON.stringify(projs));
     localStorage.setItem('L_A', curP);
+    
+    updateDataLists(); // استدعاء التحديث هنا
 }
 
 function save() { 
