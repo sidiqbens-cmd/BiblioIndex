@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشاف المجلات الليبية - نظام ديوي المعدل</title>
+    <title>كشاف المجلات الليبية</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Times New Roman', serif; background: #eceef1; margin: 0; overflow: hidden; }
@@ -24,7 +24,7 @@
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">نظام إدارة المدخلات - كشاف المجلات الليبية</strong>
+        <strong style="font-size: 14px;">نكشاف المجلات الليبية</strong>
         <div style="display:flex; gap:5px; align-items: center;">
             <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
@@ -88,7 +88,6 @@
 </div>
 
 <script>
-// مصفوفة ديوي المحدثة بناءً على طلبك بدقة
 const deweyData = {
     "000": ["000 العموميات", "010 الببليوجرافيا", "020 علوم المكتبات والمعلومات", "030 الأعمال الموسوعية العامة", "050 الأعمال الدورية العامة", "060 المنظمات العامة وعلم المتاحف", "070 الرسائل الإخبارية ، الصحافة ، النشر", "080 المجموعات العامة", "090 المخطوطات والكتب النادرة"],
     "100": ["100 الفلسفة وعلم النفس", "110 الميتافيزيقا (ما وراء الطبيعة)", "120 نظرية المعرفة ، السببية ، الجنس البشري", "130 الظواهر الخارقة", "140 مدارس فلسفية معينة", "150 علم النفس", "160 علم المنطق", "170 علم الأخلاق والفلسفة الأخلاقية", "180 الفلسفات القديمة ، والوسيطة والشرقية", "190 الفلسفة الحديثة والمعاصرة"],
@@ -99,8 +98,32 @@ const deweyData = {
     "600": ["600 التكنولوجيا", "610 العلوم الطبية - الطب", "620 الهندسة والعمليات ذات العلاقة", "630 الزراعة والتكنولوجيات ذات العلاقة", "640 الاقتصاد المنزلي والحياة الأسرية", "650 إدارة الأعمال والخدمات المساعدة", "660 الهندسة الكيميائية", "670 الصناعات", "680 الصناعات لأغراض معينة", "690 المباني"],
     "700": ["700 الفنون ، الفنون الجميلة والزخرفية", "710 الفن المدني والخلوي", "720 العمارة", "730 الفنون التشكيلية - النحت", "740 الرسوم والفنون الزخرفية", "750 التصوير الزيتي والصور الزيتية", "760 الفنون التخطيطية - الطباعة والمطبوعات", "770 التصوير الفوتوغرافي والصور الفوتوغرافية", "780 الموسيقي", "790 الفنون الترويحية والتمثيلية"],
     "800": ["800 الآداب والبلاغة", "810 الأدب العربي", "820 الآداب الناطقة بالإنجليزية", "830 أداب اللغة الجرمانية", "840 أداب اللغة الرومانسية", "850 أداب اللغات الإيطالية والرومانية والريتورومانية", "860 الآداب الإسبانية والبرتغالية", "870 الآداب الإيطالية القديمة - الأدب اللاتيني", "880 الآداب الهيلنية - الأدب اليوناني الكلاسيكي", "890 أداب اللغات الأخرى"],
-    "900": ["900 الجغرافيا والتاريخ والتراجم", "910 الجغرافيا والرحلات", "920 التراجم والأنساب والشارات", "930 تاريخ العالم القديم حتى حوالي 499م", "940 تاريخ أوروبا العام", "950 تاريخ أسيا العام", "960 تاريخ أفريقيا العام", "970 تاريخ أمريكا الشمالية العام", "980 تاريخ أمريكا الجنوبية العام", "990 التاريخ العام للمناطق الأخرى"]
+    "900": ["900 التاريخ والجغرافيا والتراجم", "910 الجغرافيا والرحلات", "920 التراجم والأنساب والشارات", "930 تاريخ العالم القديم حتى حوالي 499م", "940 تاريخ أوروبا العام", "950 تاريخ أسيا العام", "960 تاريخ أفريقيا العام", "970 تاريخ أمريكا الشمالية العام", "980 تاريخ أمريكا الجنوبية العام", "990 التاريخ العام للمناطق الأخرى"]
 };
+
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
+let curP = localStorage.getItem('L_A') || projs[0];
+let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+let editIdx = -1;
+const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
+
+// دالة لتنظيف الأسماء من "الـ" للفرز الهجائي الصحيح
+function cleanForSort(text) {
+    if (!text) return "";
+    return text.trim().replace(/^(الـ|ال|أل|أ|إ|آ)/, "");
+}
+
+// دالة الفرز الموحدة (تصنيف ثم هجائي)
+function sortRecords(arr) {
+    return arr.sort((a, b) => {
+        let d1 = (a.dewey10 || "999").substring(0, 3);
+        let d2 = (b.dewey10 || "999").substring(0, 3);
+        if (d1 !== d2) return d1.localeCompare(d2);
+        let name1 = cleanForSort(a.author || a.title);
+        let name2 = cleanForSort(b.author || b.title);
+        return collator.compare(name1, name2);
+    });
+}
 
 function initDewey() {
     let d100 = document.getElementById('dewey100');
@@ -128,12 +151,6 @@ function updateDewey10(selectedFullText = "") {
     }
 }
 
-let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
-let curP = localStorage.getItem('L_A') || projs[0];
-let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
-let editIdx = -1;
-const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
-
 function updateDataLists() {
     const fields = ['author', 'co_authors', 'title', 'journal', 'translator', 'affiliation', 'year', 'issue', 'pages', 'notes'];
     fields.forEach(field => {
@@ -144,6 +161,7 @@ function updateDataLists() {
 }
 
 function draw() {
+    recs = sortRecords(recs);
     let g = document.getElementById('globalSearch').value.toLowerCase();
     let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
                        .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
@@ -186,6 +204,7 @@ function prepareEdit(i) {
 }
 
 function openBiblio() {
+    recs = sortRecords(recs);
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
     let lastDewey = null;
     recs.forEach((r, i) => {
@@ -210,7 +229,7 @@ function runIdx(type) {
         if(!map[val]) map[val] = [];
         map[val].push(i + 1);
     });
-    let sortedKeys = Object.keys(map).sort(collator.compare);
+    let sortedKeys = Object.keys(map).sort((a,b) => collator.compare(cleanForSort(a), cleanForSort(b)));
     let html = `<div style="direction:rtl; column-count: 3; column-gap: 30px; padding:20px;">`;
     sortedKeys.forEach(k => {
         html += `<div style="break-inside: avoid; margin-bottom:8px; font-size:11pt;"><b>${k}</b>: ${map[k].join(', ')}</div>`;
