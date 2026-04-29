@@ -203,6 +203,13 @@ function prepareEdit(i) {
     });
 }
 
+// دالة مساعدة لعدل الاسم المقلوب (من "اللقب، الاسم" إلى "الاسم اللقب")
+function normalizeName(name) {
+    if (!name || !name.includes('،')) return name;
+    let parts = name.split('،');
+    return parts[1].trim() + " " + parts[0].trim();
+}
+
 function openBiblio() {
     recs = sortRecords(recs);
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman'; text-align:justify;">`;
@@ -215,14 +222,23 @@ function openBiblio() {
             lastDewey = currentDewey;
         }
 
-        // إعداد بيان المسؤولية (المؤلف الرئيسي غير مقلوب + المشاركون)
-        let mainAuthorNormal = r.author || ""; 
-        let coAuthors = r.co_authors ? "، " + r.co_authors : "";
-        let responsibilityStatement = mainAuthorNormal + coAuthors;
+        // 1. رأس المدخلة: يبقى مقلوباً كما هو (مثلاً: العبيدي، مصطفى علي)
+        let entryHead = r.author || r.title;
+
+        // 2. بيان المسؤولية في المتن: يتم عدل الأسماء (مثلاً: مصطفى علي العبيدي)
+        let mainAuthorNormal = normalizeName(r.author);
+        
+        // عدل أسماء المشاركين إذا كانوا أكثر من واحد ومفصولين بفاصلة منقوطة أو واو
+        let coAuthorsNormal = "";
+        if (r.co_authors) {
+            coAuthorsNormal = r.co_authors.split('؛').map(name => normalizeName(name.trim())).join('؛ ');
+        }
+        
+        let responsibilityStatement = mainAuthorNormal + (coAuthorsNormal ? "؛ " + coAuthorsNormal : "");
 
         html += `<div style="margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;">
             <div style="display:flex; justify-content:space-between;">
-                <b style="font-size:13pt;">${r.author || r.title}</b>
+                <b style="font-size:13pt;">${entryHead}</b>
                 <span style="color:#666;">(${i+1})</span>
             </div>
             <div style="font-size:12pt; margin-top:5px;">
