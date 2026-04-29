@@ -203,21 +203,52 @@ function prepareEdit(i) {
     });
 }
 
+// دالة مساعدة لعدل الاسم المقلوب (من "اللقب، الاسم" إلى "الاسم اللقب")
+function normalizeName(name) {
+    if (!name || !name.includes('،')) return name;
+    let parts = name.split('،');
+    return parts[1].trim() + " " + parts[0].trim();
+}
+
 function openBiblio() {
     recs = sortRecords(recs);
-    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman';">`;
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman'; text-align:justify;">`;
     let lastDewey = null;
+    
     recs.forEach((r, i) => {
         let currentDewey = r.dewey10 || "بدون تصنيف";
         if (currentDewey !== lastDewey) {
             html += `<div class="dewey-header">${currentDewey}</div>`;
             lastDewey = currentDewey;
         }
-        html += `<div style="margin-bottom:12px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #eee;">
-            <div style="display:flex; justify-content:space-between;"><b>${r.author || r.title}</b><span>(${i+1})</span></div>
-            <div style="font-size:12pt;">${r.title} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.</div>
+
+        // 1. رأس المدخلة: يبقى مقلوباً للفرز الأبجدي
+        let entryHead = r.author || r.title;
+
+        // 2. معالجة بيان المسؤولية بناءً على القاعدة:
+        let responsibilityStatement = "";
+        if (r.co_authors && r.co_authors.trim() !== "") {
+            // إذا وجد مشاركون: نكرر المؤلف الرئيسي (معدولاً) + المشاركين
+            let mainAuthorNormal = normalizeName(r.author);
+            let coAuthorsNormal = r.co_authors.split('؛').map(name => normalizeName(name.trim())).join('؛ ');
+            responsibilityStatement = " / " + mainAuthorNormal + "؛ " + coAuthorsNormal;
+        } else {
+            // إذا كان المؤلف منفرداً: لا يكرر في المتن وفقاً للقاعدة
+            responsibilityStatement = "";
+        }
+
+        html += `<div style="margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;">
+            <div style="display:flex; justify-content:space-between;">
+                <b style="font-size:13pt;">${entryHead}</b>
+                <span style="color:#666;">(${i+1})</span>
+            </div>
+            <div style="font-size:12pt; margin-top:5px;">
+                ${r.title}${responsibilityStatement} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.
+            </div>
+            ${r.notes ? `<div style="font-size:10pt; color:#444; margin-top:3px;">ملاحظات: ${r.notes}</div>` : ''}
         </div>`;
     });
+    
     document.getElementById('modalBody').innerHTML = html + "</div>";
     document.getElementById('modalOverlay').style.display='block';
 }
