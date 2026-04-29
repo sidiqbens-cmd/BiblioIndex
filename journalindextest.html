@@ -222,19 +222,20 @@ function openBiblio() {
             lastDewey = currentDewey;
         }
 
-        // 1. رأس المدخلة: يبقى مقلوباً كما هو (مثلاً: العبيدي، مصطفى علي)
+        // 1. رأس المدخلة: يبقى مقلوباً للفرز الأبجدي
         let entryHead = r.author || r.title;
 
-        // 2. بيان المسؤولية في المتن: يتم عدل الأسماء (مثلاً: مصطفى علي العبيدي)
-        let mainAuthorNormal = normalizeName(r.author);
-        
-        // عدل أسماء المشاركين إذا كانوا أكثر من واحد ومفصولين بفاصلة منقوطة أو واو
-        let coAuthorsNormal = "";
-        if (r.co_authors) {
-            coAuthorsNormal = r.co_authors.split('؛').map(name => normalizeName(name.trim())).join('؛ ');
+        // 2. معالجة بيان المسؤولية بناءً على القاعدة:
+        let responsibilityStatement = "";
+        if (r.co_authors && r.co_authors.trim() !== "") {
+            // إذا وجد مشاركون: نكرر المؤلف الرئيسي (معدولاً) + المشاركين
+            let mainAuthorNormal = normalizeName(r.author);
+            let coAuthorsNormal = r.co_authors.split('؛').map(name => normalizeName(name.trim())).join('؛ ');
+            responsibilityStatement = " / " + mainAuthorNormal + "؛ " + coAuthorsNormal;
+        } else {
+            // إذا كان المؤلف منفرداً: لا يكرر في المتن وفقاً للقاعدة
+            responsibilityStatement = "";
         }
-        
-        let responsibilityStatement = mainAuthorNormal + (coAuthorsNormal ? "؛ " + coAuthorsNormal : "");
 
         html += `<div style="margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;">
             <div style="display:flex; justify-content:space-between;">
@@ -242,7 +243,7 @@ function openBiblio() {
                 <span style="color:#666;">(${i+1})</span>
             </div>
             <div style="font-size:12pt; margin-top:5px;">
-                ${r.title} / ${responsibilityStatement} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.
+                ${r.title}${responsibilityStatement} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.
             </div>
             ${r.notes ? `<div style="font-size:10pt; color:#444; margin-top:3px;">ملاحظات: ${r.notes}</div>` : ''}
         </div>`;
