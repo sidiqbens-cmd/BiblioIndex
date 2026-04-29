@@ -231,7 +231,7 @@ function openBiblio() {
             // إذا وجد مشاركون: نكرر المؤلف الرئيسي (معدولاً) + المشاركين
             let mainAuthorNormal = normalizeName(r.author);
             let coAuthorsNormal = r.co_authors.split('؛').map(name => normalizeName(name.trim())).join('؛ ');
-            responsibilityStatement = " / " + mainAuthorNormal + "؛ " + coAuthorsNormal;
+            responsibilityStatement = " / " + mainAuthorNormal + "، " + coAuthorsNormal;
         } else {
             // إذا كان المؤلف منفرداً: لا يكرر في المتن وفقاً للقاعدة
             responsibilityStatement = "";
