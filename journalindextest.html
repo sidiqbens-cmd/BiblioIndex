@@ -130,7 +130,6 @@ function draw() {
     
     let counterVal = 1;
     document.getElementById('adminBody').innerHTML = filtered.map((r, i) => {
-        // إذا كان السجل عبارة عن إحالة (بدون عنوان)، لا يُعطى رقماً تسلسلياً
         let displayID = r.title ? counterVal++ : '-';
         let seeInfo = r.see ? `انظر: ${r.see}` : (r.see_also ? `انظر أيضاً: ${r.see_also}` : '-');
         return `
@@ -158,6 +157,16 @@ function save() {
     let d = {}; 
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; }
+    
+    // التحقق من القاعدة: إذا أدخل المستخدم إحالة، يجب أن يكون رأس الموضوع المُحال إليه موجوداً فعلاً
+    if (d.see) {
+        let subjectExists = recs.some(r => r.subject && r.subject.trim() === d.see.trim());
+        if (!subjectExists && editIdx === -1) {
+            alert("خطأ: لا يمكن الإحالة إلى رأس موضوع غير موجود في الكشاف.");
+            return;
+        }
+    }
+    
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d); 
     editIdx = -1; document.getElementById('bForm').reset(); draw(); 
 }
@@ -181,12 +190,25 @@ function openBiblio() {
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman'; text-align:justify;">`;
     let lastSubject = null;
     let counterVal = 1;
+
+    // استخراج قائمة رؤوس الموضوعات الموجودة فعلياً
+    const existingSubjects = new Set(recs.filter(r => r.subject).map(r => r.subject.trim()));
     
     recs.forEach((r, i) => {
-        // معالجة تسجيلة الإحالات
-        if (!r.title && (r.see || r.see_also)) {
-            let seeText = r.see ? `انظر: ${r.see}` : `انظر أيضاً: ${r.see_also}`;
-            html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> ${seeText}</div>`;
+        // التحقق قبل عرض الإحالة: هل الرأس المحال إليه موجود في الذاكرة؟
+        if (!r.title && r.see) {
+            if (existingSubjects.has(r.see.trim())) {
+                let seeText = `انظر: ${r.see}`;
+                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> ${seeText}</div>`;
+            }
+            return;
+        }
+
+        if (!r.title && r.see_also) {
+            if (existingSubjects.has(r.see_also.trim())) {
+                let seeText = `انظر أيضاً: ${r.see_also}`;
+                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> ${seeText}</div>`;
+            }
             return;
         }
 
@@ -225,7 +247,7 @@ function runIdx(type) {
     let map = {};
     let counter = 1;
     recs.forEach((r, i) => {
-        if (!r.title) return; // لا نظهر الإحالات في الكشاف
+        if (!r.title) return; 
         let val = r[type] || "بدون بيانات";
         if(!map[val]) map[val] = [];
         map[val].push(counter++);
