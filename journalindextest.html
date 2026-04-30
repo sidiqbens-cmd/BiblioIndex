@@ -38,7 +38,7 @@
     <form id="bForm">
         <table class="input-table">
             <tr>
-                <td><span class="field-label">رأس الموضوع</span><input id="subject" class="in" list="list_subject"></td>
+                <td><span class="field-label">رأس الموضوع</span><input id="subject" class="in" list="list_subject" oninput="updateSeeLists()"></td>
                 <td><span class="field-label">إحالة انظر</span><input id="see" class="in" list="list_see"></td>
                 <td><span class="field-label">إحالة انظر أيضاً</span><input id="see_also" class="in" list="list_see_also"></td>
                 <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" list="list_author"></td>
@@ -58,12 +58,18 @@
             </tr>
         </table>
         
-        <datalist id="list_subject"></datalist><datalist id="list_see"></datalist>
-        <datalist id="list_see_also"></datalist><datalist id="list_author"></datalist>
-        <datalist id="list_co_authors"></datalist><datalist id="list_title"></datalist>
-        <datalist id="list_journal"></datalist><datalist id="list_translator"></datalist>
-        <datalist id="list_affiliation"></datalist><datalist id="list_year"></datalist>
-        <datalist id="list_issue"></datalist><datalist id="list_pages"></datalist>
+        <datalist id="list_subject"></datalist>
+        <datalist id="list_see"></datalist>
+        <datalist id="list_see_also"></datalist>
+        <datalist id="list_author"></datalist>
+        <datalist id="list_co_authors"></datalist>
+        <datalist id="list_title"></datalist>
+        <datalist id="list_journal"></datalist>
+        <datalist id="list_translator"></datalist>
+        <datalist id="list_affiliation"></datalist>
+        <datalist id="list_year"></datalist>
+        <datalist id="list_issue"></datalist>
+        <datalist id="list_pages"></datalist>
         <datalist id="list_notes"></datalist>
 
         <div class="actions">
@@ -114,12 +120,24 @@ function sortRecords(arr) {
 }
 
 function updateDataLists() {
-    const fields = ['subject', 'see', 'see_also', 'author', 'co_authors', 'title', 'journal', 'translator', 'affiliation', 'year', 'issue', 'pages', 'notes'];
+    const fields = ['subject', 'author', 'co_authors', 'title', 'journal', 'translator', 'affiliation', 'year', 'issue', 'pages', 'notes'];
     fields.forEach(field => {
         const uniqueValues = [...new Set(recs.map(r => r[field]).filter(v => v))];
         const dl = document.getElementById('list_' + field);
         if (dl) dl.innerHTML = uniqueValues.map(v => `<option value="${v}">`).join('');
     });
+    
+    // تحديث خيارات خانات "انظر" و "انظر أيضاً" بناءً على الرؤوس المدخلة فعلياً
+    updateSeeLists();
+}
+
+function updateSeeLists() {
+    const existingSubjects = [...new Set(recs.map(r => r.subject).filter(v => v))].sort((a, b) => collator.compare(cleanForSort(a), cleanForSort(b)));
+    const seeDl = document.getElementById('list_see');
+    const seeAlsoDl = document.getElementById('list_see_also');
+    
+    if (seeDl) seeDl.innerHTML = existingSubjects.map(v => `<option value="${v}">`).join('');
+    if (seeAlsoDl) seeAlsoDl.innerHTML = existingSubjects.map(v => `<option value="${v}">`).join('');
 }
 
 function draw() {
@@ -158,13 +176,17 @@ function save() {
     document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
     if(!d.subject) { alert("رأس الموضوع إلزامي"); return; }
     
-    // التحقق من القاعدة: إذا أدخل المستخدم إحالة، يجب أن يكون رأس الموضوع المُحال إليه موجوداً فعلاً
-    if (d.see) {
-        let subjectExists = recs.some(r => r.subject && r.subject.trim() === d.see.trim());
-        if (!subjectExists && editIdx === -1) {
-            alert("خطأ: لا يمكن الإحالة إلى رأس موضوع غير موجود في الكشاف.");
-            return;
-        }
+    // التحقق الصارم: إذا أدخل المستخدم "انظر" يجب أن يكون الرأس مستخدماً فعلاً
+    const existingSubjects = new Set(recs.map(r => r.subject ? r.subject.trim() : ''));
+    
+    if (d.see && !existingSubjects.has(d.see.trim())) {
+        alert("خطأ: لا يمكن الإحالة إلى رأس موضوع (انظر) غير مستخدم فعلاً في الكشاف.");
+        return;
+    }
+    
+    if (d.see_also && !existingSubjects.has(d.see_also.trim())) {
+        alert("خطأ: لا يمكن الإحالة إلى رأس موضوع (انظر أيضاً) غير مستخدم فعلاً في الكشاف.");
+        return;
     }
     
     if(editIdx > -1) recs[editIdx] = d; else recs.push(d); 
@@ -191,23 +213,20 @@ function openBiblio() {
     let lastSubject = null;
     let counterVal = 1;
 
-    // استخراج قائمة رؤوس الموضوعات الموجودة فعلياً
-    const existingSubjects = new Set(recs.filter(r => r.subject).map(r => r.subject.trim()));
+    const existingSubjects = new Set(recs.map(r => r.subject ? r.subject.trim() : ''));
     
     recs.forEach((r, i) => {
-        // التحقق قبل عرض الإحالة: هل الرأس المحال إليه موجود في الذاكرة؟
+        // التحقق من صحة الإحالات قبل العرض
         if (!r.title && r.see) {
             if (existingSubjects.has(r.see.trim())) {
-                let seeText = `انظر: ${r.see}`;
-                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> ${seeText}</div>`;
+                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> انظر: ${r.see}</div>`;
             }
             return;
         }
 
         if (!r.title && r.see_also) {
             if (existingSubjects.has(r.see_also.trim())) {
-                let seeText = `انظر أيضاً: ${r.see_also}`;
-                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> ${seeText}</div>`;
+                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject}</b> انظر أيضاً: ${r.see_also}</div>`;
             }
             return;
         }
