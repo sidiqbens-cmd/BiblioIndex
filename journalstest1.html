@@ -28,6 +28,7 @@
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
         <div style="display:flex; gap:5px; align-items: center;">
+            <input type="text" id="itemSearch" placeholder="رقم المادة..." style="width:80px; height:24px; font-size:11px;" oninput="draw()">
             <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
             <button onclick="exportWord()" class="btn" style="background:#2c3e50">تصدير Word</button>
@@ -44,6 +45,7 @@
                 <td>
                     <span class="field-label">التصنيف القطاعي</span>
                     <select id="section_type" class="in">
+                        <option value=""></option>
                         <option value="العلوم الإنسانية والاجتماعية">العلوم الإنسانية والاجتماعية</option>
                         <option value="العلوم البحتة والتطبيقية">العلوم البحتة والتطبيقية</option>
                     </select>
@@ -153,16 +155,26 @@ function updateSeeLists() {
 function draw() {
     recs = sortRecords(recs);
     let g = document.getElementById('globalSearch').value.toLowerCase();
-    let filtered = recs.map((r, i) => ({...r, originalIdx: i}))
-                      .filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
+    let itemNum = document.getElementById('itemSearch').value.trim();
     
-    let counterVal = 1;
+    let currentCounter = 1;
+    let mappedRecs = recs.map((r, i) => {
+        let displayID = r.title ? currentCounter++ : '-';
+        return {...r, originalIdx: i, displayID: displayID};
+    });
+
+    let filtered = mappedRecs.filter(r => {
+        if (itemNum !== "") {
+            return String(r.displayID) === itemNum;
+        }
+        return Object.values(r).some(v => String(v).toLowerCase().includes(g));
+    });
+    
     document.getElementById('adminBody').innerHTML = filtered.map((r, i) => {
-        let displayID = r.title ? counterVal++ : '-';
         let seeInfo = r.see ? `انظر: ${r.see}` : (r.see_also ? `انظر أيضاً: ${r.see_also}` : '-');
         return `<tr>
-            <td>${displayID}</td>
-            <td>${r.section_type || "العلوم الإنسانية والاجتماعية"}</td>
+            <td>${r.displayID}</td>
+            <td>${r.section_type || "-"}</td>
             <td><b>${r.subject || ""}</b></td>
             <td>${r.author || ""}</td>
             <td>${r.title || ""}</td>
