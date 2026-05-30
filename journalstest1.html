@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشاف المجلات الليبية</title>
+    <title>الفهرس الليبي الموحد</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -14,7 +14,7 @@
         input, select { width: 100%; height: 24px; font-size: 12px; font-weight: bold; border: 1px solid #999; text-align: right; box-sizing: border-box; }
         .actions { background: #cfcfcf; text-align: center; padding: 5px; display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; }
         .btn { padding: 4px 10px; cursor: pointer; border: none; border-radius: 3px; color: #fff; font-size: 11px; font-weight: bold; }
-        .scroll-area { margin-top: 200px; height: 35vh; overflow-y: auto; padding: 5px; background: #fff; border-top: 2px solid #2c3e50; }
+        .scroll-area { margin-top: 230px; height: 35vh; overflow-y: auto; padding: 5px; background: #fff; border-top: 2px solid #2c3e50; }
         .admin-table { width: 100%; border-collapse: collapse; background: white; }
         .admin-table td, th { border: 1px solid #ccc; padding: 4px; font-size: 11px; text-align: center; }
         #modalOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; }
@@ -26,7 +26,7 @@
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
+        <strong style="font-size: 14px;">الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px; align-items: center;">
             <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
             <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
@@ -41,23 +41,30 @@
     <form id="bForm">
         <table class="input-table">
             <tr>
+                <td>
+                    <span class="field-label">التصنيف القطاعي</span>
+                    <select id="section_type" class="in">
+                        <option value="العلوم الإنسانية والاجتماعية">العلوم الإنسانية والاجتماعية</option>
+                        <option value="العلوم البحتة والتطبيقية">العلوم البحتة والتطبيقية</option>
+                    </select>
+                </td>
                 <td><span class="field-label">رأس الموضوع</span><input id="subject" class="in" list="list_subject"></td>
                 <td><span class="field-label">إحالة انظر</span><input id="see" class="in" list="list_see"></td>
                 <td><span class="field-label">إحالة انظر أيضاً</span><input id="see_also" class="in" list="list_see_also"></td>
                 <td><span class="field-label">المؤلف الرئيسي</span><input id="author" class="in" list="list_author"></td>
-                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in" list="list_co_authors"></td>
             </tr>
             <tr>
+                <td><span class="field-label">مشاركون (بالمائلة /)</span><input id="co_authors" class="in" list="list_co_authors"></td>
                 <td colspan="2"><span class="field-label">العنوان</span><input id="title" class="in" list="list_title"></td>
                 <td><span class="field-label">المجلة</span><input id="journal" class="in" list="list_journal"></td>
                 <td><span class="field-label">مترجمون</span><input id="translator" class="in" list="list_translator"></td>
-                <td><span class="field-label">التبعية</span><input id="affiliation" class="in" list="list_affiliation"></td>
             </tr>
             <tr>
+                <td><span class="field-label">التبعية</span><input id="affiliation" class="in" list="list_affiliation"></td>
                 <td><span class="field-label">السنة</span><input id="year" class="in" list="list_year"></td>
                 <td><span class="field-label">العدد</span><input id="issue" class="in" list="list_issue"></td>
                 <td><span class="field-label">الصفحات</span><input id="pages" class="in" list="list_pages"></td>
-                <td colspan="2"><span class="field-label">ملاحظات</span><input id="notes" class="in" list="list_notes"></td>
+                <td><span class="field-label">ملاحظات</span><input id="notes" class="in" list="list_notes"></td>
             </tr>
         </table>
         <datalist id="list_subject"></datalist>
@@ -91,7 +98,7 @@
     <table class="admin-table">
         <thead>
             <tr>
-                <th>ت</th><th>رأس الموضوع</th><th>المؤلف</th><th>العنوان</th><th>الإحالات</th><th>إجراء</th>
+                <th>ت</th><th>التصنيف</th><th>رأس الموضوع</th><th>المؤلف</th><th>العنوان</th><th>الإحالات</th><th>ملاحظات</th><th>إجراء</th>
             </tr>
         </thead>
         <tbody id="adminBody"></tbody>
@@ -104,6 +111,12 @@ let curP = localStorage.getItem('L_A') || projs[0];
 let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
 let editIdx = -1;
 const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
+
+function isForeignText(text) {
+    if (!text) return false;
+    const foreignRegex = /^[A-Za-z0-9\s\-\.\,\(\)\:\/\'\"]+/;
+    return foreignRegex.test(text.trim());
+}
 
 function cleanForSort(text) {
     if (!text) return "";
@@ -147,8 +160,16 @@ function draw() {
     document.getElementById('adminBody').innerHTML = filtered.map((r, i) => {
         let displayID = r.title ? counterVal++ : '-';
         let seeInfo = r.see ? `انظر: ${r.see}` : (r.see_also ? `انظر أيضاً: ${r.see_also}` : '-');
-        return `<tr><td>${displayID}</td><td><b>${r.subject || ""}</b></td><td>${r.author || ""}</td><td>${r.title || ""}</td><td>${seeInfo}</td>
-            <td><button onclick="prepareEdit(${r.originalIdx})">تعديل</button> <button onclick="del(${r.originalIdx})">حذف</button></td></tr>`;
+        return `<tr>
+            <td>${displayID}</td>
+            <td>${r.section_type || "العلوم الإنسانية والاجتماعية"}</td>
+            <td><b>${r.subject || ""}</b></td>
+            <td>${r.author || ""}</td>
+            <td>${r.title || ""}</td>
+            <td>${seeInfo}</td>
+            <td>${r.notes || "-"}</td>
+            <td><button onclick="prepareEdit(${r.originalIdx})">تعديل</button> <button onclick="del(${r.originalIdx})">حذف</button></td>
+        </tr>`;
     }).join('');
 
     document.getElementById('pSel').innerHTML = projs.map(p => `<option value="${p}" ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
@@ -197,19 +218,21 @@ function openBiblio() {
         if (r.co_authors && r.co_authors.trim() !== "") {
             responsibility = " / " + normalizeName(r.author) + "؛ " + r.co_authors.split('؛').map(n => normalizeName(n.trim())).join('؛ ');
         }
-        html += `<div style="margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;">
-            <div style="display:flex; justify-content:space-between;"><b>${entryHead}</b><span>(${counterVal++})</span></div>
+        
+        let isLtr = isForeignText(r.title);
+        let itemDir = isLtr ? 'dir="ltr" style="text-align:left; margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;"' : 'dir="rtl" style="text-align:right; margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;"';
+        
+        html += `<div ${itemDir}>
+            <div style="display:flex; justify-content:space-between; direction: ${isLtr ? 'ltr' : 'rtl'};"><b>${entryHead}</b><span>(${counterVal++})</span></div>
             <div>${r.title}${responsibility} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.</div>
-            ${r.notes ? `<div style="font-size:10pt; color:#444;">ملاحظات: ${r.notes}</div>` : ''}
         </div>`;
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
     document.getElementById('modalOverlay').style.display='block';
 }
 
-// دالة تصدير الوورد الاحترافية
 async function exportWord() {
-    const { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, ShadingType, SectionType, PageMargin, Columns } = docx;
+    const { Document, Packer, Paragraph, TextRun, AlignmentType, ShadingType } = docx;
     recs = sortRecords(recs);
     const existingSubjects = new Set(recs.map(r => r.subject ? r.subject.trim() : ''));
     let children = [];
@@ -217,11 +240,11 @@ async function exportWord() {
     let counterVal = 1;
 
     recs.forEach(r => {
-        // معالجة الإحالات
         if (!r.title && (r.see || r.see_also)) {
             let target = (r.see || r.see_also).trim();
             if (existingSubjects.has(target)) {
                 children.push(new Paragraph({
+                    bidirectional: true,
                     spacing: { after: 200 },
                     children: [
                         new TextRun({ text: r.subject, bold: true, size: 26 }),
@@ -232,7 +255,6 @@ async function exportWord() {
             return;
         }
 
-        // رؤوس الموضوعات
         let currentSubject = r.subject || "بدون رأس موضوع";
         if (currentSubject !== lastSubject) {
             children.push(new Paragraph({
@@ -244,17 +266,18 @@ async function exportWord() {
             lastSubject = currentSubject;
         }
 
-        // سطر المؤلف (يمين) والرقم (يسار) باستخدام التاب Tab
+        let isLtr = isForeignText(r.title);
         let entryHead = r.author || r.title;
+        
         children.push(new Paragraph({
-            tabStops: [{ type: "right", position: 4500 }], // ضبط موضع التاب لنهاية العمود
+            alignment: isLtr ? AlignmentType.LEFT : AlignmentType.RIGHT,
+            tabStops: [{ type: "right", position: 4500 }], 
             children: [
                 new TextRun({ text: entryHead, bold: true, size: 26 }),
                 new TextRun({ children: ["\t", `(${counterVal++})`], bold: true, size: 26 })
             ]
         }));
 
-        // متن المدخلة
         let responsibility = "";
         if (r.co_authors && r.co_authors.trim() !== "") {
             responsibility = " / " + normalizeName(r.author) + "؛ " + r.co_authors.split('؛').map(n => normalizeName(n.trim())).join('؛ ');
@@ -262,24 +285,17 @@ async function exportWord() {
         let bibText = `${r.title}${responsibility} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.`;
         
         children.push(new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
+            alignment: isLtr ? AlignmentType.LEFT : AlignmentType.JUSTIFIED,
             spacing: { after: 150 },
             children: [new TextRun({ text: bibText, size: 24 })]
         }));
-
-        if (r.notes) {
-            children.push(new Paragraph({
-                spacing: { after: 150 },
-                children: [new TextRun({ text: `ملاحظات: ${r.notes}`, size: 20, color: "444444" })]
-            }));
-        }
     });
 
     const doc = new Document({
         sections: [{
             properties: {
                 page: { margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" } },
-                column: { count: 2, sep: true, space: "0.5cm" }, // نظام العمودين
+                column: { count: 2, sep: true, space: "0.5cm" }, 
             },
             children: children
         }]
@@ -292,11 +308,31 @@ async function exportWord() {
 
 function runIdx(type) {
     let map = {}; let counter = 1;
-    recs.forEach(r => { if (!r.title) return; let val = r[type] || "بدون بيانات"; if(!map[val]) map[val] = []; map[val].push(counter++); });
-    let sortedKeys = Object.keys(map).sort((a,b) => collator.compare(cleanForSort(a), cleanForSort(b)));
-    let html = `<div style="direction:rtl; column-count: 3; column-gap: 30px; padding:20px;">`;
-    sortedKeys.forEach(k => { html += `<div style="break-inside: avoid; margin-bottom:8px; font-size:11pt;"><b>${k}</b>: ${map[k].join(', ')}</div>`; });
-    document.getElementById('modalBody').innerHTML = html + "</div>";
+    
+    if (type === 'journal') {
+        let uniqueJournals = {};
+        recs.forEach(r => {
+            if (!r.title || !r.journal) return;
+            let jName = r.journal.trim();
+            let aff = r.affiliation ? r.affiliation.trim() : "";
+            if (!uniqueJournals[jName]) {
+                uniqueJournals[jName] = aff;
+            }
+        });
+        let sortedKeys = Object.keys(uniqueJournals).sort((a,b) => collator.compare(cleanForSort(a), cleanForSort(b)));
+        let html = `<div style="direction:rtl; column-count: 2; column-gap: 30px; padding:20px;">`;
+        sortedKeys.forEach(k => { 
+            let affSuffix = uniqueJournals[k] ? ` ؛ ${uniqueJournals[k]}` : "";
+            html += `<div style="break-inside: avoid; margin-bottom:8px; font-size:11pt;"><b>${k}</b>${affSuffix}</div>`; 
+        });
+        document.getElementById('modalBody').innerHTML = html + "</div>";
+    } else {
+        recs.forEach(r => { if (!r.title) return; let val = r[type] || "بدون بيانات"; if(!map[val]) map[val] = []; map[val].push(counter++); });
+        let sortedKeys = Object.keys(map).sort((a,b) => collator.compare(cleanForSort(a), cleanForSort(b)));
+        let html = `<div style="direction:rtl; column-count: 3; column-gap: 30px; padding:20px;">`;
+        sortedKeys.forEach(k => { html += `<div style="break-inside: avoid; margin-bottom:8px; font-size:11pt;"><b>${k}</b>: ${map[k].join(', ')}</div>`; });
+        document.getElementById('modalBody').innerHTML = html + "</div>";
+    }
     document.getElementById('modalOverlay').style.display='block';
 }
 
