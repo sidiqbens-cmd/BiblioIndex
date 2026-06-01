@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>كشاف المجلات الليبية</title>
+    <title>الفهرس الليبي الموحد</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://unpkg.com/docx@7.8.2/build/index.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
@@ -26,7 +26,7 @@
 
 <div class="fixed-header">
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
+        <strong style="font-size: 14px;">الفهرس الليبي الموحد</strong>
         <div style="display:flex; gap:5px; align-items: center;">
             <input type="text" id="itemSearch" placeholder="رقم المادة..." style="width:80px; height:24px; font-size:11px;" oninput="draw()">
             <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
@@ -206,6 +206,36 @@ function normalizeName(name) {
     return parts[1].trim() + " " + parts[0].trim();
 }
 
+function formatBibText(r) {
+    let isLtr = isForeignText(r.title);
+    let chunks = [];
+
+    if (isLtr) {
+        // الترتيب الأجنبي الصارم: العنوان . ـــ المجلة . ـــ العدد . ـــ السنة . ـــ الصفحات
+        if (r.title && r.title.trim() !== "") chunks.push(r.title.trim());
+        if (r.journal && r.journal.trim() !== "") chunks.push(r.journal.trim());
+        if (r.issue && r.issue.trim() !== "") chunks.push(r.issue.trim());
+        if (r.year && r.year.trim() !== "") chunks.push(r.year.trim());
+        if (r.pages && r.pages.trim() !== "") chunks.push("p. " + r.pages.trim());
+    } else {
+        // الترتيب العربي الصارم
+        if (r.title && r.title.trim() !== "") {
+            let responsibility = "";
+            if (r.co_authors && r.co_authors.trim() !== "") {
+                responsibility = " / " + normalizeName(r.author) + "؛ " + r.co_authors.split('؛').map(n => normalizeName(n.trim())).join('؛ ');
+            }
+            chunks.push(r.title.trim() + responsibility);
+        }
+        if (r.journal && r.journal.trim() !== "") chunks.push(r.journal.trim());
+        if (r.issue && r.issue.trim() !== "") chunks.push(r.issue.trim());
+        if (r.year && r.year.trim() !== "") chunks.push(r.year.trim());
+        if (r.pages && r.pages.trim() !== "") chunks.push("ص " + r.pages.trim());
+    }
+
+    if (chunks.length === 0) return "";
+    return chunks.join(" . ـــ ") + ".";
+}
+
 function openBiblio() {
     recs = sortRecords(recs);
     let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman'; text-align:justify;">`;
@@ -225,18 +255,17 @@ function openBiblio() {
             html += `<div class="dewey-header">${currentSubject}</div>`;
             lastSubject = currentSubject;
         }
-        let entryHead = r.author || r.title;
-        let responsibility = "";
-        if (r.co_authors && r.co_authors.trim() !== "") {
-            responsibility = " / " + normalizeName(r.author) + "؛ " + r.co_authors.split('؛').map(n => normalizeName(n.trim())).join('؛ ');
-        }
         
         let isLtr = isForeignText(r.title);
+        // التسمية العلوية: للتسجيلات الأجنبية تكون العنوان مباشرة بغض النظر عن المؤلف
+        let entryHead = isLtr ? r.title : (r.author || r.title);
         let itemDir = isLtr ? 'dir="ltr" style="text-align:left; margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;"' : 'dir="rtl" style="text-align:right; margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;"';
         
+        let bibText = formatBibText(r);
+
         html += `<div ${itemDir}>
             <div style="display:flex; justify-content:space-between; direction: ${isLtr ? 'ltr' : 'rtl'};"><b>${entryHead}</b><span>(${counterVal++})</span></div>
-            <div>${r.title}${responsibility} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.</div>
+            <div>${bibText}</div>
         </div>`;
     });
     document.getElementById('modalBody').innerHTML = html + "</div>";
@@ -279,7 +308,7 @@ async function exportWord() {
         }
 
         let isLtr = isForeignText(r.title);
-        let entryHead = r.author || r.title;
+        let entryHead = isLtr ? r.title : (r.author || r.title);
         
         children.push(new Paragraph({
             alignment: isLtr ? AlignmentType.LEFT : AlignmentType.RIGHT,
@@ -290,11 +319,7 @@ async function exportWord() {
             ]
         }));
 
-        let responsibility = "";
-        if (r.co_authors && r.co_authors.trim() !== "") {
-            responsibility = " / " + normalizeName(r.author) + "؛ " + r.co_authors.split('؛').map(n => normalizeName(n.trim())).join('؛ ');
-        }
-        let bibText = `${r.title}${responsibility} . ـــ ${r.journal} . ـــ ${r.issue} . ـــ ${r.year} . ـــ ص ${r.pages}.`;
+        let bibText = formatBibText(r);
         
         children.push(new Paragraph({
             alignment: isLtr ? AlignmentType.LEFT : AlignmentType.JUSTIFIED,
