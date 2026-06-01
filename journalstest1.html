@@ -86,4 +86,16 @@
             <button type="button" class="btn" style="background:#2c3e50" onclick="runIdx('author')">كشاف المؤلفين</button>
             <button type="button" class="btn" style="background:#d35400" onclick="runIdx('title')">كشاف العناوين</button>
             <button type="button" class="btn" style="background:#e67e22" onclick="runIdx('journal')">كشاف المجلات</button>
-            <button type="button" class="btn" style="background:#29
+            <button type="button" class="btn" style="background:#2980b9" onclick="runIdx('subject')">كشاف الموضوعات</button>
+        </div>
+    </form>
+</div>
+
+<div id="modalOverlay"><div style="padding:10px; background:#2c3e50;"><button onclick="closeM()" class="btn" style="background:#c0392b;">إغلاق</button></div><div id="modalBody"></div></div>
+
+<div class="scroll-area">
+    <table class="admin-table">
+        <thead>
+            <tr>
+                <th>ت</th><th>نوع التصنيف</th><th>رأس الموضوع</th><th>المؤلف</th><th>العنوان</th><th>الإحالات</th><th>إجراء</th>
+            </tr>
