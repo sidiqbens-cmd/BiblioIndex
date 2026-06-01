@@ -28,13 +28,14 @@
     <div style="background:#34495e; color:white; padding:5px 15px; display:flex; justify-content:space-between; align-items:center;">
         <strong style="font-size: 14px;">كشاف المجلات الليبية</strong>
         <div style="display:flex; gap:5px; align-items: center;">
-            <input type="text" id="globalSearch" placeholder="بحث..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
-            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
-            <button onclick="exportWord()" class="btn" style="background:#2c3e50">تصدير Word</button>
-            <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
+            <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
             <select id="pSel" style="height:24px; font-size:11px; width: auto;" onchange="switchP(this.value)"></select>
             <button onclick="newP()" class="btn" style="background:#27ae60">+ جديد</button>
-            <button onclick="delP()" class="btn" style="background:#c0392b">حذف</button>
+            <button onclick="importX()" class="btn" style="background:#27ae60">استيراد</button>
+            <button onclick="exportWord()" class="btn" style="background:#2c3e50">تصدير Word</button>
+            <button onclick="exportX()" class="btn" style="background:#2980b9">تصدير Excel</button>
+            <input type="text" id="globalSearch" placeholder="بحث عام..." style="width:110px; height:24px; font-size:11px;" oninput="draw()">
+            <input type="text" id="numSearch" placeholder="استرجاع بالرقم..." style="width:90px; height:24px; font-size:11px;" oninput="draw()">
         </div>
     </div>
 
@@ -43,6 +44,7 @@
             <tr>
                 <td><span class="field-label">نوع التصنيف</span>
                     <select id="class_type" class="in">
+                        <option value=""></option>
                         <option value="إنسانية">إنسانية</option>
                         <option value="تطبيقية">تطبيقية</option>
                     </select>
@@ -99,3 +101,258 @@
             <tr>
                 <th>ت</th><th>نوع التصنيف</th><th>رأس الموضوع</th><th>المؤلف</th><th>العنوان</th><th>الإحالات</th><th>إجراء</th>
             </tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+    </table>
+</div>
+
+<script>
+let projs = JSON.parse(localStorage.getItem('L_P')) || ['مشروع_جديد'];
+let curP = localStorage.getItem('L_A') || projs[0];
+let recs = JSON.parse(localStorage.getItem('R_' + curP)) || [];
+let editIdx = -1;
+const collator = new Intl.Collator('ar', { sensitivity: 'accent' });
+
+function cleanForSort(text) {
+    if (!text) return "";
+    return text.trim().replace(/^(الـ|ال|أل|أ|إ|آ)/, "");
+}
+
+function sortRecords(arr) {
+    return arr.sort((a, b) => {
+        let typeA = a.class_type || "";
+        let typeB = b.class_type || "";
+        if (typeA !== typeB) return typeA.localeCompare(typeB, 'ar');
+
+        let subA = cleanForSort(a.subject || "");
+        let subB = cleanForSort(b.subject || "");
+        if (subA !== subB) return subA.localeCompare(subB, 'ar');
+
+        let name1 = cleanForSort(a.author || a.title || "");
+        let name2 = cleanForSort(b.author || b.title || "");
+        return collator.compare(name1, name2);
+    });
+}
+
+function updateDataLists() {
+    const fields = ['subject', 'author', 'co_authors', 'title', 'journal', 'translator', 'affiliation', 'year', 'issue', 'pages', 'notes'];
+    fields.forEach(field => {
+        const uniqueValues = [...new Set(recs.map(r => r[field]).filter(v => v))];
+        const dl = document.getElementById('list_' + field);
+        if (dl) dl.innerHTML = uniqueValues.map(v => `<option value="${v}">`).join('');
+    });
+    updateSeeLists();
+}
+
+function updateSeeLists() {
+    const existingSubjects = [...new Set(recs.map(r => r.subject).filter(v => v))].sort((a, b) => collator.compare(cleanForSort(a), cleanForSort(b)));
+    document.getElementById('list_see').innerHTML = existingSubjects.map(v => `<option value="${v}">`).join('');
+    document.getElementById('list_see_also').innerHTML = existingSubjects.map(v => `<option value="${v}">`).join('');
+}
+
+function draw() {
+    recs = sortRecords(recs);
+    let g = document.getElementById('globalSearch').value.toLowerCase();
+    let numG = document.getElementById('numSearch').value.trim();
+    
+    let filtered = recs.map((r, i) => ({...r, originalIdx: i}));
+    
+    // الفلترة بناء على الرقم الترتيبي في حال توفره
+    if (numG !== "") {
+        let currentCounter = 1;
+        filtered = filtered.filter(r => {
+            let matchesNum = false;
+            if (r.title) {
+                if (currentCounter.toString() === numG) {
+                    matchesNum = true;
+                }
+                currentCounter++;
+            }
+            return matchesNum;
+        });
+    } else if (g !== "") {
+        filtered = filtered.filter(r => Object.values(r).some(v => String(v).toLowerCase().includes(g)));
+    }
+    
+    let counterVal = 1;
+    document.getElementById('adminBody').innerHTML = filtered.map((r, i) => {
+        let displayID = r.title ? counterVal++ : '-';
+        let seeInfo = r.see ? `انظر: ${r.see}` : (r.see_also ? `انظر أيضاً: ${r.see_also}` : '-');
+        return `<tr><td>${displayID}</td><td>${r.class_type || ""}</td><td><b>${r.subject || ""}</b></td><td>${r.author || ""}</td><td>${r.title || ""}</td><td>${seeInfo}</td>
+            <td><button onclick="prepareEdit(${r.originalIdx})">تعديل</button> <button onclick="del(${r.originalIdx})">حذف</button></td></tr>`;
+    }).join('');
+
+    document.getElementById('pSel').innerHTML = projs.map(p => `<option value="${p}" ${p === curP ? 'selected' : ''}>${p}</option>`).join('');
+    localStorage.setItem('R_' + curP, JSON.stringify(recs));
+    localStorage.setItem('L_P', JSON.stringify(projs));
+    localStorage.setItem('L_A', curP);
+    updateDataLists();
+}
+
+function save() { 
+    let d = {}; document.querySelectorAll('.in').forEach(i => d[i.id] = i.value); 
+    if(!d.subject) { alert("رأس الموضوع إلزامي"); return; }
+    if(editIdx > -1) recs[editIdx] = d; else recs.push(d); 
+    editIdx = -1; document.getElementById('bForm').reset(); draw(); 
+}
+
+function prepareEdit(i) { editIdx = i; let r = recs[i]; document.querySelectorAll('.in').forEach(inp => inp.value = r[inp.id] || ""); }
+
+function normalizeName(name) {
+    if (!name || !name.includes('،')) return name || "";
+    let parts = name.split('،');
+    return (parts[1] ? parts[1].trim() : "") + " " + (parts[0] ? parts[0].trim() : "");
+}
+
+function buildResponsibility(r) {
+    if (!r.title) return "";
+    let parts = [];
+    if (r.author && r.author.trim() !== "") {
+        parts.push(normalizeName(r.author));
+    }
+    if (r.co_authors && r.co_authors.trim() !== "") {
+        let cos = r.co_authors.split('،').map(n => normalizeName(n.trim())).join('، ');
+        parts.push(cos);
+    }
+    let resp = parts.join('، ');
+    if (r.translator && r.translator.trim() !== "") {
+        resp += (resp ? '؛ ' : '') + "ترجمة " + normalizeName(r.translator);
+    }
+    return resp ? " / " + resp : "";
+}
+
+function openBiblio() {
+    recs = sortRecords(recs);
+    let html = `<div style="direction:rtl; padding:20px; font-family:'Times New Roman'; text-align:justify;">`;
+    let lastSubject = null; let counterVal = 1;
+    const existingSubjects = new Set(recs.map(r => r.subject ? r.subject.trim() : ''));
+    
+    recs.forEach((r, i) => {
+        if (!r.title && (r.see || r.see_also)) {
+            let target = (r.see || r.see_also || "").trim();
+            if (existingSubjects.has(target)) {
+                html += `<div style="font-size:13pt; margin-bottom:5px;"><b>${r.subject || ""}</b> ${r.see ? 'انظر: ' : 'انظر أيضاً: '}${target}</div>`;
+            }
+            return;
+        }
+        let currentSubject = r.subject || "بدون رأس موضوع";
+        if (currentSubject !== lastSubject) {
+            html += `<div class="dewey-header">${currentSubject} ${r.class_type ? '(' + r.class_type + ')' : ''}</div>`;
+            lastSubject = currentSubject;
+        }
+        let entryHead = r.author || r.title || "بدون عنوان";
+        let responsibility = buildResponsibility(r);
+        
+        html += `<div style="margin-bottom:15px; padding:0 30px; line-height:1.6; border-bottom: 1px dotted #ccc;">
+            <div style="display:flex; justify-content:space-between;"><b>${entryHead}</b><span>(${counterVal++})</span></div>
+            <div>${r.title || ""}${responsibility} . ـــ ${r.journal || ""} . ـــ ${r.issue || ""} . ـــ ${r.year || ""} . ـــ ص ${r.pages || ""}.</div>
+            ${r.notes ? `<div style="font-size:10pt; color:#444;">ملاحظات: ${r.notes}</div>` : ''}
+        </div>`;
+    });
+    document.getElementById('modalBody').innerHTML = html + "</div>";
+    document.getElementById('modalOverlay').style.display='block';
+}
+
+async function exportWord() {
+    if (typeof docx === 'undefined') {
+        alert("خطأ: لم يتم تحميل مكتبة تصدير Word بشكل صحيح بعد.");
+        return;
+    }
+    const { Document, Packer, Paragraph, TextRun, AlignmentType, ShadingType } = docx;
+    recs = sortRecords(recs);
+    const existingSubjects = new Set(recs.map(r => r.subject ? r.subject.trim() : ''));
+    let children = [];
+    let lastSubject = null;
+    let counterVal = 1;
+
+    recs.forEach(r => {
+        if (!r.title && (r.see || r.see_also)) {
+            let target = (r.see || r.see_also || "").trim();
+            if (existingSubjects.has(target)) {
+                children.push(new Paragraph({
+                    spacing: { after: 200 },
+                    children: [
+                        new TextRun({ text: r.subject || "", bold: true, size: 26 }),
+                        new TextRun({ text: ` ${r.see ? 'انظر: ' : 'انظر أيضاً: '}${target}`, size: 24 })
+                    ]
+                }));
+            }
+            return;
+        }
+
+        let currentSubject = r.subject || "بدون رأس موضوع";
+        if (currentSubject !== lastSubject) {
+            children.push(new Paragraph({
+                alignment: AlignmentType.CENTER,
+                shading: { fill: "F2F2F2", type: docx.ShadingType.CLEAR, color: "auto" },
+                spacing: { before: 400, after: 200 },
+                children: [new TextRun({ text: `${currentSubject} ${r.class_type ? '(' + r.class_type + ')' : ''}`, bold: true, size: 28 })]
+            }));
+            lastSubject = currentSubject;
+        }
+
+        let entryHead = r.author || r.title || "بدون عنوان";
+        children.push(new Paragraph({
+            tabStops: [{ type: "right", position: 4500 }], 
+            children: [
+                new TextRun({ text: entryHead, bold: true, size: 26 }),
+                new TextRun({ children: ["\t", `(${counterVal++})`], bold: true, size: 26 })
+            ]
+        }));
+
+        let responsibility = buildResponsibility(r);
+        let bibText = `${r.title || ""}${responsibility} . ـــ ${r.journal || ""} . ـــ ${r.issue || ""} . ـــ ${r.year || ""} . ـــ ص ${r.pages || ""}.`;
+        
+        children.push(new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            spacing: { after: 150 },
+            children: [new TextRun({ text: bibText, size: 24 })]
+        }));
+
+        if (r.notes) {
+            children.push(new Paragraph({
+                spacing: { after: 150 },
+                children: [new TextRun({ text: `ملاحظات: ${r.notes}`, size: 20, color: "444444" })]
+            }));
+        }
+    });
+
+    const doc = new Document({
+        sections: [{
+            properties: {
+                page: { margin: { top: "2cm", bottom: "2cm", left: "2cm", right: "2cm" } },
+                column: { count: 2, sep: true, space: "0.5cm" }, 
+            },
+            children: children
+        }]
+    });
+
+    Packer.toBlob(doc).then(blob => {
+        saveAs(blob, `كشاف_${curP}.docx`);
+    }).catch(err => {
+        alert("حدث خطأ أثناء إنشاء ملف الوورد: " + err.message);
+    });
+}
+
+function runIdx(type) {
+    let map = {}; let counter = 1;
+    recs.forEach(r => { if (!r.title) return; let val = r[type] || "بدون بيانات"; if(!map[val]) map[val] = []; map[val].push(counter++); });
+    let sortedKeys = Object.keys(map).sort((a,b) => collator.compare(cleanForSort(a), cleanForSort(b)));
+    let html = `<div style="direction:rtl; column-count: 3; column-gap: 30px; padding:20px;">`;
+    sortedKeys.forEach(k => { html += `<div style="break-inside: avoid; margin-bottom:8px; font-size:11pt;"><b>${k}</b>: ${map[k].join(', ')}</div>`; });
+    document.getElementById('modalBody').innerHTML = html + "</div>";
+    document.getElementById('modalOverlay').style.display='block';
+}
+
+function del(i) { if(confirm("حذف؟")) { recs.splice(i,1); draw(); } }
+function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)) || []; draw(); }
+function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
+function delP() { if(projs.length > 1 && confirm("حذف؟")) { localStorage.removeItem('R_' + curP); projs = projs.filter(p => p !== curP); curP = projs[0]; draw(); } }
+function closeM() { document.getElementById('modalOverlay').style.display='none'; }
+function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
+function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
+
+window.onload = () => { draw(); };
+</script>
+</body>
+</html>
