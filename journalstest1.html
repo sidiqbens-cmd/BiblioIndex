@@ -157,7 +157,6 @@ function draw() {
     
     let filtered = recs.map((r, i) => ({...r, originalIdx: i}));
     
-    // الفلترة بناء على الرقم الترتيبي في حال توفره
     if (numG !== "") {
         let currentCounter = 1;
         filtered = filtered.filter(r => {
@@ -349,8 +348,64 @@ function switchP(v) { curP = v; recs = JSON.parse(localStorage.getItem('R_' + v)
 function newP() { let n = prompt("اسم المشروع:"); if(n) { projs.push(n); curP = n; recs = []; draw(); } }
 function delP() { if(projs.length > 1 && confirm("حذف؟")) { localStorage.removeItem('R_' + curP); projs = projs.filter(p => p !== curP); curP = projs[0]; draw(); } }
 function closeM() { document.getElementById('modalOverlay').style.display='none'; }
-function exportX() { const ws = XLSX.utils.json_to_sheet(recs); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, `${curP}.xlsx`); }
-function importX() { let input = document.createElement('input'); input.type='file'; input.onchange=e=>{ let reader=new FileReader(); reader.onload=ev=>{ let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); recs=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]); draw(); }; reader.readAsArrayBuffer(e.target.files[0]); }; input.click(); }
+
+function exportX() {
+    // بناء البيانات بأسماء الحقول الحالية وترتيبها الدقيق
+    let cleanData = recs.map(r => ({
+        "نوع التصنيف": r.class_type || "",
+        "رأس الموضوع": r.subject || "",
+        "إحالة انظر": r.see || "",
+        "إحالة انظر أيضاً": r.see_also || "",
+        "المؤلف الرئيسي": r.author || "",
+        "العنوان": r.title || "",
+        "مشاركون": r.co_authors || "",
+        "المجلة": r.journal || "",
+        "مترجمون": r.translator || "",
+        "التبعية": r.affiliation || "",
+        "السنة": r.year || "",
+        "العدد": r.issue || "",
+        "الصفحات": r.pages || "",
+        "ملاحظات": r.notes || ""
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(cleanData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "بيانات الكشاف");
+    XLSX.writeFile(wb, `${curP}.xlsx`);
+}
+
+function importX() { 
+    let input = document.createElement('input'); 
+    input.type='file'; 
+    input.onchange=e=>{ 
+        let reader=new FileReader(); 
+        reader.onload=ev=>{ 
+            let wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array'}); 
+            let rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            
+            // تحويل البيانات المستوردة سواء كانت بالأسماء العربية أو الحقول القديمة لتتوافق مع البرنامج
+            recs = rawData.map(r => ({
+                class_type: r["نوع التصنيف"] || r.class_type || "",
+                subject: r["رأس الموضوع"] || r.subject || "",
+                see: r["إحالة انظر"] || r.see || "",
+                see_also: r["إحالة انظر أيضاً"] || r.see_also || "",
+                author: r["المؤلف الرئيسي"] || r.author || "",
+                title: r["العنوان"] || r.title || "",
+                co_authors: r["مشاركون"] || r.co_authors || "",
+                journal: r["المجلة"] || r.journal || "",
+                translator: r["مترجمون"] || r.translator || "",
+                affiliation: r["التبعية"] || r.affiliation || "",
+                year: r["السنة"] || r.year || "",
+                issue: r["العدد"] || r.issue || "",
+                pages: r["الصفحات"] || r.pages || "",
+                notes: r["ملاحظات"] || r.notes || ""
+            }));
+            draw(); 
+        }; 
+        reader.readAsArrayBuffer(e.target.files[0]); 
+    }; 
+    input.click(); 
+}
 
 window.onload = () => { draw(); };
 </script>
